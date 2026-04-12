@@ -1,0 +1,157 @@
+// src/pages/Home.jsx
+import { useState, useMemo, useEffect } from 'react';
+import Fuse from 'fuse.js';
+import { useLocation } from 'react-router-dom';
+import Header from '../components/layout/Header';
+import Banner from '../components/ui/Banner';
+import SearchBar from '../components/ui/SearchBar';
+import CategoryPills from '../components/ui/CategoryPills';
+import ProductCard from '../components/product/ProductCard';
+import StoreStatusBanner from '../components/ui/StoreStatusBanner';
+import { useCart } from '../context/CartContext';
+import BottomNav from '../components/layout/BottomNav';
+import { useProducts, useCategories } from '../hooks/useProducts';
+import { useStoreConfig } from '../hooks/useOrders';
+import { useNotifications } from '../context/NotificationContext';
+import Mascot from '../components/ui/Mascot';
+import { useSwipe } from '../hooks/useSwipe';
+import './Home.css';
+
+import { ProductSkeleton } from '../components/ui/Skeleton';
+
+export default function Home() {
+  const { products, loading } = useProducts();
+  const { config } = useStoreConfig();
+  const { showToast } = useNotifications(); // Using global notification context
+  const { setCartOpen } = useCart();
+  const location = useLocation();
+  const [search, setSearch] = useState('');
+  const [selectedCat, setSelectedCat] = useState('Todos');
+
+  useEffect(() => {
+    if (location.state) {
+      if (location.state.category) {
+        setSelectedCat(location.state.category);
+      }
+      if (location.state.search) {
+        setSearch(location.state.search);
+      }
+    }
+    window.scrollTo(0, 0);
+  }, [location.state]);
+
+  const categories = useCategories(products);
+
+  const handleNextCategory = () => {
+    if (!categories || categories.length <= 1) return;
+    const currentIndex = categories.findIndex(c => c.name === selectedCat);
+    const nextIndex = (currentIndex + 1) % categories.length;
+    setSelectedCat(categories[nextIndex].name);
+  };
+
+  const handlePrevCategory = () => {
+    if (!categories || categories.length <= 1) return;
+    const currentIndex = categories.findIndex(c => c.name === selectedCat);
+    const prevIndex = (currentIndex - 1 + categories.length) % categories.length;
+    setSelectedCat(categories[prevIndex].name);
+  };
+
+  const swipeHandlers = useSwipe({
+    onSwipeLeft: handleNextCategory,
+    onSwipeRight: handlePrevCategory,
+    threshold: 60
+  });
+
+  const filtered = useMemo(() => {
+    if (!products) return [];
+    
+    const baseProducts = products.filter(p => {
+      const matchesCat = selectedCat === 'Todos' || p.category === selectedCat;
+      return matchesCat && p.active !== false;
+    });
+
+    const searchStr = search?.trim();
+    if (!searchStr) return baseProducts;
+
+    const fuseOptions = {
+      keys: [
+        { name: 'name', weight: 0.7 },
+        { name: 'category', weight: 0.1 },
+        { name: 'description', weight: 0.1 },
+        { name: 'tags', weight: 0.1 }
+      ],
+      threshold: 0.35,
+      ignoreLocation: true
+    };
+
+    const fuse = new Fuse(baseProducts, fuseOptions);
+    const results = fuse.search(searchStr);
+    
+    return results.map(res => res.item);
+  }, [products, search, selectedCat]);
+
+  return (
+    <div className="app-container" {...swipeHandlers}>
+      <Header onCartOpen={() => setCartOpen(true)} />
+
+      <main className="page-content">
+        <StoreStatusBanner isOpen={config?.isOpen !== false} />
+        <Banner />
+        <SearchBar onSearch={setSearch} />
+
+        {categories && categories.length > 1 && (
+          <CategoryPills
+            categories={categories}
+            selected={selectedCat}
+            onSelect={setSelectedCat}
+          />
+        )}
+
+        <div className="section-header">
+          <h2 className="section-title">
+            {search ? `Resultados para "${search}"` : selectedCat === 'Todos' ? 'Todos los Productos' : selectedCat}
+          </h2>
+          {filtered.length > 0 && (
+            <span className="section-action">{filtered.length} productos</span>
+          )}
+        </div>
+
+        {loading ? (
+          <div className="product-grid">
+            {[...Array(6)].map((_, i) => <ProductSkeleton key={i} />)}
+          </div>
+        ) : filtered.length > 0 ? (
+          <div className="product-grid">
+            {filtered.map(product => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onToast={(msg, type) => showToast(msg, type)}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="empty-state animate-fade-in">
+            <div className="empty-state-icon">🍃</div>
+            <div className="empty-state-title">Aún no hay nada aquí</div>
+            <p className="empty-state-desc">
+              No encontramos productos que coincidan. ¡Prueba buscando otra cosa o cambia de categoría!
+            </p>
+            <button 
+              className="btn btn-primary-soft mt-md"
+              onClick={() => {
+                setSearch('');
+                setSelectedCat('Todos');
+              }}
+            >
+              Ver todo el catálogo
+            </button>
+          </div>
+        )}
+      </main>
+
+      <Mascot page="catalog" />
+      <BottomNav />
+    </div>
+  );
+}

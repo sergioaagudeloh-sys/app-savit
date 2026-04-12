@@ -1,0 +1,109 @@
+/* src/pages/admin/AdminAwards.css */
+
+.admin-awards {
+  background: var(--color-bg);
+  min-height: 100dvh;
+}
+
+body.is-admin-route .admin-awards .admin-main-content {
+  padding-top: 0;
+}
+
+
+/* ── Award Card ── */
+.awards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-md);
+}
+
+.award-card {
+  background: var(--color-bg-card);
+  border-radius: var(--radius-xl);
+  padding: var(--space-md);
+  border: 1.5px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow var(--transition-base), border-color var(--transition-base);
+  animation: promo-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Acento izquierdo */
+.award-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  border-radius: 4px 0 0 4px;
+  background: linear-gradient(180deg, var(--color-accent), var(--color-primary));
+}
+
+.award-card.is-paused::before {
+  background: linear-gradient(180deg, var(--color-stone), var(--color-border));
+}
+
+.award-card.is-editing {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
+}
+
+.award-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-accent-light);
+}
+
+.award-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--space-xs);
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.award-info h3 {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--color-text);
+  margin: 0;
+  flex: 1;
+}
+
+.award-info p {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  margin: var(--space-xs) 0 var(--space-sm);
+}
+
+.award-points-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--color-primary-50);
+  color: var(--color-primary);
+  padding: 5px 13px;
+  border-radius: var(--radius-pill);
+  font-weight: 800;
+  font-size: 0.85rem;
+}
+
+.award-actions {
+  display: flex;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--color-border);
+  justify-content: flex-end;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .awards-grid {
+    grid-template-columns: 1fr;
+  }
+}

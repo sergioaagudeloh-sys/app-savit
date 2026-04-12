@@ -1,0 +1,17 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Product images: public read, admin-only write
+    match /products/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null
+                   && request.auth.token.email == 'admin@savit.com';
+    }
+
+    // Block everything else
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

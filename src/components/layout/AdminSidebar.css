@@ -1,0 +1,203 @@
+/* ── AdminSidebar.css — Desktop Admin Sidebar ── */
+
+.admin-sidebar {
+  /* Hidden on mobile — shown at ≥960px via media query */
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 240px;
+  background: linear-gradient(
+    180deg,
+    hsl(130, 58%, 14%) 0%,
+    hsl(145, 52%, 20%) 60%,
+    hsl(155, 48%, 23%) 100%
+  );
+  flex-direction: column;
+  z-index: 600;
+  padding: 20px 12px 20px;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+
+.admin-sidebar::-webkit-scrollbar { display: none; }
+
+@media (min-width: 960px) {
+  .admin-sidebar {
+    display: flex;
+  }
+}
+
+/* ── Brand ── */
+.admin-sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 8px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.admin-sidebar-logo {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  object-fit: cover;
+  background: rgba(255,255,255,0.1);
+  flex-shrink: 0;
+}
+
+.admin-sidebar-brand-name {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.admin-sidebar-brand-sub {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-top: 1px;
+}
+
+/* ── Navigation ── */
+.admin-sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-height: 0;
+}
+
+.admin-sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.55);
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: all 0.18s ease;
+  cursor: pointer;
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-sidebar-item::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0);
+  border-radius: 12px;
+  transition: background 0.18s ease;
+}
+
+.admin-sidebar-item:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.admin-sidebar-item:hover::before {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.admin-sidebar-item.active {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.13);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12),
+              0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Active accent bar */
+.admin-sidebar-item.active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 25%;
+  bottom: 25%;
+  width: 3px;
+  background: var(--color-accent);
+  border-radius: 0 3px 3px 0;
+}
+
+.admin-sidebar-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.85;
+}
+
+.admin-sidebar-item.active .admin-sidebar-icon {
+  opacity: 1;
+}
+
+.admin-sidebar-label {
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+/* ── Footer ── */
+.admin-sidebar-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  flex-shrink: 0;
+}
+
+.admin-sidebar-store-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.82rem;
+  font-weight: 600;
+  transition: all 0.18s ease;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: none;
+}
+
+.admin-sidebar-store-btn:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.admin-sidebar-logout {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  color: rgba(240, 100, 100, 0.7);
+  font-size: 0.82rem;
+  font-weight: 600;
+  transition: all 0.18s ease;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: none;
+}
+
+.admin-sidebar-logout:hover {
+  background: rgba(240, 80, 80, 0.1);
+  color: rgba(255, 110, 110, 0.95);
+}

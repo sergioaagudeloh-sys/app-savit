@@ -1,0 +1,70 @@
+/* src/components/ui/StoreStatusBanner.css */
+.store-status-banner {
+  background: linear-gradient(135deg, #fdfbfb 0%, #fffbf2 100%);
+  border: 1px dashed rgba(255, 166, 0, 0.3);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 16px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  overflow: hidden;
+  position: relative;
+}
+
+.banner-status-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+
+.banner-status-icon {
+  background: var(--color-accent-soft);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.banner-status-text {
+  flex: 1;
+}
+
+.banner-status-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #856404;
+}
+
+.banner-status-desc {
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: #856404;
+  opacity: 0.95;
+}
+
+.emoji-pulse {
+  display: block;
+  animation: pulse-slow 3s infinite ease-in-out;
+}
+
+@keyframes pulse-slow {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+@media (max-width: 480px) {
+  .store-status-banner {
+    padding: 12px;
+    margin: 12px;
+  }
+}

@@ -1,0 +1,173 @@
+/* HealthyTip.css - Premium Banner Style */
+.healthy-tip-banner {
+  position: relative;
+  width: 100vw;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  background: var(--color-bg-card);
+  padding: 24px var(--space-md) 32px;
+  margin-top: 0; /* Lo dejamos en 0 ya que ClientHome maneja el margen del header */
+  margin-bottom: var(--space-xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.tip-banner-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  opacity: 0.15;
+}
+
+.tip-banner-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(40px);
+}
+
+.blob-1 {
+  width: 200px;
+  height: 200px;
+  background: var(--color-primary);
+  top: -100px;
+  right: -50px;
+}
+
+.blob-2 {
+  width: 150px;
+  height: 150px;
+  background: var(--color-accent);
+  bottom: -75px;
+  left: -50px;
+}
+
+.tip-banner-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  max-width: 500px;
+  width: 100%;
+  padding: 0 var(--space-xl);
+}
+
+.tip-banner-icon-area {
+  background: rgba(132, 175, 36, 0.1);
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tip-banner-emoji {
+  font-size: 28px;
+}
+
+.tip-banner-text-area {
+  flex: 1;
+}
+
+.tip-banner-header {
+  margin-bottom: 4px;
+}
+
+.tip-banner-label {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.tip-banner-quote {
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--color-text-dark);
+  margin: 0;
+}
+
+.banner-nav-btn {
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--color-border);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.banner-nav-btn:active {
+  transform: translateY(-50%) scale(0.9);
+  background: var(--color-bg);
+}
+
+.banner-nav-btn.prev {
+  left: var(--space-sm);
+}
+
+.banner-nav-btn.next {
+  right: var(--space-sm);
+}
+
+.banner-progress-container {
+  position: absolute;
+  bottom: 12px;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  z-index: 3;
+}
+
+.banner-progress-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.banner-progress-dot.active {
+  width: 20px;
+  border-radius: 10px;
+  background: var(--color-primary);
+}
+
+/* Animation */
+.animate-slide-up {
+  animation: slideUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes slideUp {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 480px) {
+  .tip-banner-quote {
+    font-size: 1rem;
+  }
+}

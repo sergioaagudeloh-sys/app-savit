@@ -1,0 +1,290 @@
+/* src/components/cart/CartDrawer.css */
+
+
+
+
+.cart-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-md);
+  padding: var(--space-lg) var(--space-lg) 0; /* Add top and side padding */
+}
+
+.cart-drawer-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--color-primary);
+  margin-right: auto;
+}
+
+.cart-header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.cart-clear-btn {
+  font-size: var(--font-size-sm);
+  color: var(--color-danger);
+  font-weight: 600;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: background var(--transition-fast);
+}
+.cart-clear-btn:hover { background: var(--color-danger-light); }
+
+.cart-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--color-bg-card);
+  border: 1px solid rgba(0,0,0,0.05); /* Softer border */
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+}
+.cart-close-btn:hover {
+  background: var(--color-bg);
+  color: var(--color-text);
+  transform: scale(1.08); /* Safer scale */
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
+.cart-close-btn:active {
+  transform: scale(0.95);
+}
+
+
+.cart-items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden; /* Evita scroll horizontal al lanzar items */
+  margin-bottom: var(--space-md);
+  padding: 0 var(--space-lg); /* Add side padding only */
+}
+
+.cart-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm);
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+  will-change: transform; /* Optimización para swipe fluido */
+}
+
+.cart-item-image {
+  width: 60px;
+  height: 60px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--color-bg-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+}
+
+.cart-item-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cart-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.cart-item-name {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cart-item-price {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+.cart-item-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.cart-item-subtotal {
+  font-size: var(--font-size-sm);
+  font-weight: 800;
+  color: var(--color-primary);
+}
+
+.cart-drawer-footer {
+  border-top: 1px solid rgba(0,0,0,0.04);
+  padding: var(--space-md) var(--space-lg) calc(var(--space-md) + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.85); /* Glassmorphism base */
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 -12px 40px rgba(0,0,0,0.06);
+  position: relative;
+  z-index: 10;
+}
+
+.cart-status-notice {
+  padding: 10px 12px;
+  background: rgba(255, 243, 205, 0.8);
+  border: 1px solid rgba(255, 238, 186, 0.5);
+  border-radius: var(--radius-md);
+  color: #856404;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-align: center;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.cart-drawer-actions {
+  display: flex;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+}
+
+.btn-profile {
+  flex: 0 0 auto;
+  min-width: 80px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-soft);
+  color: var(--color-text-main);
+  font-weight: 600;
+  border: 1px solid var(--color-border);
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.btn-checkout {
+  flex: 1;
+  height: 48px;
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+
+.cart-summary {
+  margin-bottom: var(--space-md);
+}
+
+.cart-summary-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Orders in Progress Styles */
+.cart-orders-progress {
+  margin: 0 var(--space-lg) var(--space-md);
+  padding: var(--space-sm);
+  background: rgba(var(--color-primary-rgb), 0.05);
+  border-radius: var(--radius-lg);
+  border: 1px dashed var(--color-primary);
+}
+
+.cart-orders-title {
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-primary);
+  margin-bottom: var(--space-xs);
+  font-weight: 700;
+}
+
+.cart-orders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cart-order-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--color-bg-card);
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: transform var(--transition-fast);
+}
+
+.cart-order-item:active {
+  transform: scale(0.98);
+}
+
+.cart-order-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.cart-order-id {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.cart-order-status {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.status-pending { color: var(--color-warning); }
+.status-approved { color: var(--color-info); }
+.status-paid { color: var(--color-success); }
+
+.cart-order-arrow {
+  color: var(--color-text-muted);
+  font-size: 18px;
+}
+
+.cart-item-stock-warning {
+  font-size: 10px;
+  color: #856404;
+  background: #fff3cd;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-top: 2px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.qty-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}

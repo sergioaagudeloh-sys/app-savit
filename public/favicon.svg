@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <g fill="#6a8241">
+    <!-- Hoja izquierda -->
+    <path d="M95 120 C 50 110, 30 60, 40 30 C 70 30, 95 60, 95 120" />
+    <!-- Hoja derecha más oscura para simular sombra/variación -->
+    <path d="M105 120 C 150 110, 170 60, 160 30 C 130 30, 105 60, 105 120" fill="#586835" />
+    <!-- Tallo central -->
+    <path d="M97 160 C 97 140, 100 120, 100 115 C 103 120, 105 140, 105 160" />
+  </g>
+</svg>

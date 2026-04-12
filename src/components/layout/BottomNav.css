@@ -1,0 +1,194 @@
+/* src/components/layout/BottomNav.css */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: var(--max-width);
+  height: var(--bottom-nav-height);
+  background: var(--color-bg-card);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: 1000;
+  box-shadow: 0 -4px 20px rgba(36,76,38,0.08);
+  padding: 0 var(--space-xs);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: var(--color-stone);
+  transition: all var(--transition-base);
+  text-decoration: none;
+  min-width: 60px;
+}
+
+.bottom-nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 32px;
+  border-radius: 12px;
+  transition: all var(--transition-base);
+}
+
+.bottom-nav-item.active {
+  color: var(--color-primary);
+}
+
+.bottom-nav-item.active .bottom-nav-icon {
+  background: var(--color-primary);
+  color: white;
+}
+
+.bottom-nav-label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.bottom-nav-item.active .bottom-nav-label {
+  font-weight: 700;
+}
+
+/* Admin Menu Drawer Styles */
+.admin-menu-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  z-index: 2000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.admin-menu-drawer {
+  width: 100%;
+  max-width: var(--max-width);
+  background: var(--color-bg-card);
+  border-radius: 32px 32px 0 0;
+  padding: var(--space-lg) var(--space-md);
+  padding-bottom: calc(var(--space-lg) + env(safe-area-inset-bottom));
+  box-shadow: 0 -10px 40px rgba(0,0,0,0.15);
+  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.admin-menu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-lg);
+}
+
+.admin-menu-header h3 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 20px;
+  color: var(--color-primary-dark);
+}
+
+.admin-menu-close {
+  background: var(--color-bg-body);
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-stone);
+  cursor: pointer;
+}
+
+.admin-menu-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.admin-menu-btn {
+  background: var(--color-bg-body);
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-primary-dark);
+  font-weight: 600;
+  font-size: 13px;
+  transition: all var(--transition-base);
+  cursor: pointer;
+}
+
+.admin-menu-btn:active {
+  transform: scale(0.96);
+  background: var(--color-primary-50);
+  border-color: var(--color-primary);
+}
+
+.admin-menu-icon {
+  width: 36px;
+  height: 36px;
+  background: white;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  box-shadow: 0 4px 12px rgba(36, 76, 38, 0.08);
+}
+
+.admin-menu-btn.store {
+  grid-column: span 2;
+  flex-direction: row;
+  justify-content: center;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  margin-top: var(--space-xs);
+}
+
+.admin-menu-btn.store .admin-menu-icon {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  width: 28px;
+  height: 28px;
+  box-shadow: none;
+}
+
+.admin-menu-btn.logout {
+  grid-column: span 2;
+  flex-direction: row;
+  justify-content: center;
+  background: #fff0f0;
+  color: #ff4d4d;
+  border: 1px solid #ffebeb;
+}
+
+.admin-menu-btn.logout .admin-menu-icon {
+  background: white;
+  color: #ff4d4d;
+  width: 28px;
+  height: 28px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}

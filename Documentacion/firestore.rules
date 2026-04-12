@@ -1,0 +1,43 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Función para validar si el usuario actual es un Administrador autenticado
+    function isAdmin() {
+      return request.auth != null && request.auth.uid != null;
+    }
+
+    // ==========================================
+    // COLECCIÓN: products (Catálogo de productos)
+    // ==========================================
+    match /products/{productId} {
+      // Cualquier persona (incluso invitados) puede ver el catálogo
+      allow read: if true;
+      // Solo el administrador autenticado puede crear, modificar o eliminar productos
+      allow write: if isAdmin();
+    }
+
+    // ==========================================
+    // COLECCIÓN: config (Configuración de la app)
+    // ==========================================
+    match /config/{document=**} {
+      // Todos pueden ver la configuración (ej: estado abierto/cerrado, WhatsApp)
+      allow read: if true;
+      // Solo el administrador controla estos valores
+      allow write: if isAdmin();
+    }
+
+    // ==========================================
+    // COLECCIÓN: orders (Pedidos)
+    // ==========================================
+    match /orders/{orderId} {
+      // Los clientes no autenticados solo pueden CREAR pedidos (write).
+      // Por privacidad, no pueden listar (leer) todos los pedidos del negocio.
+      allow create: if true;
+      
+      // Solo el administrador puede leer, actualizar (pagado/despachado) y borrar pedidos.
+      allow read, update, delete: if isAdmin();
+    }
+  }
+}

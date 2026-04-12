@@ -1,0 +1,140 @@
+/* src/components/ui/OrderTimeline.css */
+
+.order-timeline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 16px 8px 12px;
+  position: relative;
+  gap: 0;
+}
+
+/* ─ Each step node ─ */
+.ot-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+
+/* ─ Connector line between steps ─ */
+.ot-connector {
+  position: absolute;
+  top: 16px;
+  right: 50%;
+  width: 100%;
+  height: 3px;
+  background: var(--color-border);
+  border-radius: 2px;
+  z-index: 0;
+  transition: background 0.4s ease;
+}
+
+.ot-connector--active {
+  background: linear-gradient(90deg, var(--color-accent), var(--color-primary));
+}
+
+/* ─ Circle node ─ */
+.ot-node {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  position: relative;
+  z-index: 2;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 2.5px solid var(--color-border);
+  background: white;
+}
+
+/* Done step */
+.ot-step--done .ot-node {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 12px rgba(36, 76, 38, 0.3);
+}
+
+.ot-check {
+  color: white;
+  font-weight: 800;
+  font-size: 13px;
+}
+
+/* Current step */
+.ot-step--current .ot-node {
+  background: white;
+  border-color: var(--color-accent);
+  border-width: 3px;
+  box-shadow: 0 0 0 5px rgba(132, 175, 36, 0.15), 0 4px 12px rgba(132, 175, 36, 0.25);
+  animation: ot-pulse 2s ease-in-out infinite;
+}
+
+@keyframes ot-pulse {
+  0%, 100% { box-shadow: 0 0 0 4px rgba(132, 175, 36, 0.15), 0 4px 10px rgba(132, 175, 36, 0.2); }
+  50%       { box-shadow: 0 0 0 8px rgba(132, 175, 36, 0.08), 0 6px 16px rgba(132, 175, 36, 0.3); }
+}
+
+/* Future step */
+.ot-step--future .ot-node {
+  opacity: 0.4;
+}
+
+/* ─ Label ─ */
+.ot-label {
+  font-size: 9px;
+  font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  line-height: 1.2;
+  max-width: 52px;
+}
+
+.ot-step--done .ot-label,
+.ot-step--current .ot-label {
+  color: var(--color-primary);
+}
+
+.ot-step--current .ot-label {
+  color: var(--color-accent-dark);
+  font-weight: 800;
+}
+
+/* ─ Cancelled state ─ */
+.order-timeline--cancelled {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px;
+  background: #fdeaea;
+  border-radius: var(--radius-md);
+  margin: 8px 0;
+}
+
+.ot-cancelled-icon {
+  width: 28px;
+  height: 28px;
+  background: var(--color-danger);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.ot-cancelled-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-danger);
+}

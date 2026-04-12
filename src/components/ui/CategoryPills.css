@@ -1,0 +1,77 @@
+/* src/components/ui/CategoryPills.css */
+.category-pills {
+  padding: 12px var(--space-md) 8px; /* Reducido para ahorrar espacio */
+}
+
+.category-pills-inner {
+  display: flex;
+  gap: 8px;
+  width: max-content;
+  padding-bottom: 2px;
+}
+
+.category-pill {
+  display: flex;
+  flex-direction: row; /* Cambio a fila para ahorrar altura */
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 40px; /* Mucho más bajo y profesional */
+  padding: 0 16px;
+  border-radius: 12px; /* Radio más sutil y moderno */
+  font-size: 13px;
+  font-weight: 600;
+  background: #fff;
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.pill-icon {
+  font-size: 18px; /* Icono más integrado */
+  line-height: 1;
+}
+
+.pill-name {
+  text-transform: capitalize;
+  letter-spacing: -0.01em;
+}
+
+.category-pill:hover {
+  background: var(--color-bg-soft);
+  border-color: var(--color-primary-light);
+  transform: translateY(-2px);
+}
+
+.category-pill:active {
+  transform: scale(0.95);
+}
+
+.category-pill.active {
+  background: var(--color-primary);
+  color: #fff; /* Texto blanco para mejor contraste sobre fondo principal */
+  border-color: var(--color-primary);
+  box-shadow: 0 6px 15px rgba(36, 76, 38, 0.25);
+  transform: translateY(-2px);
+}
+
+.category-pill.active .pill-icon {
+  transform: scale(1.1);
+}
+
+/* Eliminamos la barra inferior para ahorrar espacio vertical */
+
+/* Scroll handling */
+.category-pills.scroll-x::-webkit-scrollbar {
+  display: none;
+}
+.category-pills.scroll-x {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}

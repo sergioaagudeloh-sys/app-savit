@@ -1,0 +1,323 @@
+/* src/components/ui/NotificationFAB.css */
+.notification-fab-container {
+  position: relative; /* Now placed inside the header flex container */
+  display: flex;
+  align-items: center;
+}
+
+.notification-fab-button {
+  position: relative;
+  background: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: white !important;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.notification-fab-button:hover { 
+  background: rgba(255, 255, 255, 0.25) !important; 
+  transform: scale(1.08); /* More subtle bounce */
+}
+
+.notification-fab-button:active {
+  transform: scale(0.9);
+}
+
+.fab-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  background: var(--color-accent);
+  color: white;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--color-primary);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* Panel anchored to the viewport, always visible */
+.notification-panel {
+  position: fixed;
+  top: 72px; /* Slightly lower to clear header border perfectly */
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 32px); /* A bit more side margin */
+  max-width: 380px;
+  background: rgba(255, 255, 255, 0.90); /* a bit more opaque for readability */
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+  overflow: hidden;
+  border: 1px solid rgba(0,0,0,0.05);
+  animation: panelSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  z-index: 10000;
+}
+
+
+@keyframes panelSlideIn {
+  from { transform: translateX(-50%) translateY(-10px) scale(0.95); opacity: 0; }
+  to { transform: translateX(-50%) translateY(0) scale(1); opacity: 1; }
+}
+
+
+.notif-header {
+  padding: 16px 20px;
+  background: linear-gradient(135deg, var(--color-primary-light), var(--color-primary-dark));
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.notif-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.notif-header button {
+  background: none;
+  border: none;
+  color: white;
+  opacity: 0.8;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: opacity 0.2s;
+}
+
+.notif-header button:hover {
+  opacity: 1;
+}
+
+.notif-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.notif-clear-btn {
+  color: rgba(255, 255, 255, 0.7) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 11px !important;
+}
+
+.notif-clear-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white !important;
+}
+
+
+.notif-body {
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 12px 0;
+}
+
+.notif-item {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.notif-item:hover {
+  background: #f9f9f9;
+}
+
+.notif-item.unread {
+  background: #f7fdf2;
+}
+
+.notif-item.unread::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--color-accent);
+}
+
+.notif-item h4 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-dark);
+}
+
+.notif-item-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.notif-item-top h4 {
+  flex: 1;
+}
+
+.notif-item p {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--color-text-body);
+  line-height: 1.4;
+}
+
+.notif-time {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.notif-empty {
+  padding: 30px 20px;
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+.notif-history-toggle {
+  display: block;
+  width: calc(100% - 32px);
+  margin: 8px 16px;
+  padding: 8px;
+  background: var(--color-bg-soft);
+  color: var(--color-primary);
+  border: 1px dashed var(--color-stone);
+  border-radius: var(--radius-md);
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.notif-history-toggle:hover {
+  background: var(--color-stone);
+}
+
+.notif-divider {
+  padding: 8px 16px;
+  background: #f8fbf5;
+  color: var(--color-text-muted);
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin: 12px 0 4px;
+  border-top: 1px solid #f0f4e9;
+  border-bottom: 1px solid #f0f4e9;
+}
+
+/* ── Custom Confirm Modal ── */
+.notif-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 20000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.notif-modal {
+  background: white;
+  width: 100%;
+  max-width: 320px;
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+  animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes modalPop {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.notif-modal-icon {
+  font-size: 40px;
+  margin-bottom: 16px;
+}
+
+.notif-modal h4 {
+  margin: 0 0 10px;
+  color: var(--color-primary);
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.notif-modal p {
+  margin: 0 0 24px;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.notif-modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.notif-modal-actions button {
+  width: 100%;
+  padding: 14px;
+  border-radius: var(--radius-lg);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.modal-btn-delete {
+  background: #ff4757;
+  color: white;
+}
+
+.modal-btn-delete:hover {
+  background: #ff3e4e;
+  transform: translateY(-1px);
+}
+
+.modal-btn-cancel {
+  background: var(--color-bg-soft);
+  color: var(--color-text-body);
+}
+
+.modal-btn-cancel:hover {
+  background: var(--color-stone);
+}
+

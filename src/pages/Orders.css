@@ -1,0 +1,265 @@
+/* src/pages/Orders.css */
+.orders-page {
+  background: var(--color-bg);
+}
+
+.orders-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  padding: var(--space-md);
+}
+
+/* ── Estado vacío ── */
+.orders-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--space-xl) var(--space-lg);
+  margin: var(--space-xl) var(--space-md);
+  background: var(--color-bg-card);
+  border-radius: var(--radius-xl);
+  border: 1px dashed var(--color-border);
+  box-shadow: var(--shadow-sm);
+  gap: var(--space-sm);
+}
+
+.orders-empty-icon {
+  font-size: 3.5rem;
+  line-height: 1;
+  margin-bottom: var(--space-xs);
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.orders-empty-title {
+  font-size: var(--font-size-lg);
+  font-weight: 800;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.orders-empty-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.orders-empty-btn {
+  margin-top: var(--space-md);
+  padding: 14px var(--space-xl);
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  border-radius: var(--radius-pill);
+  letter-spacing: 0.01em;
+}
+
+
+
+.order-card {
+  background: var(--color-bg-card);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-border);
+}
+
+.order-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--space-sm);
+  padding-bottom: var(--space-sm);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.order-id {
+  font-weight: 700;
+  color: var(--color-text);
+  font-size: var(--font-size-md);
+}
+
+.order-date {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+.order-quote-alert {
+  background: rgba(var(--color-info-rgb), 0.1);
+  color: var(--color-info);
+  padding: var(--space-sm);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.order-cancel-alert {
+  background: #f8d7da;
+  color: #721c24;
+  padding: var(--space-sm);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-sm);
+  border: 1px solid #f5c6cb;
+}
+
+.order-items {
+  margin-bottom: var(--space-md);
+}
+
+.order-item-line {
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px;
+  font-size: var(--font-size-sm);
+}
+
+.order-item-qty {
+  font-weight: 700;
+  color: var(--color-text-muted);
+  width: 24px;
+}
+
+.order-item-name {
+  flex: 1;
+  color: var(--color-text);
+}
+
+.order-item-price {
+  font-weight: 500;
+}
+
+.order-summary-box {
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-md);
+}
+
+.order-subtotal-line {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin-bottom: 4px;
+}
+
+.order-total-line {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-top: var(--space-xs);
+  padding-top: var(--space-xs);
+  border-top: 1px dashed var(--color-border);
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.badge-warning {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.badge-info {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.badge-success {
+  background: #d4edda;
+  color: #155724;
+}
+
+.badge-danger {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.badge-muted {
+  background: #e2e3e5;
+  color: #383d41;
+}
+
+/* Delivery Animation */
+.order-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.motorcycle-track {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 38px;
+  background: rgba(var(--color-primary-rgb), 0.05);
+  display: flex;
+  align-items: center;
+  z-index: 1;
+  border-top: 1px solid rgba(var(--color-primary-rgb), 0.1);
+}
+
+.delivery-rider {
+  position: absolute;
+  font-size: 24px;
+  animation: drive-package 6s linear infinite;
+  display: flex;
+  align-items: center;
+  text-shadow: -10px 0 10px rgba(0,0,0,0.1); /* Trail effect */
+}
+
+@keyframes drive-package {
+  0% { left: -40px; }
+  100% { left: 100%; }
+}
+
+/* Clear History Header */
+.orders-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-sm) var(--space-xs);
+  margin-bottom: var(--space-xs);
+}
+
+.orders-page-title {
+  font-size: var(--font-size-lg);
+  font-weight: 800;
+  color: var(--color-primary);
+  margin: 0;
+}
+
+.btn-clear-history {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color-danger);
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(214, 69, 69, 0.2);
+  background: rgba(214, 69, 69, 0.05);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-clear-history:hover {
+  background: var(--color-danger);
+  color: white;
+}
+
+/* Modal styles viven globalmente en index.css */

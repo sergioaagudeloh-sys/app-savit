@@ -1,0 +1,512 @@
+/* src/components/ui/CustomerWizard.css */
+
+/* ── Overlay ── */
+.cw-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(6px);
+  z-index: 50000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: cwFadeIn 0.25s ease-out;
+}
+
+@keyframes cwFadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* ── Card ── */
+.cw-card {
+  background: #fff;
+  width: 100%;
+  max-width: var(--max-width);
+  border-radius: 32px 32px 0 0;
+  padding: 0 0 env(safe-area-inset-bottom);
+  box-shadow: 0 -24px 80px rgba(0, 0, 0, 0.25);
+  animation: cwSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  overflow: hidden;
+  position: relative;
+}
+
+@keyframes cwSlideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ── Header Banner ── */
+.cw-header {
+  background: linear-gradient(135deg, #0f2411 0%, #244c26 55%, #3d7c42 100%);
+  padding: 28px 24px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+}
+
+.cw-logo {
+  width: 56px;
+  height: 56px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  margin-bottom: 10px;
+  backdrop-filter: blur(4px);
+}
+
+.cw-close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  font-size: 14px;
+  backdrop-filter: blur(4px);
+  transition: all 0.2s ease;
+}
+
+.cw-close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.cw-header-title {
+  color: #fff;
+  font-size: 20px;
+  font-weight: 800;
+  margin: 0 0 4px;
+  letter-spacing: -0.02em;
+}
+
+.cw-header-sub {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 13px;
+  margin: 0;
+}
+
+/* ── Progress Dots ── */
+.cw-progress {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.cw-dot {
+  height: 4px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+  width: 20px;
+}
+
+.cw-dot.active {
+  background: #84af24;
+  width: 40px;
+}
+
+.cw-dot.done {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+/* ── Body ── */
+.cw-body {
+  padding: 24px 24px 16px;
+  overflow: hidden;
+}
+
+/* ── Step Animations ── */
+.cw-step {
+  animation: cwStepIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes cwStepIn {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.cw-step-back {
+  animation: cwStepBack 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes cwStepBack {
+  from {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ── Step Title ── */
+.cw-step-icon {
+  font-size: 36px;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.cw-step-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--color-primary);
+  margin: 0 0 4px;
+  letter-spacing: -0.02em;
+  text-align: center;
+}
+
+.cw-step-desc {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  text-align: center;
+  margin: 0 0 20px;
+  line-height: 1.5;
+}
+
+/* ── Inputs ── */
+.cw-field {
+  margin-bottom: 16px;
+}
+
+.cw-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+
+.cw-input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--color-text);
+  background: var(--color-bg);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+
+}
+
+.cw-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(36, 76, 38, 0.12);
+  background: #fff;
+}
+
+.cw-input.error {
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 3px rgba(214, 69, 69, 0.1);
+}
+
+/* ── Phone Row: Flag + Input ── */
+.cw-phone-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.cw-prefix {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 12px;
+  background: var(--color-bg);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.cw-phone-row .cw-input {
+  flex: 1;
+}
+
+/* ── Error message ── */
+.cw-error {
+  font-size: 12px;
+  color: var(--color-danger);
+  font-weight: 600;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+
+/* ── Actions ── */
+.cw-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 24px 24px;
+}
+
+.cw-btn-primary {
+  width: 100%;
+  padding: 16px;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-pill);
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 6px 20px rgba(36, 76, 38, 0.3);
+}
+
+.cw-btn-primary:hover:not(:disabled) {
+  background: var(--color-primary-dark);
+  transform: translateY(-1px);
+}
+
+.cw-btn-primary:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.cw-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cw-btn-ghost {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 8px;
+  text-align: center;
+  transition: color 0.2s;
+}
+
+.cw-btn-ghost:hover {
+  color: var(--color-text);
+}
+
+.cw-btn-home {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  background: #f8f9fa;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-top: 4px;
+}
+
+.cw-btn-home:hover {
+  background: #fff;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  box-shadow: 0 4px 12px rgba(36, 76, 38, 0.08);
+  transform: translateY(-1px);
+}
+
+.cw-btn-home:active {
+  transform: scale(0.98);
+}
+
+.cw-btn-home .icon {
+  font-size: 16px;
+}
+
+.cw-btn-back {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 8px 0;
+  transition: color 0.2s;
+}
+
+.cw-btn-back:hover {
+  color: var(--color-text);
+}
+
+/* ── Success Step ── */
+.cw-success {
+  text-align: center;
+  padding: 8px 24px 24px;
+  animation: cwStepIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.cw-success-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  animation: cwPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes cwPop {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.cw-success-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--color-primary);
+  margin-bottom: 8px;
+  letter-spacing: -0.02em;
+}
+
+.cw-success-desc {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+
+/* ── Confetti emojis ── */
+.cw-confetti {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  font-size: 22px;
+  margin-bottom: 16px;
+}
+
+/* ── Divider ── */
+.cw-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0 12px;
+}
+
+.cw-divider::before,
+.cw-divider::after {
+  content: '';
+  flex: 1;
+  background: var(--color-border);
+}
+
+.cw-divider span {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.cw-btn-danger {
+  color: #d64545 !important;
+}
+
+.cw-btn-danger:hover {
+  background: #fff5f5 !important;
+}
+
+.cw-phone-row.disabled {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* ── Points Badge (Profile) ── */
+.cw-points-badge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, var(--color-primary) 0%, #4CAF50 100%);
+  color: white;
+  border-radius: 16px;
+  padding: 14px 18px;
+  margin-bottom: 16px;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(36, 76, 38, 0.25);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.cw-points-badge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(36, 76, 38, 0.32);
+}
+
+.cw-points-badge:active {
+  transform: scale(0.97);
+}
+
+.cw-points-icon {
+  font-size: 1.8rem;
+  flex-shrink: 0;
+}
+
+.cw-points-value {
+  display: block;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.cw-points-sub {
+  display: block;
+  font-size: 0.72rem;
+  opacity: 0.85;
+  margin-top: 2px;
+}

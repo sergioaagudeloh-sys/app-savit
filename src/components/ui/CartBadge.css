@@ -1,0 +1,75 @@
+/* ═══════════════════════════════════════════════
+   CartBadge.css — contador premium del carrito
+   ═══════════════════════════════════════════════ */
+
+/* Contenedor relativo para posicionar ripple y número */
+.cart-badge-wrapper {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* No pointer events para no interferir con el botón */
+  pointer-events: none;
+  z-index: 20;
+}
+
+/* ── El número ── */
+.cart-badge-count {
+  position: relative;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+
+  /* Gradiente rojo-naranja premium */
+  background: linear-gradient(135deg, #ff4757 0%, #ff6b35 100%);
+  color: #fff;
+
+  border-radius: 999px;
+  border: 2px solid var(--color-primary, #1d3b1f);
+  box-shadow:
+    0 2px 8px rgba(255, 71, 87, 0.55),
+    0 1px 3px rgba(0, 0, 0, 0.35);
+
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* Animación pop al aparecer o cambiar de valor */
+  animation: badge-pop 0.38s cubic-bezier(0.175, 0.885, 0.32, 1.6) both;
+  will-change: transform, opacity;
+}
+
+/* ── Anillo de ripple al añadir ítem ── */
+.cart-badge-ripple {
+  position: absolute;
+  inset: -4px;
+  border-radius: 999px;
+  border: 2.5px solid rgba(255, 71, 87, 0.75);
+  animation: badge-ripple 0.65s ease-out forwards;
+  pointer-events: none;
+}
+
+/* ════════════════════════
+   Keyframes
+   ════════════════════════ */
+
+/* Pop: escala sobreextendida al entrar o rebotar */
+@keyframes badge-pop {
+  0%   { transform: scale(0.4);  opacity: 0; }
+  60%  { transform: scale(1.25); opacity: 1; }
+  80%  { transform: scale(0.92); }
+  100% { transform: scale(1);    opacity: 1; }
+}
+
+/* Ripple: el anillo se expande y se desvanece */
+@keyframes badge-ripple {
+  0%   { transform: scale(0.8);  opacity: 1; }
+  100% { transform: scale(2.2);  opacity: 0; }
+}

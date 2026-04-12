@@ -1,0 +1,154 @@
+/* src/components/ui/Banner.css */
+.banner {
+  margin: var(--space-md);
+  border-radius: var(--radius-xl);
+  padding: 0 var(--space-lg);
+  height: 92px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  position: relative;
+  box-shadow: var(--shadow-md);
+  transition: background 0.5s ease;
+}
+
+.banner-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, opacity;
+}
+
+.banner-content.fading {
+  opacity: 0;
+  transform: translateY(10px) scale(0.98);
+}
+
+.banner-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-right: var(--space-md);
+}
+
+.banner-title {
+  font-size: var(--font-size-md);
+  font-weight: 800;
+  color: white;
+  line-height: 1.1;
+  margin-bottom: 2px;
+  letter-spacing: -0.01em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.banner-subtitle {
+  font-size: 11px;
+  color: rgba(255,255,255,0.9);
+  font-weight: 500;
+  line-height: 1.2;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.banner-dots {
+  position: absolute;
+  bottom: 8px;
+  left: var(--space-lg);
+  display: flex;
+  gap: 4px;
+}
+
+.banner-dot {
+  width: 12px;
+  height: 3px;
+  border-radius: var(--radius-pill);
+  background: rgba(255,255,255,0.3);
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0;
+}
+
+.banner-dot.active {
+  width: 24px;
+  background: white;
+}
+
+.banner-status-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.live-dot-indicator {
+  width: 8px;
+  height: 8px;
+  background: #4efc5d;
+  border-radius: 50%;
+  box-shadow: 0 0 10px #4efc5d;
+  animation: pulse-live 1.5s infinite;
+}
+
+/* ── Rewards Target Box ── */
+.rewards-target-box {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 8px 12px;
+  border-radius: 14px;
+  margin-right: -4px;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  min-width: 95px;
+  cursor: pointer;
+}
+
+.rewards-target-box:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+}
+
+.rewards-target-box:active {
+  transform: scale(0.95);
+}
+
+.rewards-target-box.receiving {
+  transform: scale(1.15) rotate(5deg);
+  background: rgba(255, 255, 255, 0.4);
+  filter: brightness(1.2);
+}
+
+.points-label {
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.points-value {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  color: white;
+  font-weight: 900;
+  font-size: 1.1rem;
+}
+
+@keyframes pulse-live {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.3); opacity: 0.6; }
+  100% { transform: scale(1); opacity: 1; }
+}

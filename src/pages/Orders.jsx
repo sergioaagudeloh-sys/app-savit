@@ -1,0 +1,254 @@
+// src/pages/Orders.jsx
+import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Header from '../components/layout/Header';
+import BottomNav from '../components/layout/BottomNav';
+import Mascot from '../components/ui/Mascot';
+import { useOrders } from '../hooks/useOrders';
+import { useCart } from '../context/CartContext';
+import { useNotifications } from '../context/NotificationContext';
+import { formatCOP, formatDateShort } from '../utils/formatters';
+import { OrderSkeleton } from '../components/ui/Skeleton';
+import OrderTimeline from '../components/ui/OrderTimeline';
+import './Orders.css';
+
+const STATUS_INFO = {
+  pending: { label: 'Recibido (Cotizando Envío)', color: 'warning' },
+  approved: { label: 'Aprobado (Esperando Pago)', color: 'info' },
+  completed: { label: '💰 Pago Confirmado — ¡En camino! 🛵', color: 'success' },
+  delivered: { label: '¡Pedido Entregado! 🏁', color: 'success' },
+  cancelled: { label: 'Pedido Cancelado', color: 'danger' },
+};
+
+export default function Orders() {
+  const navigate = useNavigate();
+  const { orders, loading, updateOrderStatus, deleteOrder } = useOrders();
+  const { setCartOpen } = useCart();
+  const { addNotification } = useNotifications();
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [orderToCancel, setOrderToCancel] = useState(null);
+
+  const handleClearHistory = async () => {
+    // Identificamos órdenes que el usuario quiere "limpiar" (canceladas o ya entregadas)
+    const ordersToProcess = myOrders.filter(o => o.status === 'cancelled' || o.status === 'delivered');
+        
+    try {
+      // Usamos Promise.all para que sea más rápido y eficiente
+      await Promise.all(ordersToProcess.map(order => deleteOrder(order.id)));
+    } catch (error) {
+      console.error('Error al limpiar historial:', error);
+    }
+    
+    setShowClearConfirm(false);
+  };
+ 
+  const handleCancelOrder = async () => {
+    if (!orderToCancel) return;
+    try {
+      await updateOrderStatus(orderToCancel.id, 'cancelled', { cancelledBy: 'customer' });
+      addNotification({
+        title: 'Pedido Cancelado por Cliente ✕',
+        message: `El cliente ${orderToCancel.customerName} ha cancelado su pedido #${orderToCancel.orderId}.`,
+        orderId: orderToCancel.id,
+        targetRole: 'admin'
+      });
+      setOrderToCancel(null);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const myOrders = useMemo(() => {
+    return orders;
+  }, [orders]);
+
+  return (
+    <div className="app-container orders-page">
+      <Header onCartOpen={() => setCartOpen(true)} />
+      <main className="page-content">
+        
+        {loading ? (
+          <div className="orders-list">
+             {[...Array(3)].map((_, i) => <OrderSkeleton key={i} />)}
+          </div>
+        ) : myOrders.length === 0 ? (
+          <div className="orders-empty-state">
+            <div className="orders-empty-icon">📦</div>
+            <h3 className="orders-empty-title">Aún no tienes pedidos</h3>
+            <p className="orders-empty-subtitle">
+              Explora nuestro catálogo y haz tu primer pedido saludable.
+            </p>
+            <button
+              className="btn btn-primary orders-empty-btn"
+              onClick={() => navigate('/catalog')}
+            >
+              🛒 Nuevo Pedido
+            </button>
+          </div>
+        ) : (
+          <div className="orders-list">
+            <div className="orders-page-header">
+              <h2 className="orders-page-title">Mis Pedidos</h2>
+              <button 
+                className="btn-clear-history" 
+                onClick={() => setShowClearConfirm(true)}
+              >
+                Vaciar historial
+              </button>
+            </div>
+
+            {myOrders.map(order => {
+              const info = STATUS_INFO[order.status] || { label: order.status, color: 'muted' };
+              const finalTotal = order.total + (order.deliveryCost || 0);
+              const isDeliveryActive = order.status === 'completed' || order.status === 'dispatched';
+
+              return (
+                <div key={order.id} className="order-card" style={{ paddingBottom: isDeliveryActive ? 'var(--space-xl)' : 'var(--space-md)' }}>
+                  <div className="order-header">
+                    <div>
+                      <span className="order-id">{order.orderId}</span>
+                      <div className="order-date">{formatDateShort(order.createdAt)}</div>
+                    </div>
+                    <div className={`badge badge-${info.color}`}>
+                      {info.label}
+                    </div>
+                  </div>
+
+                  {/* Timeline premium */}
+                  <OrderTimeline status={order.status} />
+
+                  {order.status === 'cancelled' && (
+                    <div className="order-cancel-alert">
+                      {order.cancelledBy === 'customer' ? (
+                        <>🚫 <strong>Has cancelado este pedido.</strong> Esperamos verte pronto de nuevo. 🌿</>
+                      ) : (
+                        <>🚫 <strong>Pedido cancelado por el administrador.</strong> Comunícate con nosotros por WhatsApp si tienes dudas.</>
+                      )}
+                    </div>
+                  )}
+
+                  {order.status === 'approved' && order.deliveryMethod === 'domicilio' && (
+                    <div className="order-quote-alert">
+                      ¡Tu envío ha sido cotizado por <strong>{formatCOP(order.deliveryCost || 0)}</strong>! Revisa tu WhatsApp para pagar.
+                    </div>
+                  )}
+
+                  <div className="order-items">
+                    {order.items.map((item, idx) => (
+                      <div key={idx} className="order-item-wrapper" style={{ display: 'flex', flexDirection: 'column', gap: '2px', padding: '6px 0' }}>
+                        <div className="order-item-line">
+                          <span className="order-item-qty">{item.quantity}x</span>
+                          <span className="order-item-name">{item.name}</span>
+                          <span className="order-item-price">{formatCOP(item.price * item.quantity)}</span>
+                        </div>
+                        {item.selectedAdditions?.length > 0 && (
+                          <div className="order-item-extras" style={{ fontSize: '0.75rem', color: 'var(--color-primary)', paddingLeft: '28px', lineHeight: '1.2' }}>
+                            + {item.selectedAdditions.map(a => a.name).join(', ')}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="order-summary-box">
+                    <div className="order-subtotal-line">
+                      <span>Subtotal</span>
+                      <span>{formatCOP(order.total)}</span>
+                    </div>
+                    <div className="order-subtotal-line">
+                      <span>{order.deliveryMethod === 'domicilio' ? 'Costo Domicilio' : 'Recogida'}</span>
+                      <span>
+                        {order.status === 'pending' && order.deliveryMethod === 'domicilio' 
+                          ? 'Cotizando...' 
+                          : order.deliveryMethod === 'domicilio' 
+                            ? formatCOP(order.deliveryCost || 0) 
+                            : 'Gratis'
+                      }
+                      </span>
+                    </div>
+                    <div className="order-total-line">
+                      <span>Total</span>
+                      <span>{order.status === 'pending' && order.deliveryMethod === 'domicilio' ? 'Por definir' : formatCOP(finalTotal)}</span>
+                    </div>
+                  </div>
+
+                  {isDeliveryActive && (
+                    <div className="motorcycle-track">
+                      <div className="delivery-rider">📦</div>
+                    </div>
+                  )}
+
+                  {order.status === 'pending' && (
+                    <button 
+                      className="btn btn-ghost w-full btn-sm" 
+                      style={{ color: 'var(--color-danger)', border: '1px solid var(--color-danger)', marginTop: '12px', fontSize: '0.8rem' }}
+                      onClick={() => setOrderToCancel(order)}
+                    >
+                      ✕ Cancelar mi pedido
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+      </main>
+      {/* Modal: Confirmación Vaciar Historial */}
+      {showClearConfirm && (
+        <>
+          <div className="overlay" onClick={() => setShowClearConfirm(false)} />
+          <div className="modal-dialog">
+            <div className="modal-content-wrapper">
+              <div className="modal-content">
+                <div className="modal-icon danger">🗑️</div>
+                <h3 className="modal-title">¿Vaciar historial?</h3>
+                <p className="modal-desc">
+                  Se eliminarán permanentemente los pedidos cancelados y entregados de la base de datos.
+                </p>
+                <div className="modal-actions">
+                  <button className="btn btn-ghost flex-1" onClick={() => setShowClearConfirm(false)}>
+                    Cancelar
+                  </button>
+                  <button className="btn btn-primary bg-danger flex-1" onClick={handleClearHistory}>
+                    Sí, vaciar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Modal: Confirmación Cancelación de Cliente */}
+      {orderToCancel && (
+        <>
+          <div className="overlay" onClick={() => setOrderToCancel(null)} />
+          <div className="modal-dialog">
+            <div className="modal-content-wrapper">
+              <div className="modal-content">
+                <div className="modal-icon warning">⚠️</div>
+                <h3 className="modal-title">¿Cancelar pedido?</h3>
+                <p className="modal-desc">
+                  ¿Estás seguro de que quieres cancelar el pedido #{orderToCancel.orderId}? Esta acción no se puede deshacer.
+                </p>
+                <div className="modal-actions">
+                  <button className="btn btn-ghost flex-1" onClick={() => setOrderToCancel(null)}>
+                    No, mantener
+                  </button>
+                  <button className="btn btn-primary bg-danger flex-1" onClick={handleCancelOrder}>
+                    Sí, cancelar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+
+      {!showClearConfirm && !orderToCancel && <BottomNav />}
+      <Mascot page="orders" />
+    </div>
+  );
+}
