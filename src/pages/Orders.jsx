@@ -66,6 +66,20 @@ export default function Orders() {
     <div className="app-container orders-page">
       <Header onCartOpen={() => setCartOpen(true)} />
       <main className="page-content">
+        <div className="orders-hero">
+           <div className="orders-hero-content">
+             <span className="orders-hero-label">Historial de compras</span>
+             <h1 className="orders-hero-title">Mis Pedidos</h1>
+             {myOrders.length > 0 && (
+               <button 
+                 className="btn-clear-history-hero" 
+                 onClick={() => setShowClearConfirm(true)}
+               >
+                 🗑️ Vaciar historial
+               </button>
+             )}
+           </div>
+        </div>
         
         {loading ? (
           <div className="orders-list">
@@ -87,15 +101,7 @@ export default function Orders() {
           </div>
         ) : (
           <div className="orders-list">
-            <div className="orders-page-header">
-              <h2 className="orders-page-title">Mis Pedidos</h2>
-              <button 
-                className="btn-clear-history" 
-                onClick={() => setShowClearConfirm(true)}
-              >
-                Vaciar historial
-              </button>
-            </div>
+            {/* Título movido al hero */}
 
             {myOrders.map(order => {
               const info = STATUS_INFO[order.status] || { label: order.status, color: 'muted' };

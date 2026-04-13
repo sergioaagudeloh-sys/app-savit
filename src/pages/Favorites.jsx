@@ -22,24 +22,24 @@ export default function Favorites() {
     <div className="app-container favorites-page">
       <Header onCartOpen={() => setCartOpen(true)} />
 
-      <main className="page-content">
-        {/* ── Hero ── */}
-        <div className="fav-hero">
-          <div className="fav-hero-content">
-            <span className="fav-hero-label">Tu lista personal</span>
-            <h1 className="fav-hero-title">
-              💚 Favoritos
-            </h1>
-            {favorites.length > 0 && (
-              <span className="fav-hero-count">
-                {favorites.length} producto{favorites.length !== 1 ? 's' : ''} guardado{favorites.length !== 1 ? 's' : ''}
-              </span>
-            )}
-            {favorites.length === 0 && (
-              <p className="fav-hero-subtitle">Guarda tus productos preferidos aquí.</p>
-            )}
-          </div>
+      {/* ── Hero ── */}
+      <div className="fav-hero">
+        <div className="fav-hero-content">
+          <span className="fav-hero-label">Tu lista personal</span>
+          <h1 className="fav-hero-title">
+            💚 Favoritos
+          </h1>
+          {favorites.length > 0 ? (
+            <span className="fav-hero-count">
+              {favorites.length} producto{favorites.length !== 1 ? 's' : ''} guardado{favorites.length !== 1 ? 's' : ''}
+            </span>
+          ) : (
+            <p className="fav-hero-subtitle">Guarda tus productos preferidos aquí.</p>
+          )}
         </div>
+      </div>
+
+      <main className="page-content favorites-content">
 
         {favorites.length === 0 ? (
           /* ── Empty state ── */

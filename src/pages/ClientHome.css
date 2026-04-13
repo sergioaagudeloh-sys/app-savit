@@ -8,7 +8,7 @@
 .client-home-page .page-content {
   padding-left: 0 !important;
   padding-right: 0 !important;
-  padding-top: var(--header-height, 64px) !important;
+  padding-top: 0 !important; /* Changed from var(--header-height) to 0 for full-bleed hero */
 }
 
 
@@ -24,6 +24,7 @@
   margin: 0 !important;
   width: 100% !important;
   color: white;
+  border-radius: 0 0 32px 32px;
 }
 
 .home-hero-bg {
@@ -426,12 +427,13 @@
    Promotional Carousel — Full-Bleed Header
    ══════════════════════════════════════════ */
 
-.promo-carousel-section {
+.home-hero, .promo-carousel-section {
+  width: 100% !important;
+  margin: 0 !important;
   position: relative;
-  width: 100%;
   overflow: hidden;
-  margin: 0;
-  /* No border-radius: full bleed edge-to-edge */
+  z-index: 10;
+  border-radius: 0 0 32px 32px;
   background: #111;
 }
 

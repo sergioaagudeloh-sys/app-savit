@@ -1,34 +1,77 @@
 /* src/components/ui/StoreStatusBanner.css */
 .store-status-banner {
-  background: linear-gradient(135deg, #fdfbfb 0%, #fffbf2 100%);
-  border: 1px dashed rgba(255, 166, 0, 0.3);
-  border-radius: 12px;
-  padding: 16px;
-  margin: 16px;
-  box-shadow: var(--shadow-sm);
   display: flex;
   align-items: center;
   gap: 16px;
   overflow: hidden;
   position: relative;
+  transition: all 0.3s ease;
+  padding: 16px 20px;
 }
 
+/* --- VARIANT: CATALOG (Elite Glass) --- */
+.store-status-banner.variant-catalog {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 24px;
+  margin: 12px 16px 12px 16px; /* Symmetric: 12px top and bottom */
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+.variant-catalog .banner-status-title {
+  color: #ffb74d;
+}
+
+.variant-catalog .banner-status-desc {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.variant-catalog .banner-status-icon {
+  background: rgba(255, 152, 0, 0.15);
+  border: 1px solid rgba(255, 152, 0, 0.2);
+}
+
+/* --- VARIANT: HOME (High Contrast) --- */
+.store-status-banner.variant-home {
+  background: #fff3e0; /* Light amber background */
+  border: 1px solid #ffe0b2;
+  border-radius: 20px;
+  margin: 24px 16px 16px 16px; /* 24px top to separate from promos */
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.1);
+}
+
+.variant-home .banner-status-title {
+  color: #e65100; /* Darker orange for visibility */
+}
+
+.variant-home .banner-status-desc {
+  color: #5d4037; /* Dark brown/gray text */
+  font-weight: 500;
+}
+
+.variant-home .banner-status-icon {
+  background: #ffcc80;
+  border: 1px solid rgba(230, 81, 0, 0.1);
+}
+
+/* --- SHARED COMPONENTS --- */
 .banner-status-content {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 18px;
   width: 100%;
 }
 
 .banner-status-icon {
-  background: var(--color-accent-soft);
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: 26px;
   flex-shrink: 0;
 }
 
@@ -38,17 +81,15 @@
 
 .banner-status-title {
   margin: 0;
-  font-size: 1.05rem;
+  font-size: 1.1rem;
   font-weight: 800;
-  color: #856404;
+  letter-spacing: -0.01em;
 }
 
 .banner-status-desc {
   margin: 4px 0 0;
-  font-size: 0.9rem;
-  line-height: 1.4;
-  color: #856404;
-  opacity: 0.95;
+  font-size: 0.95rem;
+  line-height: 1.5;
 }
 
 .emoji-pulse {
@@ -58,13 +99,31 @@
 
 @keyframes pulse-slow {
   0% { transform: scale(1); }
-  50% { transform: scale(1.15); }
+  50% { transform: scale(1.1); }
   100% { transform: scale(1); }
 }
 
 @media (max-width: 480px) {
   .store-status-banner {
-    padding: 12px;
-    margin: 12px;
+    padding: 14px 16px;
+    margin-left: 12px;
+    margin-right: 12px;
+  }
+  
+  .variant-catalog { margin-top: 10px; margin-bottom: 10px; }
+  .variant-home { margin-top: 20px; margin-bottom: 12px; }
+
+  .banner-status-icon {
+    width: 44px;
+    height: 44px;
+    font-size: 22px;
+  }
+
+  .banner-status-title {
+    font-size: 1rem;
+  }
+
+  .banner-status-desc {
+    font-size: 0.85rem;
   }
 }

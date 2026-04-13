@@ -1,59 +1,70 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import './Gamification.css';
 
 export default function Gamification() {
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [showPreCoin, setShowPreCoin] = useState(false);
+  const [coins, setCoins] = useState([]);
+  const coinCounter = useRef(0);
 
   useEffect(() => {
     const handleThrow = () => {
-      if (isAnimating) return;
+      // 1. Ubicar la mascota real y el destino de recompensas (Header prioritario)
+      const mascot = document.querySelector('.mascot-character');
+      const target = document.getElementById('header-points-target') || document.getElementById('rewards-target');
       
-      setIsAnimating(true);
-      setShowPreCoin(true);
-      
-      // Sequence: 
-      // 1. Show pre-coin (0ms)
-      // 2. Pre-coin glows and vanishes (300ms)
-      // 3. Main coin is launched (300ms)
-      
-      setTimeout(() => {
-        setShowPreCoin(false);
-      }, 400);
+      if (!mascot || !target) {
+        // Fallback al elemento que disparó el evento si no hay mascota
+        console.warn('Mascota o Target de recompensas no encontrados');
+        return;
+      }
 
-      // Animation duration: 1.2s total (matches squirrel visibility)
+      const mascotRect = mascot.getBoundingClientRect();
+      const targetRect = target.getBoundingClientRect();
+
+      // 2. Efecto visual en la mascota (impulso)
+      mascot.classList.add('mascot-action-pop');
+      setTimeout(() => mascot.classList.remove('mascot-action-pop'), 400);
+
+      // 3. Crear moneda dinámica
+      const newCoin = {
+        id: ++coinCounter.current,
+        startX: mascotRect.left + mascotRect.width / 2,
+        startY: mascotRect.top + mascotRect.height / 2,
+        endX: targetRect.left + targetRect.width / 2,
+        endY: targetRect.top + targetRect.height / 2
+      };
+
+      setCoins(prev => [...prev, newCoin]);
+
+      // 4. Limpieza y feedback de impacto
       setTimeout(() => {
-        setIsAnimating(false);
-        // Trigger effect on target
-        const target = document.getElementById('rewards-target');
-        if (target) {
-          target.classList.add('receiving');
-          setTimeout(() => target.classList.remove('receiving'), 500);
-        }
-      }, 1200);
+        setCoins(prev => prev.filter(c => c.id !== newCoin.id));
+        
+        // Impacto en el target
+        target.classList.add('receiving');
+        setTimeout(() => target.classList.remove('receiving'), 500);
+      }, 1000); // Duración de la animación en CSS
     };
 
     window.addEventListener('savit_throw_coin', handleThrow);
     return () => window.removeEventListener('savit_throw_coin', handleThrow);
-  }, [isAnimating]);
-
-  if (!isAnimating) return null;
+  }, []);
 
   return (
     <div className="gamification-layer">
-      {/* The Squirrel Launcher */}
-      <div className="squirrel-animator">
-        {showPreCoin && (
-          <div className="pre-launch-coin">
-            <span className="pre-coin-icon">🪙</span>
-            <div className="pre-coin-glow"></div>
-          </div>
-        )}
-        <span className="squirrel-icon">🐿️</span>
-      </div>
-      
-      {/* The Main Flying Coin - Starts slightly after pre-coin glow */}
-      {!showPreCoin && <div className="flying-coin">🪙</div>}
+      {coins.map(coin => (
+        <div 
+          key={coin.id}
+          className="dynamic-flying-coin"
+          style={{
+            '--start-x': `${coin.startX}px`,
+            '--start-y': `${coin.startY}px`,
+            '--end-x': `${coin.endX}px`,
+            '--end-y': `${coin.endY}px`,
+          }}
+        >
+          🪙
+        </div>
+      ))}
     </div>
   );
 }

@@ -49,6 +49,7 @@ const AdminIngredients = lazy(() => import('./pages/admin/AdminIngredients'));
 const AdminConfig = lazy(() => import('./pages/admin/AdminConfig'));
 const AdminOffers = lazy(() => import('./pages/admin/AdminOffers'));
 const AdminAwards = lazy(() => import('./pages/admin/AdminAwards'));
+const AdminRewards = lazy(() => import('./pages/admin/AdminRewards'));
 const AdminSubscriptions = lazy(() => import('./pages/admin/AdminSubscriptions'));
 const AdminGate = lazy(() => import('./components/layout/AdminGate'));
 
@@ -112,6 +113,7 @@ export default function App() {
           <Route path="/admin/ingredients" element={<AdminGate><AdminIngredients /></AdminGate>} />
           <Route path="/admin/offers" element={<AdminGate><AdminOffers /></AdminGate>} />
           <Route path="/admin/awards" element={<AdminGate><AdminAwards /></AdminGate>} />
+          <Route path="/admin/rewards" element={<AdminGate><AdminRewards /></AdminGate>} />
           <Route path="/admin/config" element={<AdminGate><AdminConfig /></AdminGate>} />
           <Route path="/admin/subscriptions" element={<AdminGate><AdminSubscriptions /></AdminGate>} />
           

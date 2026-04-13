@@ -7,24 +7,25 @@
 
 .notification-fab-button {
   position: relative;
-  background: rgba(255, 255, 255, 0.15) !important;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, 0.12) !important;
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
   color: white !important;
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
   transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .notification-fab-button:hover { 
-  background: rgba(255, 255, 255, 0.25) !important; 
-  transform: scale(1.08); /* More subtle bounce */
+  background: rgba(255, 255, 255, 0.22) !important; 
+  transform: scale(1.08) translateY(-1px);
 }
 
 .notification-fab-button:active {
@@ -46,8 +47,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid var(--color-primary);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
   z-index: 10;
   pointer-events: none;
 }

@@ -132,7 +132,7 @@ export default function AdminAwards() {
 
   return (
     <div className="app-container admin-awards admin-page">
-      <Header title="Premios y Puntos" />
+      <Header />
       <AdminSidebar />
 
       <main className="page-content admin-main-content">
@@ -144,15 +144,6 @@ export default function AdminAwards() {
               <div className="inv-hero-title-area">
                 <span className="inv-hero-label">Fidelización de Clientes</span>
                 <h1 className="inv-hero-title">Puntos & Premios</h1>
-              </div>
-              <div className="inv-hero-actions">
-                <button 
-                  className={`inv-action-btn ${showForm ? 'secondary' : 'primary'} ripple`}
-                  onClick={showForm ? handleCancel : handleOpenNew}
-                >
-                  <span className="inv-action-icon">{showForm ? '✕' : '＋'}</span>
-                  <span className="inv-action-text">{showForm ? 'Cancelar' : 'Nuevo Premio'}</span>
-                </button>
               </div>
             </div>
 
@@ -174,6 +165,16 @@ export default function AdminAwards() {
         </div>
 
         <div className="admin-page-content">
+
+          <div className="inv-toolbar-base centered-toolbar">
+            <button 
+              className={`inv-action-btn ${showForm ? 'secondary' : 'primary'} ripple`}
+              onClick={showForm ? handleCancel : handleOpenNew}
+            >
+              <span className="inv-action-icon">{showForm ? '✕' : '＋'}</span>
+              <span className="inv-action-text">{showForm ? 'Cancelar' : 'Nuevo Premio'}</span>
+            </button>
+          </div>
 
           {/* ── Configuración de Reglas de Puntos ── */}
           {showRules && (
@@ -286,9 +287,14 @@ export default function AdminAwards() {
           )}
 
           {/* ── Lista de Premios ── */}
-          <div className="admin-config-header mb-md">
-            <h3 className="section-title">Catálogo de Recompensas ({awards.length})</h3>
-            <p className="text-xs text-muted">Los clientes canjean sus puntos por estos premios.</p>
+          <div className="admin-section-meta mb-md">
+            <div>
+              <h3 className="admin-section-title">Catálogo de Recompensas</h3>
+              <p className="admin-section-desc">Gestiona los premios y bonos que tus clientes pueden canjear</p>
+            </div>
+            <div className="admin-count-badge">
+              {awards.length} Ítems
+            </div>
           </div>
 
           {loading ? (
@@ -314,17 +320,18 @@ export default function AdminAwards() {
                   <div className="award-info">
                     <div className="award-card-header">
                       <h3>{award.name}</h3>
-                      <span className={`promo-admin-status ${award.isActive !== false ? 'active' : 'inactive'}`}>
+                      <span className={`award-status-label ${award.isActive !== false ? 'active' : 'inactive'}`}>
                         {award.isActive !== false ? 'Activo' : 'Inactivo'}
                       </span>
                     </div>
                     <p>{award.description}</p>
                     <div className="award-points-badge">
-                      🪙 {award.pointsCost} Puntos
+                      <span style={{ fontSize: '1.2rem' }}>🪙</span>
+                      <span>{award.pointsCost.toLocaleString()} Puntos</span>
                     </div>
                   </div>
                   <div className="award-actions">
-                    <button className="btn btn-ghost btn-sm" onClick={() => handleEdit(award)}>
+                    <button className="btn btn-soft btn-sm" onClick={() => handleEdit(award)}>
                       ✏️ Editar
                     </button>
                     <button className="btn btn-ghost btn-sm text-error" onClick={() => handleDelete(award.id)}>

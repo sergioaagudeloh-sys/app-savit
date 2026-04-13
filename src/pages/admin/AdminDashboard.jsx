@@ -166,7 +166,7 @@ export default function AdminDashboard() {
 
   if (loading) return (
     <div className="app-container admin-dashboard admin-page">
-      <Header title="Dashboard" />
+      <Header />
       <AdminSidebar />
       <div className="flex-center w-full" style={{ height: '70vh' }}>
         <span className="spinner spinner-dark" />
@@ -179,28 +179,30 @@ export default function AdminDashboard() {
 
   return (
     <div className="app-container admin-dashboard admin-page">
-      <Header title="Dashboard" />
+      <Header />
       <AdminSidebar />
       <main className="page-content admin-main-content">
 
         {/* ── Dashboard Hero ── */}
         <div className="inv-hero">
           <div className="inv-hero-inner">
-            <div className="inv-hero-top">
+            <div className="inv-hero-top" style={{ alignItems: 'center' }}>
               <div className="inv-hero-title-area">
-                <span className="inv-hero-label">Panel de Gestión Central</span>
-                <h1 className="inv-hero-title">¡Hola, Administrador! 👋</h1>
-              </div>
-
-              <div className="inv-hero-actions">
-                <Link to="/admin/config" className={`dash-store-status ${config?.isOpen !== false ? 'open' : 'closed'}`}>
-                  {config?.isOpen !== false ? '🟢 Abierta' : '🔴 Cerrada'}
-                </Link>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: '4px' }}>
+                  <span className="inv-hero-label" style={{ marginBottom: 0 }}>Panel Central</span>
+                  <Link to="/admin/config" className={`dash-store-status ${config?.isOpen !== false ? 'open' : 'closed'}`} style={{ padding: '6px 12px', fontSize: '0.75rem' }}>
+                    {config?.isOpen !== false ? '🟢 Abierta' : '🔴 Cerrada'}
+                  </Link>
+                </div>
+                <h1 className="inv-hero-title" style={{ marginTop: '2px', marginBottom: '4px' }}>¡Hola, Admin! 👋</h1>
+                <span className="inv-hero-date" style={{ fontSize: '0.75rem', opacity: 0.7, marginBottom: '16px', display: 'block', fontWeight: 600 }}>
+                  {new Date().toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' })}
+                </span>
               </div>
             </div>
 
             {/* Fila de Estadísticas Premium en Hero */}
-            <div className="hero-stats-row">
+            <div className="hero-stats-row" style={{ marginTop: '4px', marginBottom: '24px' }}>
               <div className="hero-stat-btn ripple" onClick={() => setShowRevenueModal(true)}>
                 <span className="hero-stat-icon">💰</span>
                 <div className="hero-stat-info">
@@ -224,11 +226,6 @@ export default function AdminDashboard() {
               </Link>
             </div>
 
-            <div className="inv-hero-footer" style={{ borderTop: 'none', padding: 0 }}>
-              <span className="inv-hero-date">
-                {new Date().toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' })}
-              </span>
-            </div>
           </div>
         </div>
 
@@ -272,6 +269,14 @@ export default function AdminDashboard() {
             <Link to="/admin/offers" className="dash-action-card">
               <span className="action-emoji">🔥</span>
               <span className="action-text">Ofertas</span>
+            </Link>
+            <Link to="/admin/awards" className="dash-action-card">
+              <span className="action-emoji">🏆</span>
+              <span className="action-text">Premios</span>
+            </Link>
+            <Link to="/admin/rewards" className="dash-action-card">
+              <span className="action-emoji">✨</span>
+              <span className="action-text">Fidelidad</span>
             </Link>
             <Link to="/admin/config" className="dash-action-card">
               <span className="action-emoji">⚙️</span>
@@ -327,6 +332,7 @@ export default function AdminDashboard() {
                     className={`dash-sub-item ${isOverdue ? 'overdue' : isToday ? 'today' : ''}`}
                     onClick={() => window.location.href = '/admin/subscriptions'}
                   >
+
                     <div className="sub-item-info">
                       <span className="sub-item-name">{sub.name}</span>
                       <span className="sub-item-date">

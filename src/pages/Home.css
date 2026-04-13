@@ -1,4 +1,39 @@
 /* src/pages/Home.css */
+.catalog-page .page-content {
+  padding-top: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* Efecto Flotante para el Buscador */
+.catalog-page .searchbar {
+  margin-top: -30px !important; /* Solapa la mitad sobre el Hero */
+  margin-bottom: 20px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  width: 90% !important;
+  max-width: 480px !important;
+  position: relative;
+  z-index: 20;
+}
+
+.catalog-hero-wrapper {
+  background: linear-gradient(145deg, #1d3b1f 0%, #0f2010 100%);
+  padding: calc(var(--header-height) + 12px) 0 54px;
+  width: 100% !important;
+  margin: 0 !important;
+  border-radius: 0 0 32px 32px;
+  position: relative;
+  z-index: 1;
+}
+
+.catalog-hero-wrapper .banner {
+  margin: 0 auto;
+  width: 90%;
+  max-width: 480px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
 .product-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { 
   collection, query, where, getDocs, 
-  updateDoc, doc, increment, getDoc, setDoc 
+  updateDoc, doc, increment, getDoc, setDoc,
+  addDoc 
 } from 'firebase/firestore';
 import { db, isFirebaseConfigured } from '../firebase';
 
@@ -86,6 +87,17 @@ export function useUsers() {
           updatedAt: new Date().toISOString()
         });
       }
+
+      // ── LOG REDEMPTION FOR ADMIN ──
+      // Record the transaction so the admin can see it in /admin/rewards
+      await addDoc(collection(db, 'redemptions'), {
+        customerPhone: phone,
+        customerName: customerSnap.data().name || 'Desconocido',
+        awardName: awardName,
+        pointsCost: pointsCost,
+        status: 'pending', // 'pending', 'delivered', 'cancelled'
+        createdAt: new Date().toISOString()
+      });
 
       return { success: true };
     } catch (error) {

@@ -108,6 +108,7 @@ export default function BottomNav() {
             return (
               <div 
                 key="drawer" 
+                id="cart-btn-bottom"
                 className="bottom-nav-item" 
                 onClick={() => setCartOpen(true)}
                 style={{ cursor: 'pointer' }}

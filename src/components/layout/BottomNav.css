@@ -16,6 +16,14 @@
   box-shadow: 0 -4px 20px rgba(36,76,38,0.08);
   padding: 0 var(--space-xs);
   padding-bottom: env(safe-area-inset-bottom);
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+/* Ocultar barra cuando hay modales abiertos (no-scroll) */
+body.no-scroll .bottom-nav {
+  transform: translate(-50%, 100%);
+  opacity: 0;
+  pointer-events: none;
 }
 
 .bottom-nav-item {

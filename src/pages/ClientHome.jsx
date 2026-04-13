@@ -75,8 +75,6 @@ export default function ClientHome() {
       <Header onCartOpen={() => setCartOpen(true)} />
 
       <main className="page-content">
-        <StoreStatusBanner isOpen={config?.isOpen !== false} />
-
         {/* ── Promotional Carousel ── Full-bleed, top of page */}
         {promoEnabled && (
           <section className="promo-carousel-section">
@@ -125,6 +123,7 @@ export default function ClientHome() {
           </section>
         )}
 
+        <StoreStatusBanner isOpen={config?.isOpen !== false} variant="home" />
 
         {/* ── Main Content Card ── */}
         <div className="home-main-card">

@@ -258,7 +258,7 @@ export default function AdminProducts() {
 
   return (
     <div className="app-container admin-products admin-page">
-      <Header title="Inventario" />
+      <Header />
       <AdminSidebar />
 
       <main className="page-content admin-main-content">
@@ -271,30 +271,8 @@ export default function AdminProducts() {
                 <span className="inv-hero-label">Gestión de Catálogo</span>
                 <h1 className="inv-hero-title">Inventario</h1>
               </div>
-            <div className="inv-hero-actions">
-              <button className="inv-action-btn primary ripple" onClick={openNew}>
-                <span className="inv-action-icon">＋</span>
-                <span className="inv-action-text">Nuevo Producto</span>
-              </button>
             </div>
-          </div>
-
-          {/* Unified Tooling: Search + Categories */}
-          <div className="inv-toolbar-base mt-lg">
-            <div className="inv-search-modern">
-               <span className="inv-search-icon">🔍</span>
-               <input 
-                 type="text" 
-                 placeholder="Buscar productos..." 
-                 onChange={(e) => setSearchTerm(e.target.value)}
-               />
-            </div>
-            <button className="cat-btn-modern ripple" onClick={() => setIsCatModalOpen(true)}>
-              <span>📁</span>
-              <span>Categorías</span>
-            </button>
-          </div>
-
+            
             <div className="inv-stats mt-lg">
               <div className="inv-stat">
                 <span className="inv-stat-value">{totalProducts}</span>
@@ -313,6 +291,26 @@ export default function AdminProducts() {
         </div>
 
         <div className="admin-page-content">
+          {/* Unified Tooling: Search + Categories */}
+          <div className="inv-toolbar-base">
+            <div className="inv-search-modern">
+               <span className="inv-search-icon">🔍</span>
+               <input 
+                 type="text" 
+                 placeholder="Buscar productos..." 
+                 onChange={(e) => setSearchTerm(e.target.value)}
+               />
+            </div>
+            <button className="cat-btn-modern ripple" onClick={() => setIsCatModalOpen(true)}>
+              <span>📁</span>
+              <span>Categorías</span>
+            </button>
+            <button className="inv-action-btn primary ripple" onClick={openNew}>
+              <span className="inv-action-icon">＋</span>
+              <span className="inv-action-text hide-mobile">Nuevo Producto</span>
+            </button>
+          </div>
+
           {/* ── Product List ── */}
           {loading ? (
             <div className="product-admin-list">

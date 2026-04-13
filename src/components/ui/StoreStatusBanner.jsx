@@ -1,11 +1,11 @@
 import React from 'react';
 import './StoreStatusBanner.css';
 
-const StoreStatusBanner = ({ isOpen }) => {
+const StoreStatusBanner = ({ isOpen, variant = 'catalog' }) => {
   if (isOpen) return null;
 
   return (
-    <div className="store-status-banner animate-slide-down">
+    <div className={`store-status-banner variant-${variant} animate-slide-down`}>
       <div className="banner-status-content">
         <div className="banner-status-icon">
           <span className="emoji-pulse">🌙</span>

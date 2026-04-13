@@ -30,6 +30,9 @@ export default function AdminConfig() {
   
   const [saving, setSaving] = useState(false);
 
+  // Tab State
+  const [activeTab, setActiveTab] = useState('tienda'); // 'tienda', 'fidelizacion', 'sistema'
+
   // Sync store config state
   useEffect(() => {
     if (config) {
@@ -51,9 +54,11 @@ export default function AdminConfig() {
     </div>
   );
 
-
-
   const handleToggleOpen = () => {
+    if (form.scheduleEnabled) {
+      showToast('Desactiva primero el horario automático para poder abrir la tienda de forma manual', 'error');
+      return;
+    }
     const newValue = !form.isOpen;
     setForm(prev => ({ ...prev, isOpen: newValue }));
     handleSaveDirect({ isOpen: newValue });
@@ -102,8 +107,6 @@ export default function AdminConfig() {
     });
   };
 
-
-
   const handleExportBackup = () => {
     try {
       const data = {
@@ -135,17 +138,13 @@ export default function AdminConfig() {
     reader.onload = (event) => {
       try {
         const data = JSON.parse(event.target.result);
-        
-        // Validar estructura básica
         if (!data.products && !data.orders && !data.categories) {
           throw new Error('Formato de archivo no válido');
         }
-
         if (data.products) localStorage.setItem('savit_demo_products', JSON.stringify(data.products));
         if (data.orders) localStorage.setItem('savit_demo_orders', JSON.stringify(data.orders));
         if (data.categories) localStorage.setItem('savit_custom_categories', JSON.stringify(data.categories));
         if (data.config) localStorage.setItem('savit_store_config', JSON.stringify(data.config));
-        
         showToast('Copia restaurada con éxito. Recargando...', 'success');
         setTimeout(() => window.location.reload(), 1500);
       } catch (err) {
@@ -157,7 +156,7 @@ export default function AdminConfig() {
 
   return (
     <div className="app-container admin-config admin-page">
-      <Header title="Configuración" />
+      <Header />
       <AdminSidebar />
       <main className="page-content admin-main-content">
         <div className="inv-hero">
@@ -165,282 +164,237 @@ export default function AdminConfig() {
             <div className="inv-hero-top">
               <div className="inv-hero-title-area">
                 <span className="inv-hero-label">Ajustes del Negocio</span>
-                <h1 className="inv-hero-title">Configuración</h1>
-              </div>
-
-              <div className="inv-hero-actions">
-                <div className="premium-license-badge">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="premium-icon">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                    <path d="m9 12 2 2 4-4"></path>
-                  </svg>
-                  <div className="premium-text-group">
-                    <span className="premium-title">Licencia PRO</span>
-                    <span className="premium-subtitle">Activada</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <h1 className="inv-hero-title">Configuración</h1>
+                  <div className="premium-license-badge mini">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                      <path d="m9 12 2 2 4-4" />
+                    </svg>
+                    <span className="premium-title" style={{ fontSize: '11px' }}>PRO</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* ── Hero Stats/Tabs Row ── */}
-            <div className="inv-stats">
-              <button className="inv-stat active">
+            {/* ── Tabs (con Glider) ── */}
+            <div
+              className="inv-stats config-tabs-row"
+              style={{ '--tab-idx': activeTab === 'tienda' ? 0 : activeTab === 'fidelizacion' ? 1 : 2 }}
+            >
+              <div className="cfg-tab-glider" />
+              <button className={`inv-stat ${activeTab === 'tienda' ? 'active' : ''}`} onClick={() => setActiveTab('tienda')}>
+                <span className="inv-stat-value">📍</span>
+                <span className="inv-stat-label">Tienda</span>
+              </button>
+              <button className={`inv-stat ${activeTab === 'fidelizacion' ? 'active' : ''}`} onClick={() => setActiveTab('fidelizacion')}>
+                <span className="inv-stat-value">💎</span>
+                <span className="inv-stat-label">Fidelidad</span>
+              </button>
+              <button className={`inv-stat ${activeTab === 'sistema' ? 'active' : ''}`} onClick={() => setActiveTab('sistema')}>
                 <span className="inv-stat-value">⚙️</span>
-                <span className="inv-stat-label">General</span>
-              </button>
-              <button className="inv-stat" onClick={() => navigate('/admin/awards')}>
-                <span className="inv-stat-value">⭐</span>
-                <span className="inv-stat-label">Premios</span>
-              </button>
-              <button className="inv-stat" onClick={() => navigate('/admin/products')}>
-                <span className="inv-stat-value">📦</span>
-                <span className="inv-stat-label">Inventario</span>
+                <span className="inv-stat-label">Sistema</span>
               </button>
             </div>
           </div>
         </div>
-          {/* ── Status of the Store ── */}
-          <div className="premium-card mb-lg">
-            <div className="card-header">
-              <div className="card-header-icon">🏪</div>
-              <div className="flex-1">
-                <h3>Estado de la Tienda</h3>
-                <p>{form.isOpen ? 'Abierta: Recibiendo pedidos.' : 'Cerrada: Banner activo.'}</p>
-              </div>
-              <div className="toggle-wrapper" onClick={handleToggleOpen}>
-                <div className={`toggle ${form.isOpen ? 'active' : ''}`} />
-              </div>
-            </div>
-          </div>
 
-          {/* ── General Data ── */}
-          <div className="premium-card mb-lg">
-            <div className="card-header">
-              <div className="card-header-icon">✍️</div>
-              <div>
-                <h3>Datos Generales</h3>
-                <p>Información básica de contacto y marca</p>
-              </div>
-            </div>
-            <form className="p-lg" onSubmit={handleSubmit}>
-              <div className="grid-2">
-                <div className="input-group">
-                  <label className="input-label">Nombre del Negocio</label>
-                  <input 
-                    className="input-field" 
-                    name="storeName" 
-                    value={form.storeName} 
-                    onChange={handleChange} 
-                    required
-                  />
-                </div>
-                <div className="input-group">
-                  <label className="input-label">Número de WhatsApp</label>
-                  <input 
-                    className="input-field" 
-                    name="whatsappNumber" 
-                    value={form.whatsappNumber} 
-                    onChange={handleChange} 
-                    placeholder="573216513171"
-                    required
-                  />
-                  <p className="text-xs text-muted">Ex: 573216513171 (sin símbolos)</p>
-                </div>
-              </div>
-              <div className="admin-form-footer mt-md">
-                <button type="submit" className="btn btn-primary" style={{ marginLeft: 'auto' }} disabled={saving}>
-                  {saving ? <span className="spinner" /> : 'Guardar Datos Generales'}
-                </button>
-              </div>
-            </form>
-          </div>
+        <div className="admin-page-content">
 
-          {/* ── Automatic Schedule ── */}
-          <div className="premium-card mb-lg">
-            <div className="card-header">
-              <div className="card-header-icon">🕒</div>
-              <div className="flex-1">
-                <h3>Horario Automático</h3>
-                <p>Abrir y cerrar la tienda según reloj</p>
-              </div>
-              <div className="toggle-wrapper" onClick={handleToggleSchedule}>
-                <div className={`toggle ${form.scheduleEnabled ? 'active' : ''}`} />
-              </div>
-            </div>
-            
-            {form.scheduleEnabled && (
-              <div className="p-lg animate-slide-down">
-                <div className="grid-2">
-                  <div className="input-group">
-                    <label className="input-label">Hora de Apertura</label>
-                    <input 
-                      type="time" 
-                      className="input-field" 
-                      name="openTime" 
-                      value={form.openTime || '09:00'} 
-                      onChange={handleChange} 
-                    />
+          {/* ─────────── TAB: TIENDA ─────────── */}
+          {activeTab === 'tienda' && (
+            <div className="cfg-tab-content" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+
+              {/* Estado */}
+              <div className="cfg-card" style={{ '--card-i': 0 }}>
+                <div className="cfg-header">
+                  <div className="cfg-header-icon">🏪</div>
+                  <div className="cfg-header-text">
+                    <h3>Estado de la Tienda</h3>
+                    <p>{form.isOpen ? 'Abierta · recibiendo pedidos' : 'Cerrada · banner activo'}</p>
                   </div>
-                  <div className="input-group">
-                    <label className="input-label">Hora de Cierre</label>
-                    <input 
-                      type="time" 
-                      className="input-field" 
-                      name="closeTime" 
-                      value={form.closeTime || '18:00'} 
-                      onChange={handleChange} 
-                    />
+                  <div className="cfg-toggle toggle-wrapper" onClick={handleToggleOpen}>
+                    <div className={`toggle ${form.isOpen ? 'active' : ''}`} />
                   </div>
                 </div>
-                <div className="admin-form-footer mt-md">
-                   <button type="button" className="btn btn-primary" style={{ marginLeft: 'auto' }} onClick={handleSubmit}>
-                     Actualizar Horario
-                   </button>
+              </div>
+
+              {/* Datos Generales */}
+              <div className="cfg-card" style={{ '--card-i': 1 }}>
+                <div className="cfg-header">
+                  <div className="cfg-header-icon">✍️</div>
+                  <div className="cfg-header-text">
+                    <h3>Datos Generales</h3>
+                    <p>Nombre del negocio y WhatsApp</p>
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
-
-          {/* ── Bóveda Legal ── */}
-          <div className="premium-card mb-lg">
-            <div className="card-header">
-              <div className="card-header-icon">📂</div>
-              <div className="flex-1">
-                <h3>Bóveda Legal</h3>
-                <p>Documentación RUT y Cámara de Comercio</p>
-              </div>
-            </div>
-            <div className="p-lg">
-              <div className="input-group">
-                <label className="input-label">Enlace de Google Drive</label>
-                <div className="flex gap-sm">
-                  <input 
-                    className="input-field flex-1" 
-                    name="googleDriveLink" 
-                    value={form.googleDriveLink || ''} 
-                    onChange={handleChange} 
-                    placeholder="https://drive.google.com/..."
-                  />
-                  {form.googleDriveLink && (
-                    <a href={form.googleDriveLink} target="_blank" rel="noopener noreferrer" className="btn btn-outline btn-sm">
-                      Abir
-                    </a>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* ── Puntos Savit ── */}
-          <div className="premium-card mb-lg">
-            <div className="card-header">
-              <div className="card-header-icon">⭐</div>
-              <div className="flex-1">
-                <h3>Puntos Savit</h3>
-                <p>Configura la recompensa por cada compra</p>
-              </div>
-              <div className="toggle-wrapper" onClick={handleTogglePoints}>
-                <div className={`toggle ${pointsEnabled ? 'active' : ''}`} />
-              </div>
-            </div>
-
-            {pointsEnabled && (
-              <div className="p-lg animate-slide-down">
-                <div className="points-config-info" style={{
-                  background: 'linear-gradient(135deg, var(--color-primary-light), rgba(36,76,38,0.06))',
-                  borderRadius: 'var(--radius-lg)',
-                  padding: 'var(--space-md)',
-                  marginBottom: 'var(--space-md)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px'
-                }}>
-                  <span style={{ fontSize: '2rem' }}>🏆</span>
-                  <div>
-                    <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--color-primary)' }}>
-                      Clientes ganan <strong>{pointsRate}</strong> pts por cada $1.000
+                <form onSubmit={handleSubmit}>
+                  <div className="cfg-body">
+                    <div className="cfg-grid-2">
+                      <div className="cfg-input-group">
+                        <label className="cfg-label">Nombre</label>
+                        <input className="cfg-input" name="storeName" value={form.storeName} onChange={handleChange} required />
+                      </div>
+                      <div className="cfg-input-group">
+                        <label className="cfg-label">WhatsApp</label>
+                        <input className="cfg-input" name="whatsappNumber" value={form.whatsappNumber} onChange={handleChange} placeholder="573216513171" required />
+                        <span className="cfg-hint">Sin símbolos ni espacios</span>
+                      </div>
                     </div>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
-                      Ej: una compra de $20.000 = {(parseInt(pointsRate) || 10) * 20} puntos Savit
+                    <div className="cfg-footer">
+                      <button type="submit" className="btn btn-primary btn-sm" disabled={saving}>
+                        {saving ? <span className="spinner" /> : 'Guardar'}
+                      </button>
                     </div>
                   </div>
-                </div>
+                </form>
+              </div>
 
-                <div className="input-group">
-                  <label className="input-label">Puntos por cada $1.000 COP</label>
-                  <input
-                    type="number"
-                    className="input-field"
-                    min="1"
-                    max="1000"
-                    value={pointsRate}
-                    onChange={e => setPointsRate(e.target.value)}
-                    placeholder="10"
-                  />
-                  <p className="text-xs text-muted" style={{ marginTop: '4px' }}>
-                    Valor recomendado: 10 pts / $1.000. Máximo 1.000 pts.
-                  </p>
+              {/* Horario */}
+              <div className="cfg-card" style={{ '--card-i': 2 }}>
+                <div className="cfg-header">
+                  <div className="cfg-header-icon">🕒</div>
+                  <div className="cfg-header-text">
+                    <h3>Horario Automático</h3>
+                    <p>Programar apertura y cierre</p>
+                  </div>
+                  <div className="cfg-toggle toggle-wrapper" onClick={handleToggleSchedule}>
+                    <div className={`toggle ${form.scheduleEnabled ? 'active' : ''}`} />
+                  </div>
                 </div>
+                {form.scheduleEnabled && (
+                  <div className="cfg-schedule-fields">
+                    <div className="cfg-grid-2" style={{ marginTop: 0 }}>
+                      <div className="cfg-input-group">
+                        <label className="cfg-label">Apertura</label>
+                        <input type="time" className="cfg-input" name="openTime" value={form.openTime || '09:00'} onChange={handleChange} />
+                      </div>
+                      <div className="cfg-input-group">
+                        <label className="cfg-label">Cierre</label>
+                        <input type="time" className="cfg-input" name="closeTime" value={form.closeTime || '18:00'} onChange={handleChange} />
+                      </div>
+                    </div>
+                    <div className="cfg-footer">
+                      <button type="button" className="btn btn-primary btn-sm" onClick={handleSubmit}>Guardar Horario</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
-                <div className="admin-form-footer mt-md">
+          {/* ─────────── TAB: FIDELIZACIÓN ─────────── */}
+          {activeTab === 'fidelizacion' && (
+            <div className="cfg-tab-content" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+
+              {/* Bóveda Legal */}
+              <div className="cfg-card" style={{ '--card-i': 0 }}>
+                <div className="cfg-header">
+                  <div className="cfg-header-icon">📂</div>
+                  <div className="cfg-header-text">
+                    <h3>Bóveda Legal</h3>
+                    <p>RUT y Cámara de Comercio en Drive</p>
+                  </div>
+                </div>
+                <div className="cfg-body">
+                  <div className="cfg-input-group">
+                    <label className="cfg-label">Enlace Google Drive</label>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <input className="cfg-input" style={{ flex: 1 }} name="googleDriveLink" value={form.googleDriveLink || ''} onChange={handleChange} placeholder="https://drive.google.com/..." />
+                      {form.googleDriveLink && (
+                        <a href={form.googleDriveLink} target="_blank" rel="noopener noreferrer" className="btn btn-outline btn-sm">Ver</a>
+                      )}
+                    </div>
+                  </div>
+                  <div className="cfg-footer">
+                    <button type="button" className="btn btn-primary btn-sm" onClick={handleSubmit}>Guardar</button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Puntos Savit */}
+              <div className="cfg-card" style={{ '--card-i': 1 }}>
+                <div className="cfg-header">
+                  <div className="cfg-header-icon">⭐</div>
+                  <div className="cfg-header-text">
+                    <h3>Puntos Savit</h3>
+                    <p>Recompensa por cada compra</p>
+                  </div>
+                  <div className="cfg-toggle toggle-wrapper" onClick={handleTogglePoints}>
+                    <div className={`toggle ${pointsEnabled ? 'active' : ''}`} />
+                  </div>
+                </div>
+                {pointsEnabled && (
+                  <div className="cfg-body">
+                    <div className="cfg-points-preview">
+                      <span className="cfg-points-preview-emoji">🏆</span>
+                      <div className="cfg-points-preview-info">
+                        <strong>{pointsRate} pts por cada $1.000</strong>
+                        <span>Ej: $20.000 = {(parseInt(pointsRate) || 10) * 20} puntos</span>
+                      </div>
+                    </div>
+                    <div className="cfg-input-group">
+                      <label className="cfg-label">Puntos por $1.000 COP</label>
+                      <input type="number" className="cfg-input" min="1" max="1000" value={pointsRate} onChange={e => setPointsRate(e.target.value)} />
+                      <span className="cfg-hint">Recomendado: 10 pts / $1.000</span>
+                    </div>
+                    <div className="cfg-footer">
+                      <button type="button" className="btn btn-primary btn-sm" onClick={handleSavePoints} disabled={saving}>
+                        {saving ? <span className="spinner" /> : 'Guardar Puntos'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ─────────── TAB: SISTEMA ─────────── */}
+          {activeTab === 'sistema' && (
+            <div className="cfg-tab-content" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+
+              {/* Mantenimiento */}
+              <div className="cfg-card" style={{ '--card-i': 0 }}>
+                <div className="cfg-header">
+                  <div className="cfg-header-icon">🛠️</div>
+                  <div className="cfg-header-text">
+                    <h3>Mantenimiento</h3>
+                    <p>Copia de seguridad de datos locales</p>
+                  </div>
+                </div>
+                <div className="cfg-body">
+                  <div className="cfg-maintenance-row">
+                    <button className="btn btn-outline btn-sm" onClick={handleExportBackup}>📥 Exportar JSON</button>
+                    <label className="btn btn-outline btn-sm" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                      📤 Importar JSON
+                      <input type="file" accept=".json" style={{ display: 'none' }} onChange={handleImportBackup} />
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sesión */}
+              <div className="cfg-card danger" style={{ '--card-i': 1 }}>
+                <div className="cfg-header">
+                  <div className="cfg-header-icon">🚪</div>
+                  <div className="cfg-header-text">
+                    <h3>Sesión</h3>
+                    <p>Cerrar acceso administrativo</p>
+                  </div>
+                </div>
+                <div className="cfg-body">
                   <button
-                    type="button"
-                    className="btn btn-primary"
-                    style={{ marginLeft: 'auto' }}
-                    onClick={handleSavePoints}
-                    disabled={saving}
+                    className="btn btn-danger btn-sm w-full"
+                    onClick={() => { localStorage.removeItem('savit_admin_auth'); window.location.href = '/'; }}
                   >
-                    {saving ? <span className="spinner" /> : '⭐ Guardar Configuración'}
+                    Cerrar Sesión
                   </button>
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
-          {/* ── Maintenance ── */}
-          <div className="premium-card mb-xl">
-            <div className="card-header">
-              <div className="card-header-icon">🛠️</div>
-              <div className="flex-1">
-                <h3>Mantenimiento</h3>
-                <p>Respaldo de base de datos local</p>
-              </div>
-            </div>
-            <div className="p-lg">
-               <div className="maintenance-actions">
-                  <button className="btn btn-soft btn-sm" onClick={handleExportBackup}>
-                    📥 Exportar JSON
-                  </button>
-                  <label className="btn btn-outline btn-sm cursor-pointer text-center" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    📤 Importar JSON
-                    <input type="file" accept=".json" style={{ display: 'none' }} onChange={handleImportBackup} />
-                  </label>
-                </div>
-            </div>
-          </div>
-
-          {/* ── Session ── */}
-          <div className="premium-card" style={{ border: '1px solid var(--color-danger)', background: 'transparent' }}>
-            <div className="card-header">
-              <div className="card-header-icon">🚪</div>
-              <div className="flex-1">
-                <h3 style={{ color: 'var(--color-danger)' }}>Sesión</h3>
-                <p>Cerrar acceso administrativo</p>
-              </div>
-            </div>
-            <div className="p-lg">
-              <button 
-                className="btn btn-outline btn-sm w-full" 
-                style={{ color: 'var(--color-danger)', borderColor: 'var(--color-danger)' }}
-                onClick={() => {
-                  localStorage.removeItem('savit_admin_auth');
-                  window.location.href = '/';
-                }}
-              >
-                Cerrar Sesión Administrador
-              </button>
-            </div>
-          </div>
+        </div>
       </main>
       <Toast toasts={toasts} />
     </div>

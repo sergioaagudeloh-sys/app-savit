@@ -1,5 +1,5 @@
 // src/components/product/ProductCard.jsx
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useFavorites } from '../../context/FavoritesContext';
@@ -9,6 +9,7 @@ import { vibrateSuccess } from '../../utils/haptics';
 import { formatCOP } from '../../utils/formatters';
 import { useIngredients } from '../../hooks/useIngredients';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
+import { useAddToCartAnimation } from '../../hooks/useAddToCartAnimation';
 import './ProductCard.css';
 
 /**
@@ -20,10 +21,14 @@ export default function ProductCard({ product, onToast }) {
   const { addItem, items, updateQty, setCartOpen } = useCart();
   const { toggleFavorite, isFavorite } = useFavorites();
   const { ingredients } = useIngredients();
-  
+  const { triggerFlyAnimation, triggerLeaveAnimation } = useAddToCartAnimation();
+  // Ref para el botón de añadir (origen de la animación de vuelo)
+  const addBtnRef = useRef(null);
+
   // State for customization (additions)
   const [selectedAdditions, setSelectedAdditions] = useState([]);
   const [showIngredientsMenu, setShowIngredientsMenu] = useState(false);
+  const [modalQty, setModalQty] = useState(1);
 
   // Lock scroll when detail modal or ingredients menu is open
   useBodyScrollLock(showDetail || showIngredientsMenu);
@@ -43,13 +48,15 @@ export default function ProductCard({ product, onToast }) {
   );
   const quantity = itemInCart ? itemInCart.quantity : 0;
 
-  const handleAdd = useCallback((e, additions = []) => {
+  const handleAdd = useCallback((e, additions = [], qty = 1) => {
     e?.stopPropagation();
     if (isSoldOut) return;
 
     // If it's a prepared product and we are clicking the card's button (no additions provided)
     // AND it has additions available, we should open the detail modal instead
     if (product.type === 'prepared' && additions.length === 0 && product.additions?.length > 0 && !showDetail) {
+      setSelectedAdditions([]);
+      setModalQty(1);
       setShowDetail(true);
       return;
     }
@@ -61,9 +68,12 @@ export default function ProductCard({ product, onToast }) {
         price: additions.reduce((sum, ing) => sum + (ing.price || 0), currentPrice)
       };
       
-      addItem(productToAdd);
+      addItem(productToAdd, qty);
       vibrateSuccess();
       setShowAdded(true);
+
+      // 🚀 Animación de vuelo hacia el botón del carrito
+      triggerFlyAnimation(addBtnRef.current, product.imageUrl || product.image);
       
       // Trigger Gamification Coin Throw
       window.dispatchEvent(new CustomEvent('savit_throw_coin'));
@@ -82,10 +92,21 @@ export default function ProductCard({ product, onToast }) {
     e?.stopPropagation();
     if (newQty < 0) return;
     
-    // In catalog, we update by the cartId of the base item found
+    // Detect if increasing or decreasing for animations
     const targetId = itemInCart?.cartId || product.id;
+    
+    if (newQty > quantity) {
+      // 🚀 Incrementar: Vuelo hacia el carrito + Moneda
+      triggerFlyAnimation(addBtnRef.current, product.imageUrl || product.image);
+      window.dispatchEvent(new CustomEvent('savit_throw_coin'));
+      vibrateSuccess();
+    } else if (newQty < quantity) {
+      // 🔙 Decrementar: Salida del carrito
+      triggerLeaveAnimation(addBtnRef.current, product.imageUrl || product.image);
+    }
+
     updateQty(targetId, newQty, product.id);
-  }, [itemInCart, product.id, updateQty]);
+  }, [itemInCart, product.id, updateQty, quantity, triggerFlyAnimation, triggerLeaveAnimation, product.imageUrl, product.image]);
 
   const handleToggleAddit = (ing) => {
     setSelectedAdditions(prev => {
@@ -105,6 +126,8 @@ export default function ProductCard({ product, onToast }) {
   };
 
   const handleOpenDetail = () => {
+    setSelectedAdditions([]);
+    setModalQty(1);
     setShowDetail(true);
   };
 
@@ -138,15 +161,8 @@ export default function ProductCard({ product, onToast }) {
             placeholder="https://via.placeholder.com/20/e8f5e0/e8f5e0"
           />
           
-          {/* Success Animation */}
-          {showAdded && (
-            <div className="product-added-overlay">
-              <LottiePlayer 
-                url="https://assets10.lottiefiles.com/packages/lf20_awp3ga9o.json" 
-                className="added-lottie"
-              />
-            </div>
-          )}
+          {/* Success Animation fue reemplazada por animación de vuelo hacia el carrito */}
+
 
           {isSoldOut && (
             <div className="product-soldout-overlay">
@@ -174,7 +190,11 @@ export default function ProductCard({ product, onToast }) {
           </div>
 
           {/* ── Actions Row (Bottom) ── */}
-          <div className="product-actions" onClick={e => e.stopPropagation()}>
+          <div 
+            ref={addBtnRef}
+            className="product-actions" 
+            onClick={e => e.stopPropagation()}
+          >
             {quantity > 0 && product.type !== 'prepared' ? (
               <div className="qty-counter">
                 <button 
@@ -298,23 +318,17 @@ export default function ProductCard({ product, onToast }) {
                     <div className="detail-actions-row">
                       <div className="qty-counter" style={{ flex: 1, height: '56px', maxWidth: 'none' }}>
                         <button 
-                          onClick={(e) => handleUpdateQty(quantity - 1, e)} 
-                          disabled={quantity <= 0}
+                          onClick={() => setModalQty(prev => Math.max(1, prev - 1))} 
+                          disabled={modalQty <= 1}
                           className="qty-control-btn"
                           style={{ width: '46px', height: '46px' }}
                         >
                           −
                         </button>
-                        <span className="qty-counter-value" style={{ fontSize: '1.2rem' }}>{quantity}</span>
+                        <span className="qty-counter-value" style={{ fontSize: '1.2rem' }}>{modalQty}</span>
                         <button 
-                          onClick={(e) => {
-                            if (quantity === 0) {
-                              handleAdd(e);
-                            } else {
-                              handleUpdateQty(quantity + 1, e);
-                            }
-                          }} 
-                          disabled={product.stock !== undefined && quantity >= product.stock}
+                          onClick={() => setModalQty(prev => prev + 1)} 
+                          disabled={product.stock !== undefined && modalQty >= product.stock}
                           className="qty-control-btn"
                           style={{ width: '46px', height: '46px' }}
                         >
@@ -335,9 +349,10 @@ export default function ProductCard({ product, onToast }) {
                     </div>
 
                     <button 
+                      ref={addBtnRef}
                       className="btn-main-action"
                       onClick={(e) => {
-                        handleAdd(e, selectedAdditions);
+                        handleAdd(e, selectedAdditions, modalQty);
                         setShowDetail(false);
                       }}
                     >

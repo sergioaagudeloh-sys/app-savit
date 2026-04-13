@@ -7,90 +7,54 @@
   overflow: hidden;
 }
 
-/* ── Squirrel Launcher ── */
-.squirrel-animator {
+/* ── Moneda Dinámica con Variables CSS ── */
+.dynamic-flying-coin {
   position: absolute;
-  bottom: 20px;
-  right: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  animation: squirrel-pop-refined 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-}
-
-.squirrel-icon {
-  font-size: 55px;
-  filter: drop-shadow(0 5px 15px rgba(0,0,0,0.2));
-  z-index: 2;
-}
-
-/* ── Pre-Launch Coin & Glow ── */
-.pre-launch-coin {
-  position: absolute;
-  top: -45px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1;
-}
-
-.pre-coin-icon {
+  left: 0;
+  top: 0;
   font-size: 28px;
-  animation: coin-pop-up 0.4s ease-out forwards;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+  z-index: 10;
+  animation: dynamic-parabola 1s cubic-bezier(0.35, 0, 0.25, 1) forwards;
+  will-change: transform, opacity;
 }
 
-.pre-coin-glow {
-  position: absolute;
-  width: 50px;
-  height: 50px;
-  background: radial-gradient(circle, rgba(255, 230, 0, 0.8) 0%, rgba(255, 200, 0, 0) 70%);
-  border-radius: 50%;
-  animation: pre-coin-flash 0.4s ease-out forwards;
-}
-
-/* ── Main Flying Coin ── */
-.flying-coin {
-  position: absolute;
-  bottom: 80px;
-  right: 50px;
-  font-size: 32px;
-  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));
-  z-index: 3;
-  animation: coin-throw-parabola 0.8s cubic-bezier(0.35, 0, 0.25, 1) forwards;
-}
-
-/* ── Animations ── */
-@keyframes squirrel-pop-refined {
-  0% { transform: translateY(120%) scale(0.5); opacity: 0; }
-  15% { transform: translateY(0) scale(1.1); opacity: 1; }
-  85% { transform: translateY(0) scale(1); opacity: 1; }
-  100% { transform: translateY(120%) scale(0.5); opacity: 0; }
-}
-
-@keyframes coin-pop-up {
-  0% { transform: scale(0) translateY(20px); opacity: 0; }
-  50% { transform: scale(1.3) translateY(-10px); opacity: 1; }
-  100% { transform: scale(0) translateY(-20px); opacity: 0; }
-}
-
-@keyframes pre-coin-flash {
-  0% { transform: scale(0.2); opacity: 0.8; filter: blur(2px); }
-  50% { transform: scale(1.5); opacity: 1; filter: blur(0); }
-  100% { transform: scale(2); opacity: 0; filter: blur(5px); }
-}
-
-@keyframes coin-throw-parabola {
+@keyframes dynamic-parabola {
   0% {
-    transform: translate(0, 0) rotate(0deg) scale(0.5);
+    transform: translate(var(--start-x), var(--start-y)) scale(0.5) rotate(0deg);
     opacity: 0;
   }
-  10% {
+  15% {
     opacity: 1;
-    transform: translate(-10px, -20px) rotate(45deg) scale(1.2);
+    transform: translate(calc(var(--start-x) - 20px), calc(var(--start-y) - 60px)) scale(1.3) rotate(45deg);
   }
   100% {
-    /* Impactar cerca del banner superior (ajustado para responsive aproximado) */
-    transform: translate(-160px, -85vh) rotate(1080deg) scale(0.6);
+    transform: translate(var(--end-x), var(--end-y)) scale(0.6) rotate(720deg);
     opacity: 0;
   }
+}
+
+/* ── Efecto en el destinatario (Banner o Header) ── */
+#rewards-target.receiving,
+#header-points-target.receiving,
+.header-points-badge.receiving {
+  animation: target-impact 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes target-impact {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3) rotate(-5deg); filter: brightness(1.5); }
+  100% { transform: scale(1); }
+}
+
+/* ── Efecto en la mascota (lanzadora) ── */
+.mascot-character.mascot-action-pop {
+  animation: mascot-toss 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes mascot-toss {
+  0% { transform: scale(1) translateY(0); }
+  30% { transform: scale(0.9) translateY(5px); }
+  60% { transform: scale(1.1) translateY(-10px); }
+  100% { transform: scale(1) translateY(0); }
 }

@@ -155,6 +155,13 @@ export default function Checkout() {
     <div className="app-container">
       <Header showBack title="Confirmar Pedido" />
       <main className="page-content page-content--no-nav checkout-page">
+        <div className="checkout-hero">
+           <div className="checkout-hero-content">
+             <span className="checkout-hero-label">Resumen de compra</span>
+             <h1 className="checkout-hero-title">Finalizar Pedido</h1>
+           </div>
+        </div>
+
         <StoreStatusBanner isOpen={config?.isOpen !== false} />
 
         {/* Order Summary */}

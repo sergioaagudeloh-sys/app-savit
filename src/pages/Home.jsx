@@ -91,12 +91,15 @@ export default function Home() {
   }, [products, search, selectedCat]);
 
   return (
-    <div className="app-container" {...swipeHandlers}>
+    <div className="app-container catalog-page" {...swipeHandlers}>
       <Header onCartOpen={() => setCartOpen(true)} />
 
-      <main className="page-content">
-        <StoreStatusBanner isOpen={config?.isOpen !== false} />
+      <div className="catalog-hero-wrapper">
         <Banner />
+        <StoreStatusBanner isOpen={config?.isOpen !== false} variant="catalog" />
+      </div>
+
+      <main className="page-content catalog-content">
         <SearchBar onSearch={setSearch} />
 
         {categories && categories.length > 1 && (

@@ -1,4 +1,3 @@
-/* src/pages/Checkout.css */
 .checkout-empty {
   display: flex;
   align-items: center;
@@ -7,6 +6,51 @@
 
 .checkout-page {
   padding-bottom: 120px;
+}
+
+/* ── Hero section ── */
+.checkout-hero {
+  background: linear-gradient(135deg, #1d3a1f 0%, #244c26 100%);
+  padding: calc(var(--header-height) + 24px) var(--space-lg) 32px;
+  position: relative;
+  overflow: hidden;
+  color: white;
+  margin-bottom: var(--space-md);
+}
+
+.checkout-hero::after {
+  content: '🛒';
+  position: absolute;
+  right: -10px;
+  bottom: -20px;
+  font-size: 140px;
+  opacity: 0.1;
+  transform: rotate(-15deg);
+  pointer-events: none;
+}
+
+.checkout-hero-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.checkout-hero-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 800;
+  opacity: 0.8;
+  color: var(--color-accent);
+}
+
+.checkout-hero-title {
+  font-size: 32px;
+  font-weight: 900;
+  margin: 0;
+  letter-spacing: -0.02em;
 }
 
 .checkout-section {

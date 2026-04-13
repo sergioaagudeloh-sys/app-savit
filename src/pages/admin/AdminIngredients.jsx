@@ -70,7 +70,7 @@ export default function AdminIngredients() {
 
   return (
     <div className="app-container admin-ingredients admin-page">
-      <Header title="Ingredientes" />
+      <Header />
       <AdminSidebar />
 
       <main className="page-content admin-main-content">
@@ -82,16 +82,6 @@ export default function AdminIngredients() {
               <div className="inv-hero-title-area">
                 <span className="inv-hero-label">Gestión de Insumos</span>
                 <h1 className="inv-hero-title">Ingredientes Extra</h1>
-              </div>
-
-              <div className="inv-hero-actions">
-                <button
-                  className={`inv-action-btn ${showForm ? 'secondary' : 'primary'} animate-pulse`}
-                  onClick={showForm ? handleCancel : handleOpenNew}
-                >
-                  <span className="inv-action-icon">{showForm ? '✕' : '+'}</span>
-                  {showForm ? 'Cancelar' : 'Nuevo Ingrediente'}
-                </button>
               </div>
             </div>
 
@@ -109,6 +99,17 @@ export default function AdminIngredients() {
         </div>
 
         <div className="admin-page-content">
+          {/* Unified Tooling */}
+          <div className="inv-toolbar-base centered-toolbar">
+            <button
+              className={`inv-action-btn ${showForm ? 'secondary' : 'primary'} ripple`}
+              onClick={showForm ? handleCancel : handleOpenNew}
+            >
+              <span className="inv-action-icon">{showForm ? '✕' : '＋'}</span>
+              <span className="inv-action-text">{showForm ? 'Cancelar' : 'Nuevo Insumo'}</span>
+            </button>
+          </div>
+
           {error && <p className="text-error">{error}</p>}
 
           {/* ── Formulario ── */}
@@ -242,7 +243,7 @@ export default function AdminIngredients() {
                   <button className="btn btn-soft flex-1" onClick={() => setShowConfirm(null)}>
                     Cancelar
                   </button>
-                  <button className="btn btn-primary bg-danger flex-1" onClick={confirmDelete}>
+                  <button className="inv-action-btn danger flex-1" onClick={confirmDelete}>
                     Sí, eliminar
                   </button>
                 </div>

@@ -144,7 +144,7 @@ export default function AdminOffers() {
 
   return (
     <div className="app-container admin-offers admin-page">
-      <Header title="Anuncios" />
+      <Header />
       <AdminSidebar />
 
       <main className="page-content admin-main-content">
@@ -155,23 +155,6 @@ export default function AdminOffers() {
               <div className="inv-hero-title-area">
                 <span className="inv-hero-label">Gestión de Promociones</span>
                 <h1 className="inv-hero-title">Anuncios</h1>
-              </div>
-              <div className="inv-hero-actions">
-                <button 
-                  className={`inv-action-btn ${showForm ? 'secondary' : 'primary'} ripple`}
-                  onClick={() => {
-                    if (showForm) {
-                      setShowForm(false);
-                      setEditingIndex(null);
-                      setForm(DEFAULT_PROMO);
-                    } else {
-                      handleAddNew();
-                    }
-                  }}
-                >
-                  <span className="inv-action-icon">{showForm ? '✕' : '＋'}</span>
-                  <span className="inv-action-text">{showForm ? 'Cancelar' : 'Nuevo Anuncio'}</span>
-                </button>
               </div>
             </div>
 
@@ -193,6 +176,26 @@ export default function AdminOffers() {
         </div>
 
         <div className="admin-page-content">
+
+          {/* Unified Tooling */}
+          <div className="inv-toolbar-base">
+            <div style={{ flex: 1 }} />
+            <button 
+              className={`inv-action-btn ${showForm ? 'secondary' : 'primary'} ripple`}
+              onClick={() => {
+                if (showForm) {
+                  setShowForm(false);
+                  setEditingIndex(null);
+                  setForm(DEFAULT_PROMO);
+                } else {
+                  handleAddNew();
+                }
+              }}
+            >
+              <span className="inv-action-icon">{showForm ? '✕' : '＋'}</span>
+              <span className="inv-action-text">{showForm ? 'Cancelar' : 'Nuevo Anuncio'}</span>
+            </button>
+          </div>
 
           {/* ── Formulario ── */}
           {showForm && (

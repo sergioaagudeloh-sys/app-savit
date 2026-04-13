@@ -1,20 +1,19 @@
 import { useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
-import { useStoreConfig } from '../../hooks/useOrders';
+import { useStoreConfig, useOrders } from '../../hooks/useOrders';
 import { useSwipeToDismiss } from '../../hooks/useSwipeToDismiss';
 import { useSwipeToDelete } from '../../hooks/useSwipeToDelete';
 import { vibrateSuccess } from '../../utils/haptics';
 import { formatCOP } from '../../utils/formatters';
-import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 import './CartDrawer.css';
 
-// Componente para cada item con soporte de gestos
+// Componente para cada item con soporte de gestos de deslizamiento
 function CartItem({ item, onUpdateQty, onRemove }) {
   const itemRef = useRef(null);
-  
+
   useSwipeToDelete(itemRef, () => {
-    vibrateSuccess(); // Feedback háptico al "lanzar" el item
+    vibrateSuccess();
     onRemove(item.cartId, item.id);
   }, { threshold: 80 });
 
@@ -48,90 +47,125 @@ function CartItem({ item, onUpdateQty, onRemove }) {
   );
 }
 
+// CartDrawer – montado por App.jsx sólo cuando isCartOpen es true
+// Por eso NO necesita el guard `if (!isOpen) return null`
 export default function CartDrawer({ onClose }) {
+  const navigate = useNavigate();
   const { items, totalPrice, totalItems, updateQty, removeItem, clearCart } = useCart();
   const { config } = useStoreConfig();
-  const navigate = useNavigate();
+  const { activeOrders } = useOrders();
   const drawerRef = useRef(null);
 
   // 🎯 Swipe-to-dismiss: deslizar hacia abajo cierra el carrito
   useSwipeToDismiss(drawerRef, onClose, { threshold: 80, direction: 'down' });
 
-  // Lock body scroll when drawer is mounted
-  useBodyScrollLock(true);
+  const handleCatalogRedirect = () => {
+    onClose();
+    navigate('/catalog');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
-  const goCheckout = () => {
-    vibrateSuccess(); // 🎯 Haptic feedback al ir a pedir
+  const handleCheckout = () => {
     onClose();
     navigate('/checkout');
   };
 
   return (
     <>
+      {/* Overlay oscuro */}
       <div className="overlay" onClick={onClose} />
+
+      {/* Panel deslizable */}
       <div className="drawer cart-drawer" ref={drawerRef}>
         <div className="drawer-handle" />
 
         <div className="cart-drawer-header">
-          <h2 className="cart-drawer-title">🛒 Mi Carrito</h2>
+          <h2 className="cart-drawer-title">Mi Carrito 🛒</h2>
           <div className="cart-header-actions">
             {items.length > 0 && (
               <button className="cart-clear-btn" onClick={clearCart}>Vaciar</button>
             )}
-            <button className="btn-icon" onClick={onClose} aria-label="Cerrar carrito">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <button className="cart-close-btn" onClick={onClose} aria-label="Cerrar carrito">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M18 6L6 18M6 6l12 12"/>
               </svg>
             </button>
           </div>
         </div>
 
-        {items.length === 0 && (
-          <div className="empty-state">
-            <div className="empty-state-icon">🛒</div>
-            <div className="empty-state-title">Carrito vacío</div>
-            <p className="empty-state-desc">Agrega productos desde el catálogo</p>
-            <button className="btn btn-primary mt-md" onClick={() => { onClose(); navigate('/catalog'); }}>
-              🌿 Ver Catálogo
-            </button>
+        {/* Pedidos en curso */}
+        {activeOrders?.length > 0 && items.length > 0 && (
+          <div className="cart-orders-progress">
+            <div className="cart-orders-title">Pedidos en curso</div>
+            <div className="cart-orders-list">
+              {activeOrders.map(order => (
+                <div
+                  key={order.id}
+                  className="cart-order-item"
+                  onClick={() => { onClose(); navigate('/order-confirm', { state: { orderId: order.id } }); }}
+                >
+                  <div className="cart-order-info">
+                    <span className="cart-order-id">Pedido #{order.id}</span>
+                    <span className={`cart-order-status status-${order.status}`}>
+                      {order.status === 'pending' ? 'Pendiente ⏳' : order.status === 'approved' ? 'Aprobado ✅' : 'Pagado 💎'}
+                    </span>
+                  </div>
+                  <span className="cart-order-arrow">❯</span>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
-        {items.length > 0 && (
-          <>
-            <div className="cart-items">
-              {items.map((item, idx) => (
-                <CartItem 
-                  key={item.cartId || `${item.id}-${idx}`} 
-                  item={item} 
-                  onUpdateQty={updateQty} 
-                  onRemove={removeItem} 
-                />
-              ))}
-            </div>
-
-            <div className="cart-drawer-footer">
-              <div className="cart-summary">
-                {config && !config.isOpen && (
-                  <div className="cart-status-notice mb-sm">
-                    🌙 Pedido fuera de horario: será procesado al abrir.
-                  </div>
-                )}
-                <div className="cart-summary-row">
-                  <span className="text-muted">{totalItems} producto{totalItems !== 1 ? 's' : ''}</span>
-                  <span className="price price-lg">{formatCOP(totalPrice)}</span>
-                </div>
-              </div>
-              <button className="btn btn-whatsapp btn-lg" onClick={goCheckout}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347"/>
-                </svg>
-                Ir a Pedir — {formatCOP(totalPrice)}
+        {/* Lista de items */}
+        <div className="cart-items">
+          {items.length === 0 ? (
+            <div className="cart-empty-state">
+              <div className="cart-empty-icon">🛒</div>
+              <div className="cart-empty-title">Carrito Vacío</div>
+              <p className="cart-empty-desc">Explora nuestros productos y llena tu vida de salud.</p>
+              <button className="btn btn-primary" style={{ marginTop: '16px' }} onClick={handleCatalogRedirect}>
+                🌿 Ver Catálogo
               </button>
             </div>
-          </>
-        )}
+          ) : (
+            items.map(item => (
+              <CartItem
+                key={item.cartId}
+                item={item}
+                onUpdateQty={updateQty}
+                onRemove={removeItem}
+              />
+            ))
+          )}
+        </div>
 
+        {/* Footer con total y acciones */}
+        {items.length > 0 && (
+          <div className="cart-drawer-footer">
+            <div className="cart-summary">
+              {config && !config.isOpen && (
+                <div className="cart-status-notice mb-sm">
+                  🌙 Pedido fuera de horario: será procesado al abrir.
+                </div>
+              )}
+              <div className="cart-summary-row">
+                <span className="text-muted">{totalItems} producto{totalItems !== 1 ? 's' : ''}</span>
+                <span className="price price-lg">{formatCOP(totalPrice)}</span>
+              </div>
+            </div>
+
+            <div className="cart-drawer-actions">
+              <button className="btn btn-primary btn-checkout" onClick={handleCheckout}>
+                Ir a Pedir 🛍️
+              </button>
+            </div>
+
+            <button className="cart-drawer-continue" onClick={handleCatalogRedirect}>
+              ← Continuar Comprando
+            </button>
+          </div>
+        )}
       </div>
     </>
   );

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSwipe } from '../../hooks/useSwipe';
 import { useCustomer } from '../../context/CustomerContext';
+import { useStoreConfig } from '../../hooks/useOrders';
 import './Banner.css';
 
 const DEFAULT_BANNERS = [
@@ -26,11 +27,32 @@ const DEFAULT_BANNERS = [
   },
 ];
 
-export default function Banner({ banners = DEFAULT_BANNERS }) {
+export default function Banner({ banners: initialBanners = DEFAULT_BANNERS }) {
   const [active, setActive] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const navigate = useNavigate();
   const { customer, isIdentified } = useCustomer();
+  const { config } = useStoreConfig();
+
+  const isOpen = config?.isOpen !== false;
+
+  // Dynamically update the 'open' banner based on store status
+  const banners = initialBanners.map(b => {
+    if (b.id === 'open') {
+      return {
+        ...b,
+        title: isOpen ? '¡Estamos abiertos!' : 'Tienda Cerrada',
+        subtitle: isOpen 
+          ? 'Escoge tus favoritos antes de que se agoten' 
+          : 'Procesaremos tu pedido a primera hora. ¡Gracias por elegirnos! 🌿',
+        bg: isOpen 
+          ? 'linear-gradient(135deg, #1d3a1f 0%, #244c26 100%)'
+          : 'linear-gradient(135deg, #0a140b 0%, #1a1a1a 100%)',
+        isLive: isOpen
+      };
+    }
+    return b;
+  });
 
   const next = useCallback(() => {
     setIsAnimating(true);
@@ -67,23 +89,11 @@ export default function Banner({ banners = DEFAULT_BANNERS }) {
         <div className="banner-text">
           <div className="banner-status-wrapper">
              {current.isLive && <span className="live-dot-indicator" />}
-             <h2 className="banner-title">{current.title}</h2>
+             <h2 className="banner-title" style={{ color: !isOpen && current.id === 'open' ? '#ff9800' : 'white' }}>
+               {current.title}
+             </h2>
           </div>
           <p className="banner-subtitle">{current.subtitle}</p>
-        </div>
-        
-        {/* Rewards Target - The Arcón de Puntos */}
-        <div 
-          className="rewards-target-box" 
-          id="rewards-target"
-          onClick={() => navigate('/rewards', { viewTransition: true })}
-          title="Ver mis puntos"
-        >
-           <div className="points-label">Sávit Puntos</div>
-           <div className="points-value">
-             <span>{isIdentified ? (customer?.savitPoints || 0).toLocaleString() : '---'}</span>
-             <span className="points-coin-small">🪙</span>
-           </div>
         </div>
       </div>
       <div className="banner-dots">

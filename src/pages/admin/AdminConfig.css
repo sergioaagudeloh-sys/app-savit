@@ -1,103 +1,14 @@
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-}
+/* =============================================
+   ADMIN CONFIG — Compact System Design
+   Aligned to Savit design tokens
+   ============================================= */
 
+/* ── Base Layout ── */
 body.is-admin-route .admin-config .admin-main-content {
   padding-top: 0;
-}
-
-/* ── Hero Design Standard ── */
-.inv-hero-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 20px;
-  flex-wrap: wrap;
-  margin-bottom: 16px;
-}
-
-.inv-hero-title-area {
-  display: flex;
-  flex-direction: column;
-}
-
-.inv-hero-actions {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 8px;
-}
-
-/* Premium Action Buttons */
-.inv-action-btn {
-  border: none;
-  border-radius: 14px;
-  padding: 10px 20px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 800;
-  font-size: 0.82rem;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-}
-
-.inv-action-btn.primary {
-  background: var(--color-primary);
-  color: white;
-}
-
-.inv-action-btn.secondary {
-  background: rgba(255, 255, 255, 0.15);
-  color: white;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.inv-action-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.25);
-}
-
-.inv-action-btn.primary:hover {
-  background: var(--color-primary-dark);
-}
-
-.inv-action-btn.secondary:hover {
-  background: rgba(255, 255, 255, 0.25);
-  border-color: rgba(255, 255, 255, 0.4);
-}
-
-.inv-action-btn:active {
-  transform: scale(0.96) translateY(0);
-}
-
-.inv-action-icon {
-  font-size: 1.1rem;
-}
-
-.admin-config-title {
-  font-size: 15px;
-  color: var(--color-primary);
-  font-weight: 800;
-  margin-bottom: 2px;
-}
-
-.maintenance-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-top: var(--space-md);
-}
-
-/* Ensure scrolling and no hidden parts */
-body.is-admin-route .admin-config .admin-main-content {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding-top: 0;
-  padding-bottom: 120px; 
+  padding-bottom: 80px;
   padding-left: 0;
   padding-right: 0;
 }
@@ -105,149 +16,292 @@ body.is-admin-route .admin-config .admin-main-content {
 @media (min-width: 960px) {
   body.is-admin-route .admin-config .admin-main-content {
     padding-left: 240px;
-    padding-right: 0;
   }
 }
 
-@media (max-width: 480px) {
-  .maintenance-actions {
+/* ── Config Tabs Row (Hero) ── */
+.config-tabs-row {
+  margin-top: 10px;
+  margin-bottom: 0;
+  justify-content: flex-start !important;
+  gap: 8px !important;
+}
+
+.config-tabs-row .inv-stat {
+  cursor: pointer;
+  flex: 0 0 auto;
+  min-width: 90px;
+  padding: 6px 10px;
+}
+
+/* ── Page Content Override (More Compact) ── */
+.admin-config .admin-page-content {
+  padding: 14px 16px 80px !important;
+  gap: 10px !important;
+  border-radius: 24px 24px 0 0 !important;
+  margin-top: -16px !important;
+}
+
+/* ── Compact Section Card ── */
+.cfg-card {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.cfg-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+/* ── Card Header Row ── */
+.cfg-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  position: relative;
+}
+
+.cfg-header-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--color-bg-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  color: var(--color-primary);
+}
+
+.cfg-header-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.cfg-header-text h3 {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--color-primary);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.cfg-header-text p {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin: 2px 0 0;
+  line-height: 1.3;
+}
+
+/* ── Danger Card Variant ── */
+.cfg-card.danger {
+  border-color: rgba(214, 69, 69, 0.3);
+  background: rgba(214, 69, 69, 0.03);
+}
+
+.cfg-card.danger .cfg-header-icon {
+  background: rgba(214, 69, 69, 0.1);
+}
+
+.cfg-card.danger .cfg-header-text h3 {
+  color: var(--color-danger);
+}
+
+/* ── Card Body ── */
+.cfg-body {
+  padding: 0 16px 14px;
+  border-top: 1px solid var(--color-border-soft);
+}
+
+.cfg-body.no-border {
+  border-top: none;
+  padding-top: 0;
+}
+
+/* ── Toggle inline in header ── */
+.cfg-toggle {
+  flex-shrink: 0;
+}
+
+/* ── Compact Input Group ── */
+.cfg-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.cfg-input-group:last-child {
+  margin-bottom: 0;
+}
+
+.cfg-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.cfg-input {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1.5px solid var(--color-border);
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--color-text);
+  background: var(--color-bg);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+
+.cfg-input:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(132, 175, 36, 0.12);
+  background: white;
+}
+
+.cfg-hint {
+  font-size: 0.68rem;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+
+/* ── Two-column grid ── */
+.cfg-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+@media (max-width: 400px) {
+  .cfg-grid-2 {
     grid-template-columns: 1fr;
   }
 }
 
-/* ── Promos List ── */
-.promos-list-container {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-md);
-  margin-top: var(--space-md);
-}
-
-.promo-admin-card {
-  background: white;
-  border-radius: 16px;
-  padding: 16px;
-  border: 1px solid var(--color-border);
-  position: relative;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-}
-
-.promo-admin-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.1);
-}
-
-.promo-admin-card.is-editing {
-  border-color: var(--color-primary);
-  background: #f8fff9;
-}
-
-.promo-admin-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 12px;
-}
-
-.promo-admin-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--color-text);
-  margin: 0;
-  max-width: 70%;
-}
-
-.promo-admin-status {
-  padding: 4px 8px;
-  border-radius: 8px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.promo-admin-status.active {
-  background: #e6f7ed;
-  color: #1e7e34;
-}
-
-.promo-admin-status.inactive {
-  background: #fdf2f2;
-  color: #c81e1e;
-}
-
-.promo-admin-body {
-  display: flex;
-  gap: 12px;
-}
-
-.promo-admin-thumb {
-  width: 60px;
-  height: 60px;
-  border-radius: 12px;
-  object-fit: cover;
-  flex-shrink: 0;
-  background: #f0f0f0;
-}
-
-.promo-admin-desc {
-  font-size: 0.9rem;
-  color: var(--color-text-muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2; /* Standard property */
-  -webkit-box-orient: vertical;
-}
-
-.promo-admin-actions {
+/* ── Form footer ── */
+.cfg-footer {
   display: flex;
   justify-content: flex-end;
+  margin-top: 12px;
+}
+
+/* ── Points info box ── */
+.cfg-points-preview {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--color-bg-soft);
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin: 12px 0;
+  border: 1px solid var(--color-border);
+}
+
+.cfg-points-preview-emoji {
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+
+.cfg-points-preview-info strong {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--color-primary);
+  line-height: 1.3;
+}
+
+.cfg-points-preview-info span {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+
+/* ── Maintenance Buttons ── */
+.cfg-maintenance-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 8px;
   margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--color-border);
-}
-
-/* ── Admin Form Footer Layout ── */
-.admin-form-footer {
-  display: flex;
-  flex-wrap: wrap; /* Allows wrapping on tiny devices */
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  width: 100%;
-}
-
-.toggle-group-inline {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.admin-form-actions {
-  display: flex;
-  gap: 8px;
-  flex: 1;
-  justify-content: flex-end;
-  min-width: 0;
 }
 
 @media (max-width: 400px) {
-  .admin-form-footer {
-    flex-direction: column;
-    align-items: flex-start;
+  .cfg-maintenance-row {
+    grid-template-columns: 1fr;
   }
-  .admin-form-actions {
-    width: 100%;
-    justify-content: stretch;
+}
+
+/* ── Glider (cápsula deslizante de pestaña activa) ── */
+.config-tabs-row {
+  position: relative;  /* contexto para el glider */
+}
+
+.cfg-tab-glider {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  /* Ancho = 1/3 del contenedor menos el gap proporcional */
+  width: calc((100% - 8px) / 3);
+  height: calc(100% - 8px);
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.10);
+  transform: translateX(calc(var(--tab-idx, 0) * 100%));
+  transition: transform 0.4s cubic-bezier(0.34, 1.30, 0.64, 1);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Botones de pestaña encima del glider */
+.config-tabs-row .inv-stat {
+  position: relative;
+  z-index: 1;
+  cursor: pointer;
+  flex: 1;
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  transition: color 0.25s ease, opacity 0.25s ease;
+}
+
+.config-tabs-row .inv-stat:not(.active) {
+  opacity: 0.65;
+}
+
+.config-tabs-row .inv-stat.active {
+  opacity: 1;
+}
+
+/* ── Cascada de tarjetas (Staggered Entry) ── */
+.cfg-tab-content .cfg-card {
+  animation: cfgCardIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--card-i, 0) * 80ms);
+  opacity: 0; /* se resetea sola cuando animation-fill-mode=both */
+}
+
+@keyframes cfgCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
   }
-  .admin-form-actions button {
-    flex: 1;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
 
 
-
+/* ── Schedule fields (collapse area) ── */
+.cfg-schedule-fields {
+  overflow: hidden;
+  animation: slideUpFade 0.3s ease both;
+  padding: 0 16px 14px;
+}

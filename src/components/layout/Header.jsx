@@ -11,7 +11,7 @@ import './Header.css';
 export default function Header({ showBack, title, onCartOpen }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { totalItems, addCount } = useCart();
+  const { totalItems, addCount, totalPrice } = useCart();
   const { customer, isIdentified } = useCustomer();
   const { config } = useStoreConfig();
   const [cartBounce, setCartBounce] = useState(false);
@@ -38,8 +38,22 @@ export default function Header({ showBack, title, onCartOpen }) {
   const isDashboard = location.pathname === '/admin';
   const shouldShowBack = showBack || (isAdminRoute && !isDashboard);
 
+  // Calcula los puntos proyectados del carrito actual
+  const conversionRate = config?.pointsConfig?.pointsPer1000 || 10;
+  const pendingPoints = totalPrice > 0 ? Math.floor(totalPrice / 1000) * conversionRate : 0;
+
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 0);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
-    <header className="header">
+    <header className={`header ${isScrolled ? 'header-scrolled' : ''}`}>
       <div className="header-left">
         {shouldShowBack ? (
           <button className="btn-icon header-back" onClick={handleBack} aria-label="Volver">
@@ -76,9 +90,17 @@ export default function Header({ showBack, title, onCartOpen }) {
         )}
 
         {isIdentified && config?.pointsConfig?.enabled && (
-           <div className="header-points-badge animate-fade-in" onClick={() => navigate('/rewards')}>
+           <div id="header-points-target" className="header-points-badge animate-fade-in" onClick={() => navigate('/rewards')}>
+             {pendingPoints > 0 && (
+               <div className="points-pending-tooltip">
+                 ¡Termina tu pedido para guardarlos!
+               </div>
+             )}
              <span className="points-icon">✨</span>
-             <span className="points-value">{customer.savitPoints || 0}</span>
+             <span className="points-value">
+               {customer.savitPoints || 0}
+               {pendingPoints > 0 && <span className="points-pending animate-pulse-soft">+{pendingPoints}</span>}
+             </span>
            </div>
         )}
 
@@ -86,6 +108,7 @@ export default function Header({ showBack, title, onCartOpen }) {
         
         {onCartOpen && (
           <button
+            id="cart-btn-header"
             className={`btn-icon header-cart${cartBounce ? ' cart-bounce' : ''}`}
             onClick={onCartOpen}
             aria-label="Carrito"

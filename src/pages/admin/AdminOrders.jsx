@@ -28,7 +28,6 @@ export default function AdminOrders() {
   const { addNotification } = useNotifications();
   const { awardPoints } = useUsers();
   
-  const [searchTerm, setSearchTerm] = useState('');
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [orderToCancel, setOrderToCancel] = useState(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
@@ -273,7 +272,7 @@ export default function AdminOrders() {
 
   if (loading) return (
     <div className="app-container admin-orders admin-page">
-      <Header title="Tablero de Pedidos" />
+      <Header />
       <AdminSidebar />
       <div className="flex-center w-full" style={{ height: '80vh' }}>
         <span className="spinner spinner-dark" />
@@ -283,7 +282,7 @@ export default function AdminOrders() {
 
   return (
     <div className="app-container admin-orders admin-page">
-      <Header title="Pedidos" />
+      <Header />
       <AdminSidebar />
       <main className="page-content admin-main-content">
         <div className="inv-hero">
@@ -292,16 +291,6 @@ export default function AdminOrders() {
               <div className="inv-hero-title-area">
                 <span className="inv-hero-label">Monitor de Pedidos</span>
                 <h1 className="inv-hero-title">Gestión de Ventas</h1>
-              </div>
-
-              <div className="inv-hero-actions">
-                <button 
-                  className="inv-action-btn secondary animate-pulse" 
-                  onClick={handleDeleteCancelled}
-                >
-                  <span className="inv-action-icon">🗑️</span>
-                  Limpiar Cancelados
-                </button>
               </div>
             </div>
 
@@ -320,6 +309,18 @@ export default function AdminOrders() {
 
 
         <div className="admin-page-content">
+          {/* Unified Tooling: Centered Actions */}
+          <div className="inv-toolbar-base centered-toolbar">
+            <button 
+              className="inv-action-btn danger animate-pulse" 
+              onClick={handleDeleteCancelled}
+              title="Vaciar pedidos cancelados"
+            >
+              <span className="inv-action-icon">🗑️</span>
+              <span className="inv-action-text">Vaciar pedidos cancelados</span>
+            </button>
+          </div>
+
           <div className="orders-board-vertical">
             {Object.keys(STATUS_LABELS).map(status => {
               const allItems = columns[status];
