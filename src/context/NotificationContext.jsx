@@ -32,6 +32,9 @@ export const NotificationProvider = ({ children }) => {
   const location = useLocation();
   const { customer } = useCustomer();
   const isAdmin = location.pathname.startsWith('/admin');
+  // Only treat the session as an authenticated admin if the local auth flag is set.
+  // This prevents Firestore listeners from opening BEFORE the admin logs in.
+  const isAdminAuthenticated = isAdmin && localStorage.getItem('savit_admin_auth') === 'true';
   const currentRole = isAdmin ? 'admin' : 'client';
   const userId = customer?.phone || 'anonymous';
 
@@ -83,6 +86,17 @@ export const NotificationProvider = ({ children }) => {
       };
     }
 
+    // GUARD: If the user is on an admin route but NOT yet authenticated,
+    // do NOT open the Firestore listener. This prevents order notifications
+    // from appearing on the admin login screen.
+    if (isAdmin && !isAdminAuthenticated) {
+      setNotifications([]);
+      return;
+    }
+
+    // Reset flag whenever identity changes to catch the first "added" batch of the new listener
+    isFirstLoad.current = true;
+
     // FIREBASE: Real-time synchronization
     const q = query(
       collection(db, 'notifications'), 
@@ -101,6 +115,7 @@ export const NotificationProvider = ({ children }) => {
       });
 
       // --- Efecto de Sonido y Toasts ---
+      // We only show toasts for documents ADDED after the initial load of THIS specific listener instance
       if (!isFirstLoad.current) {
         snap.docChanges().forEach((change) => {
           if (change.type === 'added') {
@@ -135,11 +150,12 @@ export const NotificationProvider = ({ children }) => {
     });
 
     return unsub;
-  }, [userId, isAdmin, currentRole]);
+  }, [userId, isAdmin, isAdminAuthenticated, currentRole]);
 
   // --- CHECK SUBSCRIPTIONS LOGIC ---
   useEffect(() => {
-    if (isAdmin && isFirebaseConfigured()) {
+    // Guard: only run subscription checks when admin is fully authenticated
+    if (isAdminAuthenticated && isFirebaseConfigured()) {
       const checkSubscriptions = async () => {
         try {
           const now = new Date();
@@ -213,7 +229,7 @@ export const NotificationProvider = ({ children }) => {
         clearInterval(interval);
       };
     }
-  }, [isAdmin]);
+  }, [isAdminAuthenticated]);
 
   const addNotification = async (notif) => {
     const newNotif = {

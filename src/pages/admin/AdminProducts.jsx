@@ -1,5 +1,6 @@
 // src/pages/admin/AdminProducts.jsx
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, forwardRef } from 'react';
+import { Virtuoso } from 'react-virtuoso';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Header from '../../components/layout/Header';
 import BottomNav from '../../components/layout/BottomNav';
@@ -14,6 +15,13 @@ import { formatCOP } from '../../utils/formatters';
 import { AdminProductSkeleton } from '../../components/ui/Skeleton';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 import './AdminProducts.css';
+
+// ── Virtualization Components ────────────────────────────────────────────────
+const AdminListContainer = forwardRef(({ children, ...props }, ref) => (
+  <div {...props} ref={ref} className="product-admin-list">
+    {children}
+  </div>
+));
 
 // ── Inline Image Uploader Component ────────────────────────────────────────
 function ImageUploader({ value, onChange }) {
@@ -327,8 +335,13 @@ export default function AdminProducts() {
             </p>
           </div>
         ) : (
-          <div className="product-admin-list">
-            {filteredProducts.map(p => (
+          <Virtuoso
+            useWindowScroll
+            data={filteredProducts}
+            components={{
+              List: AdminListContainer
+            }}
+            itemContent={(index, p) => (
               <div key={p.id} className={`product-admin-item ${!p.active ? 'inactive' : ''}`}>
 
                 {/* Image */}
@@ -386,8 +399,8 @@ export default function AdminProducts() {
                 </div>
 
               </div>
-            ))}
-          </div>
+            )}
+          />
         )}
 
         </div>

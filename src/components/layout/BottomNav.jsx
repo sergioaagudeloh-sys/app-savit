@@ -15,6 +15,7 @@ const IconBox = <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stro
 const IconStore = <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>;
 const IconPromo = <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>;
 const IconHeart = <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>;
+const IconRewards = <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 12V8H4v4" /><path d="M2 12h20" /><path d="M20 12v8H4v-8" /><path d="M12 12V3" /><path d="M12 3h5l-1 2-4-2z" /><path d="M12 3H7l1 2 4-2z" /></svg>;
 
 export default function BottomNav() {
   const { setCartOpen } = useCart();
@@ -24,8 +25,8 @@ export default function BottomNav() {
   
   const clientNav = [
     { to: '/home',      label: 'Inicio',     icon: IconHome },
-    { to: '/catalog',   label: 'Catálogo',   icon: IconCategories },
-    { to: '/favorites', label: 'Favoritos',  icon: IconHeart },
+    { to: '/catalog',   label: 'Tienda',     icon: IconCategories },
+    { to: '/rewards',   label: 'Premios',    icon: IconRewards },
     { to: '/orders',    label: 'Pedidos',    icon: IconBox },
     { to: '#profile',   label: 'Perfil',     icon: IconProfile },
   ];
@@ -64,7 +65,11 @@ export default function BottomNav() {
                 <span className="admin-menu-icon">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
                 </span>
-                <span>Premios</span>
+                <span>Config Premios</span>
+              </button>
+              <button className="admin-menu-btn" onClick={() => { navigate('/admin/rewards'); setShowAdminMenu(false); }}>
+                <span className="admin-menu-icon">{IconRewards}</span>
+                <span>Canjes</span>
               </button>
               <button className="admin-menu-btn" onClick={() => { navigate('/admin/ingredients'); setShowAdminMenu(false); }}>
                  <span className="admin-menu-icon">

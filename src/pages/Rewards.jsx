@@ -1,8 +1,10 @@
 // src/pages/Rewards.jsx
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import Header from '../components/layout/Header';
 import BottomNav from '../components/layout/BottomNav';
 import Mascot from '../components/ui/Mascot';
+import PinModal from '../components/ui/PinModal';
 import { useCustomer } from '../context/CustomerContext';
 import { useAwards } from '../hooks/useAwards';
 import { useNotifications } from '../context/NotificationContext';
@@ -43,19 +45,20 @@ const SávitCoin = ({ size = 120 }) => (
 );
 
 export default function Rewards() {
-  const { customer } = useCustomer();
+  const { customer, hasPin } = useCustomer();
   const { awards, loading: awardsLoading } = useAwards();
   const { totalPrice } = useCart();
   const { config } = useStoreConfig();
-  const { showToast } = useNotifications();
+  const { showToast, addNotification } = useNotifications();
   const [redeeming, setRedeeming] = useState(null); // Award being redeemed
   const [processing, setProcessing] = useState(false);
+  const [showPin, setShowPin] = useState(false);
 
   // Lógica de Puntos
   const userPoints = customer?.savitPoints || 0;
   const conversionRate = config?.pointsConfig?.pointsPer1000 || 10;
   const pendingPoints = totalPrice > 0 ? Math.floor(totalPrice / 1000) * conversionRate : 0;
-  
+
   const activeAwards = awards.filter(a => a.isActive !== false);
 
   // Niveles Gamificados (Umbrales)
@@ -76,13 +79,19 @@ export default function Rewards() {
     setRedeeming(award);
   };
 
+  // Called after PIN is verified
+  const handlePinVerified = () => {
+    setShowPin(false);
+    confirmRedemption();
+  };
+
   const confirmRedemption = async () => {
-    if (!customer?.id || !redeeming) return;
+    if (!customer?.phone || !redeeming) return;
     setProcessing(true);
     try {
       // 1. Create redemption record
-      await addDoc(collection(db, 'redemptions'), {
-        customerId: customer.id,
+      const redemptionData = {
+        customerId: customer.phone,
         customerName: customer.name || 'Cliente Savit',
         customerPhone: customer.phone || '',
         awardId: redeeming.id,
@@ -90,10 +99,22 @@ export default function Rewards() {
         pointsCost: redeeming.pointsCost,
         status: 'pending',
         createdAt: new Date().toISOString()
+      };
+      
+      await addDoc(collection(db, 'redemptions'), redemptionData);
+
+      // 2. Create notification for admin panel
+      await addNotification({
+        title: '🎁 Nuevo Canje Solicitado',
+        message: `${customer.name || 'Un cliente'} ha canjeado ${redeeming.pointsCost} puntos por: ${redeeming.name}.`,
+        type: 'success',
+        targetRole: 'admin',
+        category: 'redemption',
+        customerPhone: customer.phone
       });
 
-      // 2. Deduct points from customer
-      await updateDoc(doc(db, 'customers', customer.id), {
+      // 3. Deduct points from customer
+      await updateDoc(doc(db, 'customers', customer.phone), {
         savitPoints: increment(-redeeming.pointsCost)
       });
 
@@ -109,19 +130,20 @@ export default function Rewards() {
 
   return (
     <div className="app-container rewards-page">
-      <Header title="Sávit Rewards" />
-      
-        {/* Elite Hero Section (Full Bleed) */}
+      <Header title="Recompensas" />
+
+      <main className="page-content rewards-content">
+
+        {/* Elite Hero Section */}
         <section className="rewards-hero">
-          <SávitCoin size={100} />
+          <SávitCoin />
           <div className="rewards-hero-text">
             <h1 className="hero-elite-title">Tus Sávit Points</h1>
             <p className="hero-elite-subtitle">Cada compra te acerca a un nuevo premio</p>
           </div>
         </section>
 
-      <main className="page-content rewards-content">
-        {/* Balance Card (Horizontal Integrated Design) */}
+        {/* Balance Card (Negative Margin Overlay) */}
         <section className="rewards-balance-card animate-slide-up">
           <div className="balance-left">
             <span className="balance-label">Balance actual</span>
@@ -139,9 +161,9 @@ export default function Rewards() {
               </span>
             </div>
             <div className="rewards-progress-bar">
-              <div 
-                className="rewards-progress-fill" 
-                style={{ width: `${progressPercent}%` }} 
+              <div
+                className="rewards-progress-fill"
+                style={{ width: `${progressPercent}%` }}
               />
             </div>
           </div>
@@ -157,20 +179,7 @@ export default function Rewards() {
           </div>
         )}
 
-        <div className="rewards-info-strip">
-          <div className="info-item">
-            <i className="fas fa-shopping-basket"></i>
-            <span>Gana</span>
-          </div>
-          <div className="info-item">
-            <i className="fas fa-gift"></i>
-            <span>Canjea</span>
-          </div>
-          <div className="info-item">
-            <i className="fas fa-crown"></i>
-            <span>Elite</span>
-          </div>
-        </div>
+
 
         {/* Catalog Section */}
         <section className="rewards-catalog">
@@ -184,17 +193,21 @@ export default function Rewards() {
             <div className="flex-center p-xl"><span className="spinner spinner-dark" /></div>
           ) : activeAwards.length === 0 ? (
             <div className="empty-state-card">
-               <p>Próximamente tendremos premios increíbles para ti.</p>
+              <p>Próximamente tendremos premios increíbles para ti.</p>
             </div>
           ) : (
-            <div className="rewards-awards-grid">
+            <div className="rewards-awards-list">
               {activeAwards.map(award => {
                 const isAvailable = userPoints >= award.pointsCost;
                 return (
                   <div key={award.id} className={`rewards-award-card ${isAvailable ? 'available' : 'locked'}`}>
-                    <div className="rewards-award-icon">
-                      {award.icon || '🎁'}
+                    <div className="rewards-award-icon-wrap">
+                      <div className="rewards-award-icon">
+                        {award.icon || '🎁'}
+                      </div>
+                      {isAvailable && <div className="available-glow" />}
                     </div>
+
                     <div className="rewards-award-body">
                       <h3 className="rewards-award-name">{award.name}</h3>
                       <p className="rewards-award-desc">{award.description}</p>
@@ -202,15 +215,18 @@ export default function Rewards() {
                         <span>🪙</span> {award.pointsCost.toLocaleString()} Pts
                       </div>
                     </div>
-                    {isAvailable ? (
-                      <button className="btn-redeem" onClick={() => handleRedeem(award)}>
-                        Canjear
-                      </button>
-                    ) : (
-                      <div className="rewards-missing">
-                        Faltan {(award.pointsCost - userPoints).toLocaleString()} pts
-                      </div>
-                    )}
+
+                    <div className="rewards-award-cta">
+                      {isAvailable ? (
+                        <button className="btn-redeem" onClick={() => handleRedeem(award)}>
+                          Canjear
+                        </button>
+                      ) : (
+                        <div className="rewards-locked-chip">
+                          Faltan {(award.pointsCost - userPoints).toLocaleString()} pts
+                        </div>
+                      )}
+                    </div>
                   </div>
                 );
               })}
@@ -220,42 +236,71 @@ export default function Rewards() {
       </main>
 
       {/* Confirmation Modal */}
-      {redeeming && (
+      {redeeming && createPortal(
         <>
-          <div className="overlay animate-fade-in" onClick={() => !processing && setRedeeming(null)} />
-          <div className="modal-dialog animate-slide-up">
-            <div className="rewards-confirm-card">
+          <div className="overlay animate-fade-in" onClick={() => !processing && setRedeeming(null)} style={{ pointerEvents: 'auto' }} />
+          <div className="rewards-dialog-elite">
+            <div className="rewards-card-confirm rewards-modal-animate" onClick={e => e.stopPropagation()}>
               <button className="modal-close-btn" onClick={() => setRedeeming(null)} disabled={processing}>✕</button>
-              <div className="modal-icon">🎁</div>
-              <h3 className="rewards-confirm-name">{redeeming.name}</h3>
-              <p className="text-center text-stone">¿Seguro que quieres canjear tus puntos por este premio?</p>
               
-              <div className="rewards-confirm-math">
-                <div className="rewards-confirm-row">
-                  <span>Tu balance actual:</span>
-                  <span>{userPoints.toLocaleString()} pts</span>
+              <div className="redeem-modal-award">
+                <div className="redeem-modal-award-icon">
+                  {redeeming.icon || '🎁'}
                 </div>
-                <div className="rewards-confirm-row">
-                  <span>Costo del premio:</span>
-                  <span className="text-error">-{redeeming.pointsCost.toLocaleString()} pts</span>
+                <h3 className="redeem-modal-award-name">{redeeming.name}</h3>
+                <p className="redeem-modal-award-desc">¿Seguro que quieres canjear tus puntos por este premio?</p>
+              </div>
+
+              <div className="redeem-modal-math">
+                <div className="redeem-math-row">
+                  <span className="redeem-math-label">Tu balance actual:</span>
+                  <span className="redeem-math-value">{userPoints.toLocaleString()} pts</span>
                 </div>
-                <div className="rewards-confirm-row total">
-                  <span>Balance final:</span>
-                  <strong>{(userPoints - redeeming.pointsCost).toLocaleString()} pts</strong>
+                <div className="redeem-math-row">
+                  <span className="redeem-math-label">Costo del premio:</span>
+                  <span className="redeem-math-value negative">-{redeeming.pointsCost.toLocaleString()} pts</span>
+                </div>
+                <div className="redeem-math-divider" />
+                <div className="redeem-math-row final">
+                  <span className="redeem-math-label">Balance final:</span>
+                  <span className="redeem-math-value gold">{(userPoints - redeeming.pointsCost).toLocaleString()} pts</span>
                 </div>
               </div>
+
+              <p className="redeem-modal-hint">Este canje generará un ticket que podrás ver en "Mis Canjes".</p>
 
               <div className="modal-actions mt-xl">
                 <button className="btn btn-ghost flex-1" onClick={() => setRedeeming(null)} disabled={processing}>
                   Cancelar
                 </button>
-                <button className="btn btn-primary flex-1" onClick={confirmRedemption} disabled={processing}>
+                <button
+                  className="btn btn-primary flex-1"
+                  onClick={() => {
+                    if (hasPin) {
+                      setShowPin(true);
+                    } else {
+                      confirmRedemption();
+                    }
+                  }}
+                  disabled={processing}
+                >
                   {processing ? <span className="spinner" /> : 'Confirmar Canje'}
                 </button>
               </div>
             </div>
           </div>
         </>
+        , document.body
+      )}
+
+      {/* PIN Modal — required before confirming redemption */}
+      {showPin && (
+        <PinModal
+          title="Confirma tu identidad para el canje"
+          onVerified={handlePinVerified}
+          onCancel={() => setShowPin(false)}
+          onCreatePin={() => setShowPin(false)}
+        />
       )}
 
       <Mascot page="rewards" />

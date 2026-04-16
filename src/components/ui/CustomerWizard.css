@@ -28,12 +28,18 @@
   background: #fff;
   width: 100%;
   max-width: var(--max-width);
+  max-height: 92vh;
   border-radius: 32px 32px 0 0;
   padding: 0 0 env(safe-area-inset-bottom);
   box-shadow: 0 -24px 80px rgba(0, 0, 0, 0.25);
   animation: cwSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  overflow: hidden;
+  overflow-y: auto;
   position: relative;
+  scrollbar-width: none; /* Ocultar scrollbar en Firefox */
+}
+
+.cw-card::-webkit-scrollbar {
+  display: none; /* Ocultar scrollbar en Chrome/Safari */
 }
 
 @keyframes cwSlideUp {
@@ -51,7 +57,7 @@
 /* ── Header Banner ── */
 .cw-header {
   background: linear-gradient(135deg, #0f2411 0%, #244c26 55%, #3d7c42 100%);
-  padding: 28px 24px 20px;
+  padding: 40px 24px 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -509,4 +515,91 @@
   font-size: 0.72rem;
   opacity: 0.85;
   margin-top: 2px;
+}
+
+/* ── PIN Warning Banner ── */
+.cw-pin-warning {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, #fff8e1, #fff3cd);
+  border: 1.5px solid #f0c040;
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-top: 8px;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  width: 100%;
+  text-align: left;
+}
+
+.cw-pin-warning:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(240, 192, 64, 0.25);
+}
+
+.cw-pin-warning-icon {
+  font-size: 1.6rem;
+  flex-shrink: 0;
+}
+
+.cw-pin-warning strong {
+  display: block;
+  font-size: 0.9rem;
+  color: #7a5200;
+  font-weight: 700;
+}
+
+.cw-pin-warning p {
+  font-size: 0.78rem;
+  color: #9a6800;
+  margin: 2px 0 0;
+  line-height: 1.4;
+}
+
+.cw-pin-warning-arrow {
+  margin-left: auto;
+  font-size: 1.5rem;
+  color: #c09000;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* ── PIN Input Row ── */
+.cw-pin-row {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin: 8px 0 4px;
+}
+
+.cw-pin-input {
+  width: 56px;
+  height: 60px;
+  border: 2.5px solid var(--color-border, #e0e0e0);
+  border-radius: 14px;
+  font-size: 1.6rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--color-text, #1a1a1a);
+  background: var(--color-bg, #f9f9f9);
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+  outline: none;
+  caret-color: transparent;
+}
+
+.cw-pin-input:focus {
+  border-color: var(--color-primary, #2d6a4f);
+  box-shadow: 0 0 0 4px rgba(45, 106, 79, 0.12);
+  transform: scale(1.06);
+}
+
+.cw-pin-input.filled {
+  border-color: var(--color-primary, #2d6a4f);
+  background: var(--color-primary-light, #e8f5e9);
+}
+
+.cw-pin-input.pin-err {
+  border-color: var(--color-danger, #e53935);
+  box-shadow: 0 0 0 4px rgba(229, 57, 53, 0.1);
 }

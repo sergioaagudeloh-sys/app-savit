@@ -105,3 +105,17 @@ export function openWhatsAppToClient(customerPhone, message) {
   const url = `https://api.whatsapp.com/send/?phone=${phone}&text=${encoded}&type=phone_number&app_absent=0`;
   window.open(url, '_blank');
 }
+
+export function buildWelcomeMessage(customerName, phoneDigits) {
+  const name = customerName.split(' ')[0];
+  const message = [
+    `👋 ¡Hola ${name}! Qué alegría saludarte.`,
+    `Te damos la bienvenida a *Sávit App* 🌿, tu perfil ya está activo.`,
+    ``,
+    `Tu número \`${phoneDigits}\` está registrado y tienes un PIN de seguridad creado. Con este PIN podrás hacer compras y canjear tus puntos de forma segura.`,
+    ``,
+    `Si alguna vez necesitas soporte, cuéntanos por este chat. ¡Esperamos que disfrutes la experiencia! 💚`
+  ].join('\n');
+  return message;
+}
+

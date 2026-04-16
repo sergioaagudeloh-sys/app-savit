@@ -10,6 +10,16 @@ const KEYS = {
   name:  'savit_customer_name',
 };
 
+// Simple deterministic hash for the 4-digit PIN
+// We use a lightweight approach without crypto libs for PWA compatibility
+async function hashPin(pin) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(`savit_pin_salt_${pin}`);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 function loadFromStorage() {
   const phone = localStorage.getItem(KEYS.phone);
   const name  = localStorage.getItem(KEYS.name);
@@ -22,6 +32,8 @@ export function CustomerProvider({ children }) {
   const [loading, setLoading]   = useState(false);
 
   const isIdentified = !!customer?.phone && !!customer?.name;
+  // true when the customer has already set a security PIN
+  const hasPin = !!customer?.securityPin;
 
   // Sync lastSeen with Firestore on mount if already identified
   useEffect(() => {
@@ -96,6 +108,41 @@ export function CustomerProvider({ children }) {
   }, []);
 
   /**
+   * Hash and save a 4-digit PIN for the current customer.
+   * Stores the hashed PIN in Firestore under `securityPin`.
+   * @param {string} pin – 4 digit string
+   */
+  const savePin = useCallback(async (pin) => {
+    if (!customer?.phone) return false;
+    try {
+      const hashed = await hashPin(pin);
+      const ref = doc(db, 'customers', customer.phone);
+      await updateDoc(ref, { securityPin: hashed });
+      setCustomer(prev => ({ ...prev, securityPin: hashed }));
+      return true;
+    } catch (e) {
+      console.warn('CustomerContext: Error saving PIN', e);
+      return false;
+    }
+  }, [customer]);
+
+  /**
+   * Verify a PIN attempt against the stored hash.
+   * @param {string} pin – 4 digit string entered by the user
+   * @returns {Promise<boolean>}
+   */
+  const verifyPin = useCallback(async (pin) => {
+    if (!customer?.securityPin) return false;
+    try {
+      const hashed = await hashPin(pin);
+      return hashed === customer.securityPin;
+    } catch (e) {
+      console.warn('CustomerContext: Error verifying PIN', e);
+      return false;
+    }
+  }, [customer]);
+
+  /**
    * Add points to the current customer's profile.
    * @param {number} pointsToAdd 
    */
@@ -133,11 +180,14 @@ export function CustomerProvider({ children }) {
     <CustomerContext.Provider value={{
       customer,
       isIdentified,
+      hasPin,
       loading,
       checkCustomer,
       identifyCustomer,
       logoutCustomer,
       addPoints,
+      savePin,
+      verifyPin,
     }}>
       {children}
     </CustomerContext.Provider>

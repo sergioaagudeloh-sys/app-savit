@@ -19,6 +19,8 @@ export default function AdminDashboard() {
   const { config } = useStoreConfig();
   const { showToast } = useNotifications();
   const [subscriptions, setSubscriptions] = useState([]);
+  const [redemptions, setRedemptions] = useState([]);
+  const [pendingRedemptionsCount, setPendingRedemptionsCount] = useState(0);
 
   const [showRevenueModal, setShowRevenueModal] = useState(false);
   const [showTopProductsModal, setShowTopProductsModal] = useState(false);
@@ -61,6 +63,16 @@ export default function AdminDashboard() {
       });
     } else {
       setSubscriptions(JSON.parse(localStorage.getItem('savit_subscriptions') || '[]'));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isFirebaseConfigured()) {
+      const q = query(collection(db, 'redemptions'), where('status', '==', 'pending'));
+      return onSnapshot(q, (snap) => {
+        setRedemptions(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        setPendingRedemptionsCount(snap.docs.length);
+      });
     }
   }, []);
 
@@ -210,18 +222,18 @@ export default function AdminDashboard() {
                   <span className="hero-stat-lab">Ventas Hoy</span>
                 </div>
               </div>
-              <Link to="/admin/orders" className="hero-stat-btn ripple">
-                <span className="hero-stat-icon">📦</span>
-                <div className="hero-stat-info">
-                  <span className="hero-stat-val">{stats.todayCount}</span>
-                  <span className="hero-stat-lab">Pedidos</span>
-                </div>
-              </Link>
               <Link to="/admin/orders" className={`hero-stat-btn ripple ${stats.pendingCount > 0 ? 'urgent' : ''}`}>
                 <span className="hero-stat-icon">⏳</span>
                 <div className="hero-stat-info">
                   <span className="hero-stat-val">{stats.pendingCount}</span>
-                  <span className="hero-stat-lab">Pendientes</span>
+                  <span className="hero-stat-lab">Pedidos</span>
+                </div>
+              </Link>
+              <Link to="/admin/rewards" className={`hero-stat-btn ripple ${pendingRedemptionsCount > 0 ? 'urgent' : ''}`}>
+                <span className="hero-stat-icon">🎁</span>
+                <div className="hero-stat-info">
+                   <span className="hero-stat-val">{pendingRedemptionsCount}</span>
+                   <span className="hero-stat-lab">Canjes</span>
                 </div>
               </Link>
             </div>
@@ -293,6 +305,17 @@ export default function AdminDashboard() {
                 <span>Toca aquí para gestionarlos</span>
               </div>
               <span className="dash-alert-arrow">❯</span>
+            </Link>
+          )}
+
+          {pendingRedemptionsCount > 0 && (
+            <Link to="/admin/rewards" className="dash-alert-banner" style={{ textDecoration: 'none', background: 'linear-gradient(135deg, #1d3b1f, #2e5c31)', borderLeftColor: '#f5c842' }}>
+              <span className="dash-alert-icon">🎁</span>
+              <div className="dash-alert-body">
+                <strong style={{ color: '#f5c842' }}>Hay {pendingRedemptionsCount} canje{pendingRedemptionsCount > 1 ? 's' : ''} pendiente{pendingRedemptionsCount > 1 ? 's' : ''}</strong>
+                <span>Nuevas recompensas solicitadas</span>
+              </div>
+              <span className="dash-alert-arrow" style={{ color: '#f5c842' }}>❯</span>
             </Link>
           )}
 

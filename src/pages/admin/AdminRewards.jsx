@@ -10,7 +10,8 @@ import {
   query, 
   orderBy, 
   doc, 
-  updateDoc 
+  updateDoc,
+  increment
 } from 'firebase/firestore';
 import { useNotifications } from '../../context/NotificationContext';
 import './AdminRewards.css';
@@ -38,6 +39,7 @@ export default function AdminRewards() {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('redemptions'); // 'redemptions' | 'ranking'
+  const [cancelConfirm, setCancelConfirm] = useState(null); // redemption to cancel
 
   useEffect(() => {
     // 1. Fetch Redemptions
@@ -59,12 +61,31 @@ export default function AdminRewards() {
     };
   }, []);
 
-  const handleUpdateStatus = async (id, newStatus) => {
+  const handleUpdateStatus = async (id, newStatus, redemption) => {
     try {
       await updateDoc(doc(db, 'redemptions', id), { status: newStatus });
-      showToast('Estado actualizado', 'success');
+
+      // Si se cancela un canje pendiente → devolver los puntos al cliente
+      if (newStatus === 'cancelled' && redemption?.customerId && redemption?.pointsCost) {
+        await updateDoc(doc(db, 'customers', redemption.customerId), {
+          savitPoints: increment(redemption.pointsCost)
+        });
+        showToast(`✅ Canje cancelado y ${redemption.pointsCost} pts devueltos al cliente`, 'success');
+      } else {
+        showToast('Estado actualizado', 'success');
+      }
     } catch (e) {
+      console.error(e);
       showToast('Error al actualizar', 'error');
+    }
+  };
+
+  const handleCancelRequest = (red) => {
+    // Only ask confirmation if the redemption is still pending (points would be returned)
+    if (red.status === 'pending') {
+      setCancelConfirm(red);
+    } else {
+      handleUpdateStatus(red.id, 'pending', null);
     }
   };
 
@@ -148,7 +169,8 @@ export default function AdminRewards() {
                     <RedemptionCard 
                       key={red.id} 
                       red={red} 
-                      onUpdate={handleUpdateStatus} 
+                      onUpdate={handleUpdateStatus}
+                      onCancelRequest={handleCancelRequest}
                     />
                   ))}
                 </div>
@@ -208,27 +230,63 @@ export default function AdminRewards() {
         </div>
       </main>
       <BottomNav />
+
+      {/* ── Modal: Confirmar Cancelación de Canje ── */}
+      {cancelConfirm && (
+        <>
+          <div className="overlay animate-fade-in" onClick={() => setCancelConfirm(null)} />
+          <div className="modal-responsive" style={{ maxWidth: '400px', margin: 'auto' }}>
+            <div className="modal-responsive-header border-none">
+              <h2 className="modal-responsive-title">⚠️ Cancelar Canje</h2>
+              <button className="modal-responsive-close" onClick={() => setCancelConfirm(null)}>✕</button>
+            </div>
+            <div className="modal-responsive-body text-center pb-xl">
+              <p className="mb-md text-muted">
+                ¿Seguro que quieres rechazar el canje de <strong>{cancelConfirm.customerName}</strong> por <strong>{cancelConfirm.awardName}</strong>?
+              </p>
+              <div className="cancel-refund-notice">
+                <span>🔄</span>
+                <span>Se devolverán <strong>{cancelConfirm.pointsCost?.toLocaleString()} pts</strong> al cliente automáticamente.</span>
+              </div>
+              <div className="flex gap-md mt-lg">
+                <button className="btn btn-secondary flex-1" onClick={() => setCancelConfirm(null)}>Volver</button>
+                <button
+                  className="btn btn-danger flex-1"
+                  onClick={async () => {
+                    await handleUpdateStatus(cancelConfirm.id, 'cancelled', cancelConfirm);
+                    setCancelConfirm(null);
+                  }}
+                >
+                  Sí, rechazar
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
 
-function RedemptionCard({ red, onUpdate }) {
+function RedemptionCard({ red, onUpdate, onCancelRequest }) {
   const date = new Date(red.createdAt).toLocaleDateString('es-CO', { 
     day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' 
   });
 
   const getStatusLabel = (s) => {
     switch(s) {
-      case 'delivered': return 'Entregado';
-      case 'cancelled': return 'Cancelado';
-      default: return 'Pendiente';
+      case 'delivered': return '✅ Entregado';
+      case 'cancelled': return '❌ Cancelado';
+      default:          return '🕐 Pendiente';
     }
   };
+
+  const shortId = (id) => id?.slice(-6).toUpperCase() || '------';
 
   return (
     <div className={`redemption-card premium-card animate-fade-in status-${red.status}`}>
       <div className="red-card-badge">
-        {red.status === 'pending' ? '🔔 Nuevo' : '✓'}
+        {red.status === 'pending' ? '🔔 Nuevo' : red.status === 'delivered' ? '✓' : '✗'}
       </div>
       
       <div className="red-main-info">
@@ -236,9 +294,10 @@ function RedemptionCard({ red, onUpdate }) {
           <span className="red-customer-name">{red.customerName}</span>
           <span className="red-date">{date}</span>
         </div>
-        <h4 className="red-award-name">🎁 {red.awardName}</h4>
-        <div className="red-points-cost">
-          Costo: <strong>{red.pointsCost?.toLocaleString()} Pts</strong>
+        <h4 className="red-award-name">{red.awardIcon || '🎁'} {red.awardName}</h4>
+        <div className="red-details-row">
+          <span className="red-points-cost">🪙 <strong>{red.pointsCost?.toLocaleString()} Pts</strong></span>
+          <span className="red-ticket-code">#{shortId(red.id)}</span>
         </div>
       </div>
 
@@ -252,24 +311,24 @@ function RedemptionCard({ red, onUpdate }) {
             <>
               <button 
                 className="btn btn-soft btn-sm" 
-                onClick={() => onUpdate(red.id, 'delivered')}
+                onClick={() => onUpdate(red.id, 'delivered', null)}
               >
-                Entregar
+                ✅ Entregar
               </button>
               <button 
                 className="btn btn-ghost btn-sm text-error" 
-                onClick={() => onUpdate(red.id, 'cancelled')}
+                onClick={() => onCancelRequest(red)}
               >
-                Rechazar
+                ❌ Rechazar
               </button>
             </>
           )}
           {red.status !== 'pending' && (
-             <button 
+            <button 
               className="btn btn-ghost btn-sm" 
-              onClick={() => onUpdate(red.id, 'pending')}
+              onClick={() => onUpdate(red.id, 'pending', null)}
             >
-              Reestablecer
+              ↩ Reestablecer
             </button>
           )}
         </div>

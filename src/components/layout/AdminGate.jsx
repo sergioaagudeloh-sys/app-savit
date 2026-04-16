@@ -1,37 +1,87 @@
 // src/components/layout/AdminGate.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
 } from 'firebase/auth';
-import { auth } from '../../firebase';
+import { auth, db, isFirebaseConfigured } from '../../firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import './AdminGate.css';
 
 const ADMIN_EMAIL    = 'admin@savit.com';
 const ADMIN_PASSWORD = 'admin123';
+const SESSION_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+/** Detect browser name from userAgent */
+function detectBrowser(ua) {
+  if (/edg/i.test(ua))     return 'Microsoft Edge';
+  if (/chrome/i.test(ua))  return 'Chrome';
+  if (/firefox/i.test(ua)) return 'Firefox';
+  if (/safari/i.test(ua))  return 'Safari';
+  if (/opr/i.test(ua))     return 'Opera';
+  return 'Desconocido';
+}
+
+/** Detect OS from userAgent */
+function detectOS(ua) {
+  if (/windows/i.test(ua))  return 'Windows';
+  if (/android/i.test(ua))  return 'Android';
+  if (/iphone|ipad/i.test(ua)) return 'iOS';
+  if (/mac/i.test(ua))      return 'macOS';
+  if (/linux/i.test(ua))    return 'Linux';
+  return 'Desconocido';
+}
 
 /**
  * AdminGate
  *
- * Two-layer authentication:
+ * Three-layer protection:
  *  1. Local credential check (email + password match constants)
  *  2. Firebase Auth sign-in (enables Storage write access)
+ *  3. 24h automatic session expiry
  *
- * On first ever login the Firebase Auth account is auto-created
- * so no manual setup in Firebase Console is required.
+ * Also logs each login device/browser to Firestore (adminLogs).
  */
 export default function AdminGate({ children }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(
-    () => localStorage.getItem('savit_admin_auth') === 'true'
-  );
+
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    const flag = localStorage.getItem('savit_admin_auth') === 'true';
+    const ts   = parseInt(localStorage.getItem('savit_admin_auth_time') || '0', 10);
+    // Invalidate if older than 24h
+    if (flag && Date.now() - ts > SESSION_TTL_MS) {
+      localStorage.removeItem('savit_admin_auth');
+      localStorage.removeItem('savit_admin_auth_time');
+      return false;
+    }
+    return flag;
+  });
+
   const [email,    setEmail]    = useState('');
   const [password, setPassword] = useState('');
   const [error,    setError]    = useState('');
   const [loading,  setLoading]  = useState(false);
+  const [expired,  setExpired]  = useState(false);
+
+  // Periodic 24h expiry check (every 5 minutes while tab is open)
+  useEffect(() => {
+    const checkExpiry = () => {
+      const flag = localStorage.getItem('savit_admin_auth') === 'true';
+      const ts   = parseInt(localStorage.getItem('savit_admin_auth_time') || '0', 10);
+      if (flag && Date.now() - ts > SESSION_TTL_MS) {
+        localStorage.removeItem('savit_admin_auth');
+        localStorage.removeItem('savit_admin_auth_time');
+        setIsAuthenticated(false);
+        setExpired(true);
+      }
+    };
+    const interval = setInterval(checkExpiry, 5 * 60 * 1000); // every 5 min
+    return () => clearInterval(interval);
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setExpired(false);
 
     // ── 1. Local credential check ──────────────────────────────
     if (email !== ADMIN_EMAIL || password !== ADMIN_PASSWORD) {
@@ -51,16 +101,30 @@ export default function AdminGate({ children }) {
         try {
           await createUserWithEmailAndPassword(auth, ADMIN_EMAIL, ADMIN_PASSWORD);
         } catch (createErr) {
-          // If creation also fails (e.g. weak password policy), continue anyway —
-          // the app still works; only image uploads to Storage will require auth.
           console.warn('Could not create Firebase admin account:', createErr.message);
         }
       }
       // Other errors (network, etc.) are non-blocking — skip silently.
     }
 
-    // ── 3. Persist session & grant access ─────────────────────
+    // ── 3. Log device to Firestore ────────────────────────────
+    if (isFirebaseConfigured()) {
+      try {
+        const ua = navigator.userAgent;
+        await addDoc(collection(db, 'adminLogs'), {
+          loginAt:  serverTimestamp(),
+          browser:  detectBrowser(ua),
+          os:       detectOS(ua),
+          userAgent: ua.slice(0, 200), // truncate for storage
+        });
+      } catch (logErr) {
+        console.warn('Could not save admin login log:', logErr.message);
+      }
+    }
+
+    // ── 4. Persist session with timestamp & grant access ──────
     localStorage.setItem('savit_admin_auth', 'true');
+    localStorage.setItem('savit_admin_auth_time', String(Date.now()));
     setIsAuthenticated(true);
     setLoading(false);
   };
@@ -75,6 +139,12 @@ export default function AdminGate({ children }) {
         <p className="admin-gate-desc">
           Introduce tus credenciales para gestionar la tienda.
         </p>
+
+        {expired && (
+          <div className="admin-gate-expired-notice">
+            🕒 Tu sesión expiró por seguridad (24h). Por favor, vuelve a ingresar.
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="admin-gate-form">
           <input

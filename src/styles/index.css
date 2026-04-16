@@ -522,7 +522,7 @@ body.admin-page .admin-main-content {
   width: auto !important;
   margin: 0 !important;
   box-sizing: border-box;
-  border-radius: 0 0 32px 32px;
+  border-radius: 0; /* Square bottom for perfect overlap with content */
 }
 
 .inv-hero-inner {
@@ -583,7 +583,7 @@ body.admin-page .admin-main-content {
   background: white;
   min-height: 80vh;
   border-radius: 32px 32px 0 0;
-  margin-top: -20px; /* Mild overlap for visibility */
+  margin-top: -32px; /* Increased overlap to fix corner gaps */
   position: relative;
   z-index: 10;
   padding: 20px 20px 100px !important; /* Standardized compact padding */

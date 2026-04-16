@@ -1,0 +1,197 @@
+/* src/components/ui/PinModal.css */
+
+.pin-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 9999;
+  padding: 0 0 env(safe-area-inset-bottom);
+}
+
+@media (min-width: 480px) {
+  .pin-modal-overlay {
+    align-items: center;
+  }
+}
+
+.pin-modal-card {
+  background: var(--color-surface, #fff);
+  border-radius: 28px 28px 0 0;
+  padding: 32px 28px 40px;
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.18);
+  position: relative;
+}
+
+@media (min-width: 480px) {
+  .pin-modal-card {
+    border-radius: 28px;
+    padding: 36px 32px;
+  }
+}
+
+.pin-modal-card--no-pin {
+  gap: 16px;
+}
+
+.pin-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 18px;
+  background: var(--color-bg-muted, #f4f4f4);
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--color-text-muted, #888);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.pin-modal-close:hover {
+  background: var(--color-danger-light, #ffe5e5);
+  color: var(--color-danger, #e53935);
+}
+
+.pin-modal-icon {
+  font-size: 3rem;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.pin-modal-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--color-text, #1a1a1a);
+  text-align: center;
+  margin: 0;
+}
+
+.pin-modal-desc {
+  font-size: 0.88rem;
+  color: var(--color-text-muted, #666);
+  text-align: center;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ── PIN Inputs ── */
+.pin-inputs-row {
+  display: flex;
+  gap: 14px;
+  margin: 12px 0 4px;
+}
+
+.pin-input {
+  width: 60px;
+  height: 64px;
+  border: 2.5px solid var(--color-border, #e0e0e0);
+  border-radius: 16px;
+  font-size: 1.8rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--color-text, #1a1a1a);
+  background: var(--color-bg, #f9f9f9);
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+  outline: none;
+  -webkit-text-security: disc; /* Extra obfuscation on Webkit */
+  caret-color: transparent;
+}
+
+.pin-input:focus {
+  border-color: var(--color-primary, #2d6a4f);
+  box-shadow: 0 0 0 4px rgba(45, 106, 79, 0.12);
+  transform: scale(1.05);
+}
+
+.pin-input--filled {
+  border-color: var(--color-primary, #2d6a4f);
+  background: var(--color-primary-light, #e8f5e9);
+}
+
+.pin-input--error {
+  border-color: var(--color-danger, #e53935) !important;
+  box-shadow: 0 0 0 4px rgba(229, 57, 53, 0.1) !important;
+}
+
+.pin-error-msg {
+  font-size: 0.83rem;
+  color: var(--color-danger, #e53935);
+  font-weight: 600;
+  text-align: center;
+  margin: 0;
+}
+
+/* ── Shake animation for wrong PIN ── */
+@keyframes pin-shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-8px); }
+  40%       { transform: translateX(8px); }
+  60%       { transform: translateX(-6px); }
+  80%       { transform: translateX(6px); }
+}
+
+.pin-shake {
+  animation: pin-shake 0.5s ease-in-out;
+}
+
+/* ── Buttons ── */
+.pin-btn-primary {
+  width: 100%;
+  padding: 15px 24px;
+  background: linear-gradient(135deg, var(--color-primary, #2d6a4f), var(--color-primary-dark, #1b4332));
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.pin-btn-primary:hover:not(:disabled) {
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+
+.pin-btn-primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.pin-btn-ghost {
+  width: 100%;
+  padding: 12px 24px;
+  background: transparent;
+  color: var(--color-text-muted, #888);
+  border: none;
+  border-radius: 14px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.pin-btn-ghost:hover {
+  color: var(--color-text, #1a1a1a);
+}

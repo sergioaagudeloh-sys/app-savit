@@ -1,5 +1,6 @@
 // src/pages/Home.jsx
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, forwardRef } from 'react';
+import { VirtuosoGrid } from 'react-virtuoso';
 import Fuse from 'fuse.js';
 import { useLocation } from 'react-router-dom';
 import Header from '../components/layout/Header';
@@ -18,6 +19,19 @@ import { useSwipe } from '../hooks/useSwipe';
 import './Home.css';
 
 import { ProductSkeleton } from '../components/ui/Skeleton';
+
+// ── Virtualization Components ────────────────────────────────────────────────
+const GridList = forwardRef(({ children, ...props }, ref) => (
+  <div {...props} ref={ref} className="product-grid">
+    {children}
+  </div>
+));
+
+const GridItem = ({ children, ...props }) => (
+  <div {...props} className="product-item-wrapper">
+    {children}
+  </div>
+);
 
 export default function Home() {
   const { products, loading } = useProducts();
@@ -124,15 +138,21 @@ export default function Home() {
             {[...Array(6)].map((_, i) => <ProductSkeleton key={i} />)}
           </div>
         ) : filtered.length > 0 ? (
-          <div className="product-grid">
-            {filtered.map(product => (
+          <VirtuosoGrid
+            useWindowScroll
+            data={filtered}
+            components={{
+              List: GridList,
+              Item: GridItem
+            }}
+            itemContent={(index, product) => (
               <ProductCard
                 key={product.id}
                 product={product}
                 onToast={(msg, type) => showToast(msg, type)}
               />
-            ))}
-          </div>
+            )}
+          />
         ) : (
           <div className="empty-state animate-fade-in">
             <div className="empty-state-icon">🍃</div>

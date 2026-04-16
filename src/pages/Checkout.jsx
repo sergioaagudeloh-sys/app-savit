@@ -10,6 +10,7 @@ import { useNotifications } from '../context/NotificationContext';
 import { buildWhatsAppMessage, openWhatsApp } from '../utils/whatsapp';
 import { formatCOP, generateOrderId } from '../utils/formatters';
 import SwipeButton from '../components/ui/SwipeButton';
+import PinModal from '../components/ui/PinModal';
 import './Checkout.css';
 
 export default function Checkout() {
@@ -17,7 +18,7 @@ export default function Checkout() {
   const { items, totalPrice, clearCart } = useCart();
   const { createOrder } = useOrders();
   const { config } = useStoreConfig();
-  const { customer, isIdentified, addPoints } = useCustomer();
+  const { customer, isIdentified, addPoints, hasPin } = useCustomer();
   const { addNotification } = useNotifications();
 
   const [deliveryMethod, setDeliveryMethod] = useState('domicilio');
@@ -29,6 +30,9 @@ export default function Checkout() {
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  // PIN security
+  const [showPin, setShowPin] = useState(false);
+  const [showCreatePin, setShowCreatePin] = useState(false);
 
   useEffect(() => {
     // Scroll to top on mount
@@ -67,15 +71,9 @@ export default function Checkout() {
     (deliveryMethod !== 'domicilio' || form.address.trim())
   );
 
-  const handleSubmit = async () => {
-    if (items.length === 0) return;
-
-    const errs = validate();
-    if (Object.keys(errs).length > 0) {
-      setErrors(errs);
-      return;
-    }
-
+  // Called after PIN is verified (or skipped if guest)
+  const executeSubmit = async () => {
+    setShowPin(false);
     setLoading(true);
     const orderId = generateOrderId();
 
@@ -124,12 +122,25 @@ export default function Checkout() {
 
       clearCart();
       navigate('/order-confirm', { state: { orderId, message } });
-      
+
       // Delay redirect to allow user to see the confirmation page & animation
       setTimeout(() => openWhatsApp(message, config?.whatsappNumber), 2000);
     } catch (error) {
       console.error('Error creando pedido:', error);
       setLoading(false);
+    }
+  };
+
+  // Entry point — validate form then show PIN if needed
+  const handleSubmit = async () => {
+    if (items.length === 0) return;
+    const errs = validate();
+    if (Object.keys(errs).length > 0) { setErrors(errs); return; }
+    // Identified customers must verify (or create) their PIN
+    if (isIdentified) {
+      setShowPin(true);
+    } else {
+      executeSubmit();
     }
   };
 
@@ -397,6 +408,16 @@ export default function Checkout() {
           )}
         </div>
       </main>
+
+      {/* PIN modal — shown before order submission */}
+      {showPin && (
+        <PinModal
+          title="Confirma tu identidad para el pedido"
+          onVerified={executeSubmit}
+          onCancel={() => setShowPin(false)}
+          onCreatePin={() => { setShowPin(false); navigate('/rewards'); }}
+        />
+      )}
     </div>
   );
 }
