@@ -22,12 +22,18 @@ export function useAddToCartAnimation() {
   const createGhost = (imageUrl, startRect) => {
     const ghost = document.createElement('div');
     ghost.className = 'cart-fly-ghost';
-    const ghostSize = 48;
+    const ghostSize = 38;
 
     if (imageUrl) {
       const img = document.createElement('img');
       img.src = imageUrl;
       img.draggable = false;
+      img.style.cssText = `
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      `;
       ghost.appendChild(img);
     } else {
       ghost.textContent = '🛍';
@@ -39,16 +45,16 @@ export function useAddToCartAnimation() {
       top:  ${startRect.top  + startRect.height / 2 - ghostSize / 2}px;
       width: ${ghostSize}px;
       height: ${ghostSize}px;
-      z-index: 999999;
+      z-index: 100000;
       pointer-events: none;
       border-radius: 50%;
       overflow: hidden;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.25);
-      background: var(--color-primary);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      background: white;
+      border: 2px solid var(--color-primary);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 22px;
       will-change: transform, opacity;
     `;
     return ghost;
@@ -68,15 +74,15 @@ export function useAddToCartAnimation() {
 
     const animation = ghost.animate(
       [
-        { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+        { transform: 'translate(0, 0) scale(0.5)', opacity: 0 },
         { 
-          transform: `translate(${dx * 0.5}px, ${Math.min(dy * 0.3, -60)}px) scale(0.85)`,
+          transform: `translate(${dx * 0.4}px, ${Math.min(dy * 0.3, -40)}px) scale(1.1)`,
           opacity: 1,
-          offset: 0.45 
+          offset: 0.35 
         },
-        { transform: `translate(${dx}px, ${dy}px) scale(0.3)`, opacity: 0 }
+        { transform: `translate(${dx}px, ${dy}px) scale(0.2)`, opacity: 0 }
       ],
-      { duration: 620, easing: 'cubic-bezier(0.4, 0, 0.2, 1)', fill: 'forwards' }
+      { duration: 650, easing: 'cubic-bezier(0.25, 1, 0.5, 1)', fill: 'forwards' }
     );
 
     animation.onfinish = () => {

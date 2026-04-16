@@ -19,10 +19,6 @@ const DEFAULT_CONFIG = {
     description: 'Aprovecha nuestros nuevos bowls de acai con granola artesanal, exclusivo por hoy.',
     imageUrl: '',
     price: ''
-  },
-  pointsConfig: {
-    pointsPer1000: 10,
-    enabled: true
   }
 };
 

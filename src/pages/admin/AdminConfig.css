@@ -19,19 +19,68 @@ body.is-admin-route .admin-config .admin-main-content {
   }
 }
 
+/* ── Hero Context ── */
+.inv-hero-inner {
+  position: relative; /* Contexto para la etiqueta PRO */
+}
+
+.premium-license-tag {
+  position: absolute;
+  top: -2px;
+  right: -16px; /* Pegado al borde de la pantalla (compensando el padding-inner) */
+  background: linear-gradient(135deg, #ffd700 0%, #ffb900 100%);
+  color: #0c2b1a !important;
+  padding: 4px 12px 4px 10px;
+  border-radius: 20px 0 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.62rem;
+  font-weight: 900;
+  box-shadow: -4px 4px 15px rgba(0, 0, 0, 0.3);
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  border-right: none;
+  z-index: 20;
+  letter-spacing: 0.05em;
+  animation: tagEntrance 0.6s cubic-bezier(0.17, 0.67, 0.45, 1.1) both;
+}
+
+@keyframes tagEntrance {
+  from {
+    transform: translateX(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.premium-license-tag svg {
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.2));
+}
+
 /* ── Config Tabs Row (Hero) ── */
 .config-tabs-row {
-  margin-top: 10px;
-  margin-bottom: 0;
-  justify-content: flex-start !important;
+  margin: 12px 0 0 !important;
+  display: flex !important;
   gap: 8px !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px !important;
+  padding: 5px !important;
+  position: relative;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .config-tabs-row .inv-stat {
   cursor: pointer;
-  flex: 0 0 auto;
-  min-width: 90px;
-  padding: 6px 10px;
+  flex: 1 !important;
+  min-width: 0 !important;
+  padding: 10px 4px !important;
+  height: 64px;
 }
 
 /* ── Page Content Override (More Compact) ── */
@@ -238,23 +287,18 @@ body.is-admin-route .admin-config .admin-main-content {
   }
 }
 
-/* ── Glider (cápsula deslizante de pestaña activa) ── */
-.config-tabs-row {
-  position: relative;  /* contexto para el glider */
-}
-
+/* ── Glider (Efecto Cápsula Flotante) ── */
 .cfg-tab-glider {
   position: absolute;
-  top: 4px;
-  left: 4px;
-  /* Ancho = 1/3 del contenedor menos el gap proporcional */
-  width: calc((100% - 8px) / 3);
-  height: calc(100% - 8px);
+  top: 5px;
+  left: 5px;
+  width: calc((100% - 10px - 16px) / 3);
+  height: calc(100% - 10px);
   background: white;
   border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.10);
-  transform: translateX(calc(var(--tab-idx, 0) * 100%));
-  transition: transform 0.4s cubic-bezier(0.34, 1.30, 0.64, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transform: translateX(calc(var(--tab-idx, 0) * 100% + var(--tab-idx, 0) * 8px));
+  transition: transform 0.4s cubic-bezier(0.18, 1, 0.32, 1);
   pointer-events: none;
   z-index: 0;
 }
@@ -264,19 +308,52 @@ body.is-admin-route .admin-config .admin-main-content {
   position: relative;
   z-index: 1;
   cursor: pointer;
-  flex: 1;
   background: transparent !important;
   box-shadow: none !important;
   border: none !important;
-  transition: color 0.25s ease, opacity 0.25s ease;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: rgba(255, 255, 255, 0.7);
 }
 
-.config-tabs-row .inv-stat:not(.active) {
-  opacity: 0.65;
+.config-tabs-row .inv-stat .inv-stat-value {
+  font-size: 1.25rem;
+  line-height: 1;
+  transition: transform 0.3s ease;
+  filter: grayscale(0.5) opacity(0.8);
 }
 
-.config-tabs-row .inv-stat.active {
+.config-tabs-row .inv-stat .inv-stat-label {
+  font-size: 0.62rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  transition: color 0.3s ease;
+}
+
+/* Estado Inactivo */
+.config-tabs-row .inv-stat:not(.active):hover {
+  color: white;
   opacity: 1;
+}
+
+/* Estado Activo (Sobre el Glider Blanco) */
+.config-tabs-row .inv-stat.active {
+  color: #0c2b1a !important; /* Verde muy oscuro para máximo contraste */
+  opacity: 1;
+}
+
+.config-tabs-row .inv-stat.active .inv-stat-value {
+  transform: scale(1.1) translateY(-1px);
+  filter: grayscale(0) opacity(1);
+}
+
+.config-tabs-row .inv-stat.active .inv-stat-label {
+  color: #0c2b1a;
 }
 
 /* ── Cascada de tarjetas (Staggered Entry) ── */

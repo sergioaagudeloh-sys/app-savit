@@ -81,6 +81,15 @@ export default function NotificationFAB() {
     return `${d.getDate()}/${d.getMonth() + 1} ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
   };
 
+  const getIcon = (category) => {
+    switch (category) {
+      case 'order': return '📦';
+      case 'subscription': return '🌿';
+      case 'promo': return '✨';
+      default: return '🔔';
+    }
+  };
+
   const displayedNotifs = showHistory ? notifications : notifications.slice(0, 3);
   const hasMore = !showHistory && notifications.length > 3;
 
@@ -102,18 +111,18 @@ export default function NotificationFAB() {
             <div className="notif-actions">
               <button 
                 onClick={markAllAsRead} 
+                className="notif-action-btn"
                 title="Marcar todas como leídas"
-                className="notif-header-btn"
               >
-                Leídas ✓
+                <span>✓ Todas</span>
               </button>
               {notifications.length > 0 && (
                 <button 
                   onClick={() => setShowConfirmModal(true)}
-                  className="notif-clear-btn"
+                  className="notif-action-btn clear"
                   title="Vaciar todo"
                 >
-                  Vaciar 🗑️
+                  <span>🗑️</span>
                 </button>
               )}
             </div>
@@ -122,37 +131,46 @@ export default function NotificationFAB() {
           <div className="notif-body">
             {notifications.length === 0 && (
               <div className="notif-empty">
-                <p>No tienes notificaciones 🌿</p>
+                <div className="empty-icon">🌿</div>
+                <h4>Todo al día</h4>
+                <p>No tienes notificaciones por ahora</p>
               </div>
             )}
 
             {displayedNotifs.map((n, idx) => (
               <React.Fragment key={n.id}>
                 {showHistory && idx >= 3 && idx === 3 && (
-                   <div className="notif-divider">Anteriores 🕒</div>
+                   <div className="notif-divider">Historial Anterior</div>
                 )}
                 
                 <div 
                   className={`notif-item ${!n.read ? 'unread' : ''}`}
                   onClick={() => handleNotificationClick(n)}
+                  style={{ animationDelay: `${idx * 0.05}s` }}
                 >
-                  <div className="notif-item-top">
-                    <h4>{n.title}</h4>
-                    <span className="notif-time">{formatDate(n.timestamp)}</span>
+                  <div className="notif-item-icon">
+                    {getIcon(n.category)}
                   </div>
-                  <p>{n.message}</p>
+                  <div className="notif-item-content">
+                    <div className="notif-item-top">
+                      <h4>{n.title}</h4>
+                      <span className="notif-time">{formatDate(n.timestamp)}</span>
+                    </div>
+                    <p>{n.message}</p>
+                  </div>
+                  {!n.read && <div className="unread-dot" />}
                 </div>
               </React.Fragment>
             ))}
 
             {hasMore && (
               <button className="notif-history-toggle" onClick={() => setShowHistory(true)}>
-                Ver todas ({notifications.length}) ↓
+                Ver historial ({notifications.length}) ↓
               </button>
             )}
 
             {showHistory && (
-              <button className="notif-history-toggle" style={{ borderStyle: 'solid' }} onClick={() => setShowHistory(false)}>
+              <button className="notif-history-toggle less" onClick={() => setShowHistory(false)}>
                 Ver menos ↑
               </button>
             )}

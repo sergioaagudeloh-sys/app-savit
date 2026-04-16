@@ -6,21 +6,22 @@ import Header from '../../components/layout/Header';
 import BottomNav from '../../components/layout/BottomNav';
 import AdminSidebar from '../../components/layout/AdminSidebar';
 import { useOrders, useStoreConfig } from '../../hooks/useOrders';
+import { useProducts } from '../../hooks/useProducts';
 import { useNotifications } from '../../context/NotificationContext';
 import { formatCOP } from '../../utils/formatters';
 import { db, isFirebaseConfigured } from '../../firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { SkeletonDashboard } from '../../components/ui/Skeleton';
 import './AdminDashboard.css';
 
 const PIE_COLORS = ['#1d3b1f', '#2f5b2d', '#42803b', '#62a84a', '#8bd165'];
 
 export default function AdminDashboard() {
   const { orders, loading } = useOrders();
+  const { products } = useProducts();
   const { config } = useStoreConfig();
   const { showToast } = useNotifications();
   const [subscriptions, setSubscriptions] = useState([]);
-  const [redemptions, setRedemptions] = useState([]);
-  const [pendingRedemptionsCount, setPendingRedemptionsCount] = useState(0);
 
   const [showRevenueModal, setShowRevenueModal] = useState(false);
   const [showTopProductsModal, setShowTopProductsModal] = useState(false);
@@ -66,15 +67,6 @@ export default function AdminDashboard() {
     }
   }, []);
 
-  useEffect(() => {
-    if (isFirebaseConfigured()) {
-      const q = query(collection(db, 'redemptions'), where('status', '==', 'pending'));
-      return onSnapshot(q, (snap) => {
-        setRedemptions(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-        setPendingRedemptionsCount(snap.docs.length);
-      });
-    }
-  }, []);
 
   const stats = useMemo(() => {
     if (!orders.length) return { chartData: [], totalRevenue: 0, todayCount: 0, pendingCount: 0, top: [], bottom: [], premium: null };
@@ -180,9 +172,9 @@ export default function AdminDashboard() {
     <div className="app-container admin-dashboard admin-page">
       <Header />
       <AdminSidebar />
-      <div className="flex-center w-full" style={{ height: '70vh' }}>
-        <span className="spinner spinner-dark" />
-      </div>
+      <main className="page-content admin-main-content">
+        <SkeletonDashboard />
+      </main>
       <BottomNav />
     </div>
   );
@@ -202,9 +194,6 @@ export default function AdminDashboard() {
               <div className="inv-hero-title-area">
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: '4px' }}>
                   <span className="inv-hero-label" style={{ marginBottom: 0 }}>Panel Central</span>
-                  <Link to="/admin/config" className={`dash-store-status ${config?.isOpen !== false ? 'open' : 'closed'}`} style={{ padding: '6px 12px', fontSize: '0.75rem' }}>
-                    {config?.isOpen !== false ? '🟢 Abierta' : '🔴 Cerrada'}
-                  </Link>
                 </div>
                 <h1 className="inv-hero-title" style={{ marginTop: '2px', marginBottom: '4px' }}>¡Hola, Admin! 👋</h1>
                 <span className="inv-hero-date" style={{ fontSize: '0.75rem', opacity: 0.7, marginBottom: '16px', display: 'block', fontWeight: 600 }}>
@@ -229,15 +218,7 @@ export default function AdminDashboard() {
                   <span className="hero-stat-lab">Pedidos</span>
                 </div>
               </Link>
-              <Link to="/admin/rewards" className={`hero-stat-btn ripple ${pendingRedemptionsCount > 0 ? 'urgent' : ''}`}>
-                <span className="hero-stat-icon">🎁</span>
-                <div className="hero-stat-info">
-                   <span className="hero-stat-val">{pendingRedemptionsCount}</span>
-                   <span className="hero-stat-lab">Canjes</span>
-                </div>
-              </Link>
             </div>
-
           </div>
         </div>
 
@@ -249,7 +230,6 @@ export default function AdminDashboard() {
             <div className="dash-promos-container">
               <div className="dash-section-header">
                 <h2 className="dash-section-title">📢 Promociones Activas</h2>
-                <Link to="/admin/offers" className="btn btn-outline btn-sm dash-offers-btn">Ir a ofertas ❯</Link>
               </div>
               <div className={`dash-promos-grid items-${activePromos.length > 2 ? 'multi' : activePromos.length}`}>
                 {activePromos.map((promo, idx) => (
@@ -261,6 +241,11 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                 ))}
+              </div>
+              <div style={{ marginTop: '16px' }}>
+                <Link to="/admin/offers" className="btn w-full" style={{ background: 'var(--color-bg-soft)', color: 'var(--color-primary)', border: '1px solid var(--color-border)', justifyContent: 'center', boxShadow: 'none' }}>
+                  Gestionar Ofertas ❯
+                </Link>
               </div>
             </div>
           )}
@@ -282,14 +267,7 @@ export default function AdminDashboard() {
               <span className="action-emoji">🔥</span>
               <span className="action-text">Ofertas</span>
             </Link>
-            <Link to="/admin/awards" className="dash-action-card">
-              <span className="action-emoji">🏆</span>
-              <span className="action-text">Premios</span>
-            </Link>
-            <Link to="/admin/rewards" className="dash-action-card">
-              <span className="action-emoji">✨</span>
-              <span className="action-text">Fidelidad</span>
-            </Link>
+
             <Link to="/admin/config" className="dash-action-card">
               <span className="action-emoji">⚙️</span>
               <span className="action-text">Config</span>
@@ -308,16 +286,6 @@ export default function AdminDashboard() {
             </Link>
           )}
 
-          {pendingRedemptionsCount > 0 && (
-            <Link to="/admin/rewards" className="dash-alert-banner" style={{ textDecoration: 'none', background: 'linear-gradient(135deg, #1d3b1f, #2e5c31)', borderLeftColor: '#f5c842' }}>
-              <span className="dash-alert-icon">🎁</span>
-              <div className="dash-alert-body">
-                <strong style={{ color: '#f5c842' }}>Hay {pendingRedemptionsCount} canje{pendingRedemptionsCount > 1 ? 's' : ''} pendiente{pendingRedemptionsCount > 1 ? 's' : ''}</strong>
-                <span>Nuevas recompensas solicitadas</span>
-              </div>
-              <span className="dash-alert-arrow" style={{ color: '#f5c842' }}>❯</span>
-            </Link>
-          )}
 
           {/* Upcoming Payments Alert */}
           {(() => {
@@ -632,8 +600,8 @@ export default function AdminDashboard() {
       {/* ── MODAL: Calendario (Selección de fecha) ── */}
       {showCalendar && (
         <>
-          <div className="overlay" style={{ zIndex: 10002 }} onClick={() => setShowCalendar(false)} />
-          <div className="modal-responsive" style={{ zIndex: 10003, maxWidth: '400px' }}>
+          <div className="overlay" style={{ zIndex: 100000 }} onClick={() => setShowCalendar(false)} />
+          <div className="modal-responsive" style={{ zIndex: 100001, maxWidth: '400px' }}>
             <div className="modal-responsive-header">
               <h2 className="modal-responsive-title">📅 Seleccionar Fecha</h2>
               <button className="modal-responsive-close" onClick={() => setShowCalendar(false)}>✕</button>
@@ -673,6 +641,7 @@ export default function AdminDashboard() {
       )}
 
       {!showRevenueModal && !showTopProductsModal && !showCalendar && <BottomNav />}
+
     </div>
   );
 }

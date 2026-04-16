@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import Header from '../components/layout/Header';
 import BottomNav from '../components/layout/BottomNav';
 import ProductCard from '../components/product/ProductCard';
-import Mascot from '../components/ui/Mascot';
 import { useCart } from '../context/CartContext';
 import { useFavorites } from '../context/FavoritesContext';
 import { useToast } from '../hooks/useToast';
@@ -114,7 +113,6 @@ export default function Favorites() {
         </>
       )}
 
-      <Mascot page="favorites" />
       <BottomNav />
       <Toast toasts={toasts} />
     </div>

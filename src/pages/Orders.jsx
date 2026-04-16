@@ -3,7 +3,6 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/layout/Header';
 import BottomNav from '../components/layout/BottomNav';
-import Mascot from '../components/ui/Mascot';
 import { useOrders } from '../hooks/useOrders';
 import { useCart } from '../context/CartContext';
 import { useNotifications } from '../context/NotificationContext';
@@ -254,7 +253,6 @@ export default function Orders() {
 
 
       {!showClearConfirm && !orderToCancel && <BottomNav />}
-      <Mascot page="orders" />
     </div>
   );
 }

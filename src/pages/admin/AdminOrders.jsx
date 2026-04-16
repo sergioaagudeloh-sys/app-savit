@@ -11,7 +11,7 @@ import { buildAdminToClientMessage, openWhatsAppToClient } from '../../utils/wha
 import { formatCOP, formatDateShort } from '../../utils/formatters';
 import { useNotifications } from '../../context/NotificationContext';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
-import { useUsers } from '../../hooks/useUsers';
+
 import './AdminOrders.css';
 
 const STATUS_LABELS = {
@@ -26,7 +26,7 @@ export default function AdminOrders() {
   const { config } = useStoreConfig();
   const { toasts, showToast } = useToast();
   const { addNotification } = useNotifications();
-  const { awardPoints } = useUsers();
+
   
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [orderToCancel, setOrderToCancel] = useState(null);
@@ -133,12 +133,6 @@ export default function AdminOrders() {
           userId: order.customerPhone
         });
 
-        // Award Sávit Points (1 point per $100 COP)
-        const points = Math.floor((order.total || 0) / 100);
-        if (points > 0) {
-          await awardPoints(order.userId || order.customerPhone, points);
-          showToast(`¡Cliente premiado con ${points} Sávit Puntos! 🪙`, 'success');
-        }
       }
     } catch (err) {
       showToast('Error al actualizar el estado', 'error');
@@ -214,13 +208,7 @@ export default function AdminOrders() {
         userId: selectedOrder.customerPhone
       });
 
-      // Award Sávit Points (Dynamic ratio)
-      const ratio = config?.pointsConfig?.pointsPer1000 || 10;
-      const points = Math.floor((selectedOrder.total || 0) / 1000 * ratio);
-      if (points > 0 && config?.pointsConfig?.enabled !== false) {
-        await awardPoints(selectedOrder.userId || selectedOrder.customerPhone, points);
-        showToast(`¡Cliente premiado con ${points} Sávit Puntos! 🪙`, 'success');
-      }
+
 
       setSelectedOrder(null);
     } catch (err) {

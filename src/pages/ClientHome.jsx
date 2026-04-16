@@ -10,7 +10,6 @@ import { CategorySkeleton } from '../components/ui/Skeleton';
 import { useToast } from '../hooks/useToast';
 import Toast from '../components/layout/Toast';
 import HealthyTip from '../components/ui/HealthyTip';
-import Mascot from '../components/ui/Mascot';
 import StoreStatusBanner from '../components/ui/StoreStatusBanner';
 import { formatCOP } from '../utils/formatters';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
@@ -288,7 +287,6 @@ export default function ClientHome() {
         </>
       )}
 
-      <Mascot page="home" />
       <BottomNav />
       <Toast toasts={toasts} />
     </div>

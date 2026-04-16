@@ -27,16 +27,7 @@ export default function ProgressiveImage({
 
   return (
     <div className={`prog-img-wrapper ${className}`} style={style}>
-      {/* Blurred thumbnail — always visible until real img loads */}
-      {!loaded && (
-        <img
-          src={src}
-          alt=""
-          aria-hidden="true"
-          className="prog-img prog-img--blur"
-        />
-      )}
-      {/* Full-quality image */}
+      {/* 1. Full-quality image (on top eventually) */}
       <img
         src={src}
         alt={alt}
@@ -47,6 +38,14 @@ export default function ProgressiveImage({
           onLoad?.();
         }}
         onError={() => setErrored(true)}
+      />
+
+      {/* 2. Blurred thumbnail (underneath or fading out) */}
+      <img
+        src={src}
+        alt=""
+        aria-hidden="true"
+        className={`prog-img prog-img--blur ${loaded ? 'prog-img--hidden' : ''}`}
       />
     </div>
   );

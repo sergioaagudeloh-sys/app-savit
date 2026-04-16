@@ -1,5 +1,5 @@
 // src/pages/Home.jsx
-import { useState, useMemo, useEffect, forwardRef } from 'react';
+import { useState, useMemo, useEffect, forwardRef, useCallback } from 'react';
 import { VirtuosoGrid } from 'react-virtuoso';
 import Fuse from 'fuse.js';
 import { useLocation } from 'react-router-dom';
@@ -14,7 +14,6 @@ import BottomNav from '../components/layout/BottomNav';
 import { useProducts, useCategories } from '../hooks/useProducts';
 import { useStoreConfig } from '../hooks/useOrders';
 import { useNotifications } from '../context/NotificationContext';
-import Mascot from '../components/ui/Mascot';
 import { useSwipe } from '../hooks/useSwipe';
 import './Home.css';
 
@@ -104,6 +103,10 @@ export default function Home() {
     return results.map(res => res.item);
   }, [products, search, selectedCat]);
 
+  const handleToast = useCallback((msg, type) => {
+    showToast(msg, type);
+  }, [showToast]);
+
   return (
     <div className="app-container catalog-page" {...swipeHandlers}>
       <Header onCartOpen={() => setCartOpen(true)} />
@@ -149,7 +152,7 @@ export default function Home() {
               <ProductCard
                 key={product.id}
                 product={product}
-                onToast={(msg, type) => showToast(msg, type)}
+                onToast={handleToast}
               />
             )}
           />
@@ -173,7 +176,6 @@ export default function Home() {
         )}
       </main>
 
-      <Mascot page="catalog" />
       <BottomNav />
     </div>
   );

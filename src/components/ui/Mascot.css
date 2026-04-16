@@ -1,10 +1,12 @@
 /* src/components/ui/Mascot.css */
 
+/* ── Mascot Base ─────────────────────────────────────────────────────────── */
+
 .mascot-container {
   position: fixed;
-  bottom: 85px;
+  bottom: 110px;
   right: 12px;
-  z-index: 1000;
+  z-index: 2500;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -12,8 +14,66 @@
   user-select: none;
 }
 
+/* ── Chat Button ─────────────────────────────────────────────────────────── */
+
+
+.mascot-chat-btn {
+  position: fixed;
+  left: 12px;
+  bottom: 110px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 1px solid rgba(132, 175, 36, 0.4);
+  background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2500;
+  box-shadow: 0 0 20px rgba(132, 175, 36, 0.3);
+  animation: ai-sync-float 3s ease-in-out infinite, ai-glow-green 2s ease-in-out infinite;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  color: #84af24;
+  will-change: transform;
+}
+
+.mascot-chat-btn:hover {
+  transform: scale(1.1) translateY(-5px);
+  box-shadow: 0 0 30px rgba(132, 175, 36, 0.5);
+  border-color: #84af24;
+  color: white;
+}
+
+@keyframes ai-glow-green {
+  0%, 100% { box-shadow: 0 0 15px rgba(132, 175, 36, 0.3); }
+  50% { box-shadow: 0 0 30px rgba(132, 175, 36, 0.6); }
+}
+
+.mascot-btn-sparkle, .mascot-btn-close {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.4));
+  animation: ai-star-rotate 10s linear infinite;
+  will-change: transform;
+}
+
+@keyframes ai-star-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes ai-sync-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+
 .mascot-character {
-  width: 100px; /* Incrementado ~30% */
+  width: 100px;
   height: 100px;
   pointer-events: auto;
   cursor: grab;
@@ -21,10 +81,11 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  animation: floatAndBreathe 4s ease-in-out infinite;
+  animation: ai-sync-float 3s ease-in-out infinite;
   transform-origin: bottom center;
   position: relative;
-  touch-action: none; /* Crucial para dragging en móvil */
+  touch-action: none;
+  will-change: transform;
 }
 
 .mascot-character:active {
@@ -39,8 +100,8 @@
   transition: transform 0.3s ease;
   user-select: none;
   -webkit-user-drag: none;
-  -webkit-touch-callout: none; /* Bloquear menú de "Guardar imagen" en móvil */
-  transform: scaleX(-1); /* Invertido horizontalmente */
+  -webkit-touch-callout: none;
+  transform: scaleX(-1);
 }
 
 .mascot-star {
@@ -62,6 +123,8 @@
   100% { rotate: 360deg; }
 }
 
+/* ── Speech Bubble ───────────────────────────────────────────────────────── */
+
 .mascot-bubble-wrapper {
   position: absolute;
   bottom: 100%;
@@ -72,10 +135,10 @@
   max-width: 240px;
   transform-origin: bottom right;
   z-index: 20;
-  animation: bubblePop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  animation: mascotBubblePop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
-@keyframes bubblePop {
+@keyframes mascotBubblePop {
   0%   { transform: scale(0.3) translateY(10px); opacity: 0; }
   100% { transform: scale(1) translateY(0);      opacity: 1; }
 }
@@ -104,6 +167,14 @@
   border-color: rgba(255,255,255,0.96) transparent transparent transparent;
 }
 
+.mascot-bubble-promo {
+  border: 2px solid #ffd700;
+  background: linear-gradient(135deg, #ffffff 0%, #fffdf0 100%);
+  box-shadow: 0 10px 35px rgba(255, 215, 0, 0.25);
+}
+
+/* ── Shadow & Glow ───────────────────────────────────────────────────────── */
+
 .mascot-shadow {
   width: 65px;
   height: 10px;
@@ -118,9 +189,11 @@
 }
 
 .shadow-glow {
-  background: rgba(103, 71, 44, 0.4); /* Color tierra más natural */
+  background: rgba(103, 71, 44, 0.4);
   box-shadow: 0 0 15px 5px rgba(215, 138, 45, 0.3);
 }
+
+/* ── Animations ──────────────────────────────────────────────────────────── */
 
 @keyframes floatAndBreathe {
   0%   { transform: translateY(0px)   scale(1);    }
@@ -165,6 +238,7 @@
             brightness(1.15); 
   }
 }
+
 .promo-screen-glow {
   position: fixed;
   inset: 0;
@@ -180,9 +254,386 @@
   100% { opacity: 0; }
 }
 
+/* ── 🫧 Promo Bubbles Stage ──────────────────────────────────────────────── */
 
-.mascot-bubble-promo {
-  border: 2px solid #ffd700;
-  background: linear-gradient(135deg, #ffffff 0%, #fffdf0 100%);
-  box-shadow: 0 10px 35px rgba(255, 215, 0, 0.25);
+.promo-bubbles-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  pointer-events: none;
+  overflow: visible;
+}
+
+/* ── Individual Soap Bubble ──────────────────────────────────────────────── */
+
+.promo-bubble {
+  position: absolute;
+  top: 0;
+  left: 0;
+  margin-top: -38px;
+  margin-left: -38px;
+  width: 76px;
+  height: 76px;
+  cursor: pointer;
+  pointer-events: auto;
+  z-index: 10;
+  
+  /* Fly to arc + Then float */
+  animation: bubbleFlyToArc 1.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
+  pointer-events: none; /* Block clicks by default during launch */
+}
+
+.promo-bubble-drifter {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+
+  /* Soap bubble glass effect */
+  background: radial-gradient(
+    ellipse at 30% 30%,
+    rgba(255, 255, 255, 0.65) 0%,
+    rgba(200, 240, 255, 0.35) 40%,
+    rgba(150, 200, 255, 0.2) 70%,
+    rgba(180, 230, 200, 0.3) 100%
+  );
+  border: 1.5px solid rgba(255, 255, 255, 0.85);
+  box-shadow:
+    inset 0 -6px 16px rgba(100, 180, 255, 0.3),
+    inset 0 6px 12px rgba(255, 255, 255, 0.5),
+    0 15px 40px rgba(0, 0, 0, 0.15);
+
+  /* Slow float animation after arrival */
+  animation: bubbleFloat 3s ease-in-out infinite alternate;
+  animation-delay: inherit;
+  will-change: transform;
+}
+
+.promo-bubble:active .promo-bubble-drifter {
+  transform: scale(0.9);
+}
+
+/* Bubble inner image */
+.promo-bubble-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  mix-blend-mode: multiply; /* Better for soap bubble integration */
+  opacity: 0.95;
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+/* Fallback cuando no hay imagen: placeholder suave */
+.promo-bubble-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(135deg, rgba(36,76,38,0.35), rgba(180,230,200,0.25));
+  border-radius: 50%;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+/* ── Tip Bubble (healthy tip) variant ───────────────────────────────────── */
+
+.bubble-tip .promo-bubble-drifter {
+  background: radial-gradient(
+    ellipse at 30% 30%,
+    rgba(255, 255, 255, 0.7) 0%,
+    rgba(180, 255, 200, 0.4) 40%,
+    rgba(100, 200, 150, 0.25) 70%,
+    rgba(60, 180, 120, 0.2) 100%
+  );
+  border-color: rgba(100, 220, 150, 0.9);
+  box-shadow:
+    inset 0 -6px 16px rgba(50, 180, 100, 0.25),
+    inset 0 6px 12px rgba(255, 255, 255, 0.6),
+    0 15px 40px rgba(30, 140, 80, 0.2);
+}
+
+.tip-bubble-bg {
+  background: radial-gradient(135deg, rgba(26, 90, 50, 0.15), rgba(150, 220, 180, 0.1)) !important;
+}
+
+.promo-bubble-tip-icon {
+  font-size: 26px;
+  line-height: 1;
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,0.2));
+}
+
+/* ── Bubble Animations ───────────────────────────────────────────────────── */
+
+@keyframes bubbleFlyToArc {
+  0% {
+    opacity: 0;
+    transform: translate(
+      calc(var(--start-x, 50vw)),
+      calc(var(--start-y, 50vh))
+    ) scale(0.2);
+    pointer-events: none;
+  }
+  30% { opacity: 1; }
+  99% {
+    pointer-events: none;
+  }
+  100% {
+    opacity: 1;
+    transform: translate(
+      calc(var(--start-x, 50vw) + var(--arc-x, 0px)),
+      calc(var(--start-y, 50vh) + var(--arc-y, 0px))
+    ) scale(1);
+    pointer-events: auto;
+  }
+}
+
+/* Simple float for after landing */
+@keyframes bubbleFloat {
+  0%   { transform: translateY(0px) scale(1); }
+  100% { transform: translateY(-8px) scale(1.02); }
+}
+
+/* Bubble pop (exit) animation */
+.promo-bubble.popping {
+  animation: promoBubblePop 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards !important;
+}
+
+@keyframes promoBubblePop {
+  0%   { transform: translate(calc(var(--start-x, 50vw) + var(--arc-x, 0px)), calc(var(--start-y, 50vh) + var(--arc-y, 0px))) scale(1);   opacity: 1; filter: brightness(1); }
+  40%  { transform: translate(calc(var(--start-x, 50vw) + var(--arc-x, 0px)), calc(var(--start-y, 50vh) + var(--arc-y, 0px))) scale(1.4); opacity: 0.8; filter: brightness(1.5) saturate(2); }
+  100% { transform: translate(calc(var(--start-x, 50vw) + var(--arc-x, 0px)), calc(var(--start-y, 50vh) + var(--arc-y, 0px))) scale(0.1); opacity: 0; filter: brightness(2); }
+}
+
+/* ── Promo Detail Modal ──────────────────────────────────────────────────── */
+
+.promo-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0 12px 24px;
+  animation: overlayFadeIn 0.25s ease forwards;
+}
+
+@keyframes overlayFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.promo-modal-card {
+  width: 100%;
+  max-width: 420px;
+  background: white;
+  border-radius: 28px 28px 20px 20px;
+  overflow: hidden;
+  box-shadow: 0 -4px 60px rgba(0,0,0,0.3);
+  position: relative;
+  animation: modalSlideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes modalSlideUp {
+  from { transform: translateY(80px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.promo-modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 2;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0,0,0,0.15);
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.promo-modal-close:hover { background: rgba(0,0,0,0.35); }
+
+.promo-modal-img-wrap {
+  width: 100%;
+  aspect-ratio: 16/9;
+  overflow: hidden;
+  background: #f0f0f0;
+}
+
+.promo-modal-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.promo-modal-body {
+  padding: 20px 22px 26px;
+}
+
+.promo-modal-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #ff6b35, #f7c59f);
+  color: white;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin-bottom: 10px;
+}
+
+.promo-modal-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #1b4332;
+  margin: 0 0 8px;
+  line-height: 1.3;
+}
+
+.promo-modal-desc {
+  font-size: 14px;
+  color: #555;
+  line-height: 1.6;
+  margin: 0 0 12px;
+}
+
+.promo-modal-discount {
+  display: inline-block;
+  padding: 8px 18px;
+  background: linear-gradient(135deg, #1b4332, #244c26);
+  color: #ffd700;
+  font-size: 16px;
+  font-weight: 800;
+  border-radius: 12px;
+  letter-spacing: 0.3px;
+}
+
+/* ── Missing bubble inner styles (label + shines) ───────────────────────── */
+
+.promo-bubble-label {
+  font-size: 9px;
+  font-weight: 800;
+  color: #1b4332;
+  text-align: center;
+  line-height: 1.2;
+  text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+  word-break: break-word;
+}
+
+.promo-bubble-shine {
+  position: absolute;
+  top: 10%;
+  left: 14%;
+  width: 28%;
+  height: 18%;
+  background: radial-gradient(ellipse, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0) 100%);
+  border-radius: 50%;
+  transform: rotate(-35deg);
+  pointer-events: none;
+}
+
+.promo-bubble-shine-2 {
+  position: absolute;
+  bottom: 16%;
+  right: 12%;
+  width: 18%;
+  height: 12%;
+  background: radial-gradient(ellipse, rgba(200,240,255,0.85) 0%, rgba(200,240,255,0) 100%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* ── Tip Modal Styles ────────────────────────────────────────────────────── */
+
+.tip-modal-overlay {
+  background: rgba(20, 70, 40, 0.55);
+}
+
+.tip-modal-card {
+  border-radius: 28px;
+  overflow: hidden;
+  text-align: center;
+}
+
+.tip-modal-icon-header {
+  font-size: 72px;
+  padding: 28px 0 8px;
+  background: linear-gradient(160deg, #e8f5e9, #c8f5d8);
+  display: block;
+  line-height: 1;
+  filter: drop-shadow(0 4px 12px rgba(0,120,60,0.15));
+}
+
+.tip-modal-body {
+  padding: 16px 24px 28px;
+}
+
+.tip-badge {
+  background: linear-gradient(135deg, #2e7d52, #52b788) !important;
+}
+
+.tip-modal-btn {
+  margin-top: 16px;
+  margin-bottom: 24px;
+  padding: 12px 32px;
+  background: linear-gradient(135deg, #1b4332, #2d6a4f);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(27, 67, 50, 0.35);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tip-modal-btn:active {
+  transform: scale(0.96);
+  box-shadow: 0 2px 8px rgba(27, 67, 50, 0.25);
+}
+
+/* ── Bubble Animations ───────────────────────────────────────────────────── */
+
+@keyframes bubbleFlyToArc {
+  0% {
+    transform: translate(0, 0) scale(0);
+    opacity: 0;
+  }
+  20% {
+    transform: translate(calc(var(--target-x) * 0.2), calc(var(--target-y) * 0.2)) scale(0.5);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--target-x), var(--target-y)) scale(1);
+    opacity: 1;
+    pointer-events: auto; /* Activate interaction at the end */
+  }
+}
+
+@keyframes bubbleFloat {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-8px); }
+}
+
+@keyframes bubblePop {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1.4); opacity: 0; }
 }

@@ -73,31 +73,13 @@ const IconFinance = (
   </svg>
 );
 
-const IconAwards = (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="8" r="7" />
-    <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
-  </svg>
-);
 
-const IconRewards = (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M20 12V8H4v4" />
-    <path d="M2 12h20" />
-    <path d="M20 12v8H4v-8" />
-    <path d="M12 12V3" />
-    <path d="M12 3h5l-1 2-4-2z" />
-    <path d="M12 3H7l1 2 4-2z" />
-  </svg>
-);
 
 const navItems = [
   { to: '/admin',             label: 'Dashboard',   icon: IconDashboard,  end: true },
   { to: '/admin/orders',      label: 'Pedidos',     icon: IconOrders,     end: false },
   { to: '/admin/products',    label: 'Inventario',  icon: IconInventory,  end: false },
   { to: '/admin/ingredients', label: 'Ingredientes',icon: IconIngredients,end: false },
-  { to: '/admin/awards',      label: 'Premios',     icon: IconAwards,     end: false },
-  { to: '/admin/rewards',     label: 'Fidelidad',   icon: IconRewards,    end: false },
   { to: '/admin/offers',      label: 'Ofertas',     icon: IconOffers,     end: false },
   { to: '/admin/subscriptions',label: 'Pagos Fijos', icon: IconFinance,    end: false },
   { to: '/admin/config',      label: 'Ajustes',     icon: IconConfig,     end: false },

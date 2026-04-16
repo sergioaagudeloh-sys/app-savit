@@ -1,5 +1,6 @@
 // src/components/product/ProductCard.jsx
 import React, { useState, useCallback, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useFavorites } from '../../context/FavoritesContext';
@@ -75,8 +76,6 @@ export default function ProductCard({ product, onToast }) {
       // 🚀 Animación de vuelo hacia el botón del carrito
       triggerFlyAnimation(addBtnRef.current, product.imageUrl || product.image);
       
-      // Trigger Gamification Coin Throw
-      window.dispatchEvent(new CustomEvent('savit_throw_coin'));
       
       if (typeof onToast === 'function') {
         onToast(`¡${product.name} agregado! 🛍`, 'success');
@@ -96,9 +95,8 @@ export default function ProductCard({ product, onToast }) {
     const targetId = itemInCart?.cartId || product.id;
     
     if (newQty > quantity) {
-      // 🚀 Incrementar: Vuelo hacia el carrito + Moneda
+      // 🚀 Incrementar: Vuelo hacia el carrito
       triggerFlyAnimation(addBtnRef.current, product.imageUrl || product.image);
-      window.dispatchEvent(new CustomEvent('savit_throw_coin'));
       vibrateSuccess();
     } else if (newQty < quantity) {
       // 🔙 Decrementar: Salida del carrito
@@ -177,58 +175,61 @@ export default function ProductCard({ product, onToast }) {
           <h3 className="product-name">{product.name}</h3>
           <p className="product-desc">{product.description}</p>
           
-          {/* ── Pricing Section (Middle) ── */}
-          <div className="product-price">
-            {hasDiscount ? (
-              <div className="price-stack">
-                <span className="price-old">{formatCOP(product.price)}</span>
-                <span className="price-current">{formatCOP(currentPrice)}</span>
-              </div>
-            ) : (
-              <span className="price-main">{formatCOP(product.price)}</span>
-            )}
-          </div>
+          {/* ── Bottom: pricing + actions always anchored at card bottom ── */}
+          <div className="product-bottom">
+            {/* ── Pricing Section ── */}
+            <div className="product-price">
+              {hasDiscount ? (
+                <div className="price-stack">
+                  <span className="price-old">{formatCOP(product.price)}</span>
+                  <span className="price-current">{formatCOP(currentPrice)}</span>
+                </div>
+              ) : (
+                <span className="price-main">{formatCOP(product.price)}</span>
+              )}
+            </div>
 
-          {/* ── Actions Row (Bottom) ── */}
-          <div 
-            ref={addBtnRef}
-            className="product-actions" 
-            onClick={e => e.stopPropagation()}
-          >
-            {quantity > 0 && product.type !== 'prepared' ? (
-              <div className="qty-counter">
+            {/* ── Actions Row ── */}
+            <div 
+              ref={addBtnRef}
+              className="product-actions" 
+              onClick={e => e.stopPropagation()}
+            >
+              {quantity > 0 && product.type !== 'prepared' ? (
+                <div className="qty-counter">
+                  <button 
+                    className="qty-control-btn" 
+                    onClick={(e) => handleUpdateQty(quantity - 1, e)}
+                    aria-label="Disminuir"
+                  >
+                    −
+                  </button>
+                  <span className="qty-counter-value">{quantity}</span>
+                  <button 
+                    className="qty-control-btn" 
+                    onClick={(e) => handleUpdateQty(quantity + 1, e)}
+                    disabled={product.stock !== undefined && quantity >= product.stock}
+                    aria-label="Aumentar"
+                  >
+                    +
+                  </button>
+                </div>
+              ) : (
                 <button 
-                  className="qty-control-btn" 
-                  onClick={(e) => handleUpdateQty(quantity - 1, e)}
-                  aria-label="Disminuir"
+                  className={`product-add-btn ${showAdded ? 'success' : ''}`}
+                  onClick={(e) => product.type === 'prepared' ? setShowDetail(true) : handleAdd(e)}
+                  disabled={isSoldOut}
                 >
-                  −
+                  {showAdded ? '¡Listo!' : product.type === 'prepared' ? 'Personalizar' : 'Añadir'}
                 </button>
-                <span className="qty-counter-value">{quantity}</span>
-                <button 
-                  className="qty-control-btn" 
-                  onClick={(e) => handleUpdateQty(quantity + 1, e)}
-                  disabled={product.stock !== undefined && quantity >= product.stock}
-                  aria-label="Aumentar"
-                >
-                  +
-                </button>
-              </div>
-            ) : (
-              <button 
-                className={`product-add-btn ${showAdded ? 'success' : ''}`}
-                onClick={(e) => product.type === 'prepared' ? setShowDetail(true) : handleAdd(e)}
-                disabled={isSoldOut}
-              >
-                {showAdded ? '¡Listo!' : product.type === 'prepared' ? 'Personalizar' : 'Añadir'}
-              </button>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>
 
       {/* ── Product Detail Modal (Float Menu) ── */}
-      {showDetail && (
+      {showDetail && createPortal(
         <div className="product-detail-overlay" onClick={() => setShowDetail(false)}>
           <div className="product-detail-modal" onClick={e => e.stopPropagation()}>
             <button className="detail-close" onClick={() => setShowDetail(false)}>✕</button>
@@ -363,10 +364,11 @@ export default function ProductCard({ product, onToast }) {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
       {/* ── Ingredients Fresh Menu (Nested Drawer) ── */}
-      {showIngredientsMenu && (
+      {showIngredientsMenu && createPortal(
         <div className="ingredients-menu-overlay" onClick={() => setShowIngredientsMenu(false)}>
           <div className="ingredients-menu-drawer" onClick={e => e.stopPropagation()}>
             <div className="ingredients-menu-header">
@@ -412,7 +414,8 @@ export default function ProductCard({ product, onToast }) {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

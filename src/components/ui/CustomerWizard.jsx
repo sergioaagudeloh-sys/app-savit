@@ -77,19 +77,6 @@ export default function CustomerWizard({ onClose }) {
   const [savingPin, setSavingPin] = useState(false);
 
   const isAdminAuth = localStorage.getItem('savit_admin_auth') === 'true';
-  const [savitPoints, setSavitPoints] = useState(0);
-
-  // Live points for profile view
-  useEffect(() => {
-    const ph = customer?.phone;
-    if (!ph || step !== 'profile') return;
-    if (!isFirebaseConfigured()) return;
-    const ref = doc(db, 'customers', ph);
-    const unsub = onSnapshot(ref, (snap) => {
-      if (snap.exists()) setSavitPoints(snap.data().savitPoints || 0);
-    });
-    return () => unsub();
-  }, [customer?.phone, step]);
 
   // Lock body scroll when wizard is open
   useBodyScrollLock(true);
@@ -224,7 +211,7 @@ export default function CustomerWizard({ onClose }) {
     3:            'Protege tu cuenta con un PIN de 4 dígitos',
     4:            isReturning ? 'Te reconocimos al instante 🌿' : '¡Tu perfil está listo! 🌿',
     profile:      'Gestiona tus datos de cliente',
-    'create-pin': 'Solo tú podrás canjear y hacer pedidos',
+    'create-pin': 'Solo tú podrás hacer pedidos',
   };
 
   const dots = [1, 2, 3];
@@ -245,22 +232,13 @@ export default function CustomerWizard({ onClose }) {
           </div>
 
           <div className="cw-body cw-step">
-            {/* Points badge */}
-            <div className="cw-points-badge" onClick={() => { onClose(); navigate('/rewards'); }}>
-              <span className="cw-points-icon">⭐</span>
-              <div>
-                <span className="cw-points-value">{savitPoints.toLocaleString()} Sávit Puntos</span>
-                <span className="cw-points-sub">Ver catálogo de premios →</span>
-              </div>
-            </div>
-
             {/* PIN warning banner */}
             {!hasPin && (
               <div className="cw-pin-warning" onClick={() => setStep('create-pin')}>
                 <span className="cw-pin-warning-icon">🔒</span>
                 <div>
                   <strong>Crea tu PIN de Seguridad</strong>
-                  <p>Necesario para realizar canjes y pedidos. Toca aquí para crearlo.</p>
+                  <p>Necesario para realizar pedidos. Toca aquí para crearlo.</p>
                 </div>
                 <span className="cw-pin-warning-arrow">›</span>
               </div>
@@ -453,7 +431,7 @@ export default function CustomerWizard({ onClose }) {
             <div className="cw-step-icon">🔐</div>
             <h2 className="cw-step-title">Crea tu PIN</h2>
             <p className="cw-step-desc">
-              Lo necesitarás para hacer pedidos y canjear premios. ¡Solo tú sabrás cuál es!
+              Lo necesitarás para hacer pedidos. ¡Solo tú sabrás cuál es!
             </p>
 
             <PinInputs pin={pin} setPin={setPin} label="Elige un PIN de 4 dígitos" error={null} />

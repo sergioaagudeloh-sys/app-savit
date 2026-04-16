@@ -6,6 +6,7 @@ import AdminSidebar from '../../components/layout/AdminSidebar';
 import { useStoreConfig } from '../../hooks/useOrders';
 import { useToast } from '../../hooks/useToast';
 import Toast from '../../components/layout/Toast';
+import { SkeletonHero, SkeletonCard } from '../../components/ui/Skeleton';
 import './AdminConfig.css';
 
 export default function AdminConfig() {
@@ -21,25 +22,35 @@ export default function AdminConfig() {
     scheduleEnabled: false,
     openTime: '09:00',
     closeTime: '18:00',
-    googleDriveLink: ''
+    googleDriveLink: '',
+    geminiKey: localStorage.getItem('savit_gemini_api_key') || ''
   });
 
-  // Points Config State
-  const [pointsEnabled, setPointsEnabled] = useState(true);
-  const [pointsRate, setPointsRate] = useState(10);
-  
   const [saving, setSaving] = useState(false);
 
   // Tab State
-  const [activeTab, setActiveTab] = useState('tienda'); // 'tienda', 'fidelizacion', 'sistema'
+  const [activeTab, setActiveTab] = useState('tienda');
+
+  // Dark Mode State
+  const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('savit_dark_mode') === 'true');
+
+  const handleToggleDarkMode = () => {
+    const newValue = !isDarkMode;
+    setIsDarkMode(newValue);
+    localStorage.setItem('savit_dark_mode', newValue.toString());
+    if (newValue) {
+      document.body.classList.add('dark-mode');
+    } else {
+      document.body.classList.remove('dark-mode');
+    }
+  };
 
   // Sync store config state
   useEffect(() => {
     if (config) {
       setForm(prev => ({ ...prev, ...config }));
       if (config.pointsConfig) {
-        setPointsEnabled(config.pointsConfig.enabled ?? true);
-        setPointsRate(config.pointsConfig.pointsPer1000 ?? 10);
+        // Points config removed
       }
     }
   }, [config]);
@@ -48,9 +59,12 @@ export default function AdminConfig() {
     <div className="app-container admin-config admin-page">
       <Header title="Configuración" />
       <AdminSidebar />
-      <div className="flex-center w-full" style={{ height: '70vh' }}>
-        <span className="spinner spinner-dark" />
-      </div>
+      <main className="page-content admin-main-content" style={{ padding: '0 16px 80px' }}>
+        <SkeletonHero stats={0} />
+        <SkeletonCard lines={3} />
+        <SkeletonCard lines={2} />
+        <SkeletonCard lines={2} showAvatar={false} />
+      </main>
     </div>
   );
 
@@ -89,22 +103,6 @@ export default function AdminConfig() {
   const handleSubmit = (e) => {
     e.preventDefault();
     handleSaveDirect(form);
-  };
-
-  const handleSavePoints = () => {
-    const rate = Math.max(1, parseInt(pointsRate) || 10);
-    setPointsRate(rate);
-    handleSaveDirect({
-      pointsConfig: { enabled: pointsEnabled, pointsPer1000: rate }
-    });
-  };
-
-  const handleTogglePoints = () => {
-    const newVal = !pointsEnabled;
-    setPointsEnabled(newVal);
-    handleSaveDirect({
-      pointsConfig: { enabled: newVal, pointsPer1000: parseInt(pointsRate) || 10 }
-    });
   };
 
   const handleExportBackup = () => {
@@ -164,32 +162,30 @@ export default function AdminConfig() {
             <div className="inv-hero-top">
               <div className="inv-hero-title-area">
                 <span className="inv-hero-label">Ajustes del Negocio</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <h1 className="inv-hero-title">Configuración</h1>
-                  <div className="premium-license-badge mini">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                      <path d="m9 12 2 2 4-4" />
-                    </svg>
-                    <span className="premium-title" style={{ fontSize: '11px' }}>PRO</span>
-                  </div>
-                </div>
+                <h1 className="inv-hero-title">Configuración</h1>
+              </div>
+              <div className="premium-license-tag">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  <path d="m9 12 2 2 4-4" />
+                </svg>
+                <span>LICENCIA PRO</span>
               </div>
             </div>
 
             {/* ── Tabs (con Glider) ── */}
             <div
               className="inv-stats config-tabs-row"
-              style={{ '--tab-idx': activeTab === 'tienda' ? 0 : activeTab === 'fidelizacion' ? 1 : 2 }}
+              style={{ '--tab-idx': activeTab === 'tienda' ? 0 : activeTab === 'mantenimiento' ? 1 : 2 }}
             >
               <div className="cfg-tab-glider" />
               <button className={`inv-stat ${activeTab === 'tienda' ? 'active' : ''}`} onClick={() => setActiveTab('tienda')}>
                 <span className="inv-stat-value">📍</span>
                 <span className="inv-stat-label">Tienda</span>
               </button>
-              <button className={`inv-stat ${activeTab === 'fidelizacion' ? 'active' : ''}`} onClick={() => setActiveTab('fidelizacion')}>
-                <span className="inv-stat-value">💎</span>
-                <span className="inv-stat-label">Fidelidad</span>
+              <button className={`inv-stat ${activeTab === 'mantenimiento' ? 'active' : ''}`} onClick={() => setActiveTab('mantenimiento')}>
+                <span className="inv-stat-value">🛠️</span>
+                <span className="inv-stat-label">Mantenimiento</span>
               </button>
               <button className={`inv-stat ${activeTab === 'sistema' ? 'active' : ''}`} onClick={() => setActiveTab('sistema')}>
                 <span className="inv-stat-value">⚙️</span>
@@ -280,15 +276,9 @@ export default function AdminConfig() {
                   </div>
                 )}
               </div>
-            </div>
-          )}
 
-          {/* ─────────── TAB: FIDELIZACIÓN ─────────── */}
-          {activeTab === 'fidelizacion' && (
-            <div className="cfg-tab-content" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-
-              {/* Bóveda Legal */}
-              <div className="cfg-card" style={{ '--card-i': 0 }}>
+              {/* Bóveda Legal (Moved here) */}
+              <div className="cfg-card" style={{ '--card-i': 3 }}>
                 <div className="cfg-header">
                   <div className="cfg-header-icon">📂</div>
                   <div className="cfg-header-text">
@@ -307,52 +297,18 @@ export default function AdminConfig() {
                     </div>
                   </div>
                   <div className="cfg-footer">
-                    <button type="button" className="btn btn-primary btn-sm" onClick={handleSubmit}>Guardar</button>
+                    <button type="button" className="btn btn-primary btn-sm" onClick={handleSubmit}>Guardar Enlace</button>
                   </div>
                 </div>
-              </div>
-
-              {/* Puntos Savit */}
-              <div className="cfg-card" style={{ '--card-i': 1 }}>
-                <div className="cfg-header">
-                  <div className="cfg-header-icon">⭐</div>
-                  <div className="cfg-header-text">
-                    <h3>Puntos Savit</h3>
-                    <p>Recompensa por cada compra</p>
-                  </div>
-                  <div className="cfg-toggle toggle-wrapper" onClick={handleTogglePoints}>
-                    <div className={`toggle ${pointsEnabled ? 'active' : ''}`} />
-                  </div>
-                </div>
-                {pointsEnabled && (
-                  <div className="cfg-body">
-                    <div className="cfg-points-preview">
-                      <span className="cfg-points-preview-emoji">🏆</span>
-                      <div className="cfg-points-preview-info">
-                        <strong>{pointsRate} pts por cada $1.000</strong>
-                        <span>Ej: $20.000 = {(parseInt(pointsRate) || 10) * 20} puntos</span>
-                      </div>
-                    </div>
-                    <div className="cfg-input-group">
-                      <label className="cfg-label">Puntos por $1.000 COP</label>
-                      <input type="number" className="cfg-input" min="1" max="1000" value={pointsRate} onChange={e => setPointsRate(e.target.value)} />
-                      <span className="cfg-hint">Recomendado: 10 pts / $1.000</span>
-                    </div>
-                    <div className="cfg-footer">
-                      <button type="button" className="btn btn-primary btn-sm" onClick={handleSavePoints} disabled={saving}>
-                        {saving ? <span className="spinner" /> : 'Guardar Puntos'}
-                      </button>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           )}
 
-          {/* ─────────── TAB: SISTEMA ─────────── */}
-          {activeTab === 'sistema' && (
-            <div className="cfg-tab-content" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
 
+
+          {/* ─────────── TAB: MANTENIMIENTO ─────────── */}
+          {activeTab === 'mantenimiento' && (
+            <div className="cfg-tab-content" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {/* Mantenimiento */}
               <div className="cfg-card" style={{ '--card-i': 0 }}>
                 <div className="cfg-header">
@@ -366,9 +322,28 @@ export default function AdminConfig() {
                   <div className="cfg-maintenance-row">
                     <button className="btn btn-outline btn-sm" onClick={handleExportBackup}>📥 Exportar JSON</button>
                     <label className="btn btn-outline btn-sm" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                      📤 Importar JSON
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>📤 Importar JSON</span>
                       <input type="file" accept=".json" style={{ display: 'none' }} onChange={handleImportBackup} />
                     </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ─────────── TAB: SISTEMA ─────────── */}
+          {activeTab === 'sistema' && (
+            <div className="cfg-tab-content" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {/* Tema Visual */}
+              <div className="cfg-card" style={{ '--card-i': 0 }}>
+                <div className="cfg-header">
+                  <div className="cfg-header-icon">🌑</div>
+                  <div className="cfg-header-text">
+                    <h3>Modo Oscuro OLED</h3>
+                    <p>Ahorro de batería y diseño élite</p>
+                  </div>
+                  <div className="cfg-toggle toggle-wrapper" onClick={handleToggleDarkMode}>
+                    <div className={`toggle ${isDarkMode ? 'active' : ''}`} />
                   </div>
                 </div>
               </div>

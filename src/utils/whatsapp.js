@@ -112,7 +112,7 @@ export function buildWelcomeMessage(customerName, phoneDigits) {
     `👋 ¡Hola ${name}! Qué alegría saludarte.`,
     `Te damos la bienvenida a *Sávit App* 🌿, tu perfil ya está activo.`,
     ``,
-    `Tu número \`${phoneDigits}\` está registrado y tienes un PIN de seguridad creado. Con este PIN podrás hacer compras y canjear tus puntos de forma segura.`,
+    `Tu número \`${phoneDigits}\` está registrado y tienes un PIN de seguridad creado. Con este PIN podrás hacer compras de forma segura.`,
     ``,
     `Si alguna vez necesitas soporte, cuéntanos por este chat. ¡Esperamos que disfrutes la experiencia! 💚`
   ].join('\n');

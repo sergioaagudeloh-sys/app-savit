@@ -133,110 +133,103 @@
   background: rgba(132, 175, 36, 0.25) !important;
 }
 
-/* Points Badge */
-.header-points-badge {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(12px) saturate(180%);
-  -webkit-backdrop-filter: blur(12px) saturate(180%);
-  padding: 5px 12px;
-  border-radius: 18px;
-  cursor: pointer;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  transition: all 0.2s ease;
-  user-select: none;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-.header-points-badge:hover {
-  background: rgba(255, 255, 255, 0.25);
-  transform: translateY(-1px);
-}
-
-.header-points-badge:active {
-  transform: scale(0.95);
-}
-
-.points-icon {
-  font-size: 1rem;
-  filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.5));
-}
-
-.points-value {
-  font-size: 0.9rem;
-  font-weight: 800;
-  color: white;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.02em;
-}
-
-@media (max-width: 380px) {
-  .header-points-badge {
-    padding: 5px 10px;
-    gap: 4px;
-  }
-  .points-value {
-    font-size: 0.8rem;
-  }
-  .points-icon {
-    font-size: 0.9rem;
-  }
-}
-
-/* ── Puntos Pendientes (Gamificación Guardado Temporal) ── */
-.header-points-badge {
-  position: relative; /* Necesario para el tooltip absoluto */
-}
-
-.points-pending {
-  color: #FFD700; /* Dorado brillante */
-  font-size: 0.8rem;
-  margin-left: 4px;
-  font-weight: 800;
-  text-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
-}
-
-.animate-pulse-soft {
-  animation: softPulse 2s infinite ease-in-out;
-  display: inline-block;
-}
-
-@keyframes softPulse {
-  0%, 100% { transform: scale(1); opacity: 0.9; }
-  50% { transform: scale(1.08); opacity: 1; }
-}
-
-.points-pending-tooltip {
-  position: absolute;
-  top: calc(100% + 10px);
-  right: 0;
-  background: var(--color-primary);
-  color: white;
-  padding: 6px 10px;
-  border-radius: 8px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  white-space: nowrap;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  pointer-events: none;
-  animation: tooltipFloat 3s infinite ease-in-out, fadeIn 0.3s ease-out;
-  z-index: 100;
-}
-
-/* Flechita del tooltip apuntando arriba */
-.points-pending-tooltip::before {
-  content: '';
-  position: absolute;
-  bottom: 100%;
-  right: 20px; /* Alineado a la derecha de la caja */
-  border-width: 6px;
-  border-style: solid;
-  border-color: transparent transparent var(--color-primary) transparent;
-}
-
 @keyframes tooltipFloat {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-3px); }
+}
+
+/* ── Store Status Indicator (Header) ── */
+.header-store-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 30px;
+  text-decoration: none;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.header-store-status.open {
+  background: rgba(34, 197, 94, 0.12);
+  color: #4ade80;
+  border-color: rgba(74, 222, 128, 0.25);
+}
+
+.header-store-status.closed {
+  background: rgba(239, 68, 68, 0.12);
+  color: #f87171;
+  border-color: rgba(248, 113, 113, 0.25);
+}
+
+.header-store-status:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  position: relative;
+}
+
+.header-store-status.open .status-dot {
+  background: #4ade80;
+  box-shadow: 0 0 10px rgba(74, 222, 128, 0.6);
+}
+
+.header-store-status.closed .status-dot {
+  background: #f87171;
+  box-shadow: 0 0 10px rgba(248, 113, 113, 0.6);
+}
+
+.status-dot::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  animation: statusPulse 2s infinite;
+}
+
+.header-store-status.open .status-dot::after { border: 1.5px solid rgba(74, 222, 128, 0.4); }
+.header-store-status.closed .status-dot::after { border: 1.5px solid rgba(248, 113, 113, 0.4); }
+
+@keyframes statusPulse {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(2.8); opacity: 0; }
+}
+
+@media (max-width: 480px) {
+  .header-store-status {
+    padding: 6px 10px;
+  }
+  .header-store-status .status-text {
+    font-size: 0.65rem;
+  }
+  .header-title {
+    margin-left: 12px;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .header-store-status {
+    padding: 6px 10px; /* Mantiene padding horizontal para el texto */
+    border-radius: 30px; /* Mantiene forma de cápsula */
+  }
+  .header-store-status .status-text {
+    display: inline-block; /* Asegura que se vea el texto */
+    font-size: 0.6rem;
+  }
+  .header-title {
+    display: none;
+  }
 }

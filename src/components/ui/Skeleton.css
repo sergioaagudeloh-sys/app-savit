@@ -1,0 +1,236 @@
+/* =============================================
+   SKELETON SCREENS — Sávit Elite UX
+   ============================================= */
+
+/* ── Base shimmer animation ── */
+@keyframes skeleton-shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.skeleton {
+  display: inline-block;
+  border-radius: var(--radius-md);
+  background: linear-gradient(
+    90deg,
+    var(--sk-base, #e8f0e0) 25%,
+    var(--sk-shine, #f5fff0) 50%,
+    var(--sk-base, #e8f0e0) 75%
+  );
+  background-size: 800px 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+/* ── Dark Mode skeleton ── */
+body.dark-mode .skeleton {
+  --sk-base:  #1a1f18;
+  --sk-shine: #232b20;
+}
+
+/* ─────────────────────────────────────────────
+   HERO SKELETON
+───────────────────────────────────────────── */
+.sk-hero {
+  background: linear-gradient(135deg, #1c3b20 0%, #2d5c31 100%);
+  border-radius: var(--radius-xl);
+  padding: 24px 20px 20px;
+  margin-bottom: 16px;
+}
+
+.sk-hero-label {
+  height: 11px;
+  width: 120px;
+  border-radius: 100px;
+  margin-bottom: 12px;
+  --sk-base: rgba(255,255,255,0.12);
+  --sk-shine: rgba(255,255,255,0.22);
+}
+
+.sk-hero-title {
+  height: 28px;
+  width: 200px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+  --sk-base: rgba(255,255,255,0.15);
+  --sk-shine: rgba(255,255,255,0.28);
+}
+
+.sk-hero-subtitle {
+  height: 13px;
+  width: 150px;
+  border-radius: 100px;
+  margin-bottom: 24px;
+  --sk-base: rgba(255,255,255,0.1);
+  --sk-shine: rgba(255,255,255,0.18);
+}
+
+.sk-hero-stats {
+  display: flex;
+  gap: 12px;
+}
+
+.sk-hero-stat {
+  flex: 1;
+  height: 64px;
+  border-radius: var(--radius-lg);
+  --sk-base: rgba(255,255,255,0.1);
+  --sk-shine: rgba(255,255,255,0.2);
+}
+
+/* ─────────────────────────────────────────────
+   CARD SKELETON
+───────────────────────────────────────────── */
+.sk-card {
+  background: var(--color-bg-card, #fff);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1px solid var(--color-border, #e1ecd4);
+}
+
+.sk-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sk-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.sk-card-lines {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sk-line {
+  height: 12px;
+  border-radius: 100px;
+}
+
+.sk-line-full  { width: 100%; }
+.sk-line-lg    { width: 75%; }
+.sk-line-md    { width: 55%; }
+.sk-line-sm    { width: 35%; }
+.sk-line-xs    { width: 20%; }
+
+/* ─────────────────────────────────────────────
+   STAT / BADGE SKELETON
+───────────────────────────────────────────── */
+.sk-stat-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.sk-stat-chip {
+  flex: 1;
+  height: 78px;
+  border-radius: var(--radius-lg);
+}
+
+/* ─────────────────────────────────────────────
+   LIST SKELETON
+───────────────────────────────────────────── */
+.sk-list-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: var(--color-bg-card, #fff);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 10px;
+  border: 1px solid var(--color-border, #e1ecd4);
+}
+
+.sk-list-img {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+.sk-list-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sk-list-badge {
+  width: 56px;
+  height: 24px;
+  border-radius: 100px;
+  align-self: center;
+  flex-shrink: 0;
+}
+
+/* ─────────────────────────────────────────────
+   CHART SKELETON
+───────────────────────────────────────────── */
+.sk-chart {
+  height: 180px;
+  border-radius: var(--radius-lg);
+  margin-bottom: 16px;
+}
+
+/* ─────────────────────────────────────────────
+   SECTION TITLE SKELETON
+───────────────────────────────────────────── */
+.sk-section-title {
+  height: 18px;
+  width: 140px;
+  border-radius: 100px;
+  margin-bottom: 14px;
+}
+
+/* ─────────────────────────────────────────────
+   PRODUCT GRID SKELETON
+───────────────────────────────────────────── */
+.sk-product-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.sk-product-card {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--color-bg-card, #fff);
+  border: 1px solid var(--color-border, #e1ecd4);
+  box-shadow: var(--shadow-sm);
+}
+
+.sk-product-img {
+  width: 100%;
+  height: 130px;
+  border-radius: 0;
+}
+
+.sk-product-info {
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+/* ─────────────────────────────────────────────
+   DARK MODE — card overrides
+───────────────────────────────────────────── */
+body.dark-mode .sk-card,
+body.dark-mode .sk-list-item,
+body.dark-mode .sk-product-card {
+  background: #0d0d0d;
+  border-color: #1a1a1a;
+}

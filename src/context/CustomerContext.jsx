@@ -143,31 +143,6 @@ export function CustomerProvider({ children }) {
   }, [customer]);
 
   /**
-   * Add points to the current customer's profile.
-   * @param {number} pointsToAdd 
-   */
-  const addPoints = useCallback(async (pointsToAdd) => {
-    if (!customer?.phone) return;
-    
-    const newPoints = (customer.savitPoints || 0) + pointsToAdd;
-    const updatedCustomer = { ...customer, savitPoints: newPoints };
-    
-    // 1. Update Local State
-    setCustomer(updatedCustomer);
-    
-    // 2. Update Firestore
-    try {
-      const ref = doc(db, 'customers', customer.phone);
-      await updateDoc(ref, { 
-        savitPoints: newPoints,
-        lastSeen: new Date().toISOString()
-      });
-    } catch (e) {
-      console.warn('CustomerContext: Error updating points in Firestore', e);
-    }
-  }, [customer]);
-
-  /**
    * Clear customer session.
    */
   const logoutCustomer = useCallback(() => {
@@ -185,7 +160,6 @@ export function CustomerProvider({ children }) {
       checkCustomer,
       identifyCustomer,
       logoutCustomer,
-      addPoints,
       savePin,
       verifyPin,
     }}>

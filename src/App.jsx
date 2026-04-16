@@ -6,23 +6,23 @@ import { useAuth } from './context/AuthContext';
 import CartDrawer from './components/cart/CartDrawer';
 import { useNotifications } from './context/NotificationContext';
 import ToastContainer from './components/ui/ToastContainer';
-import Gamification from './components/ui/Gamification';
 
 // Premium Savit Loader para el Suspense / Router Transitions
 const FullPageLoader = () => {
-  // Usamos window.location.pathname para una detección inmediata incluso antes de que el hook de router se actualice
   const isDashboard = window.location.pathname.startsWith('/admin');
   
   return (
-    <div className={`app-loader-overlay ${isDashboard ? 'admin-page' : 'client-page'}`}>
+    <div className={`app-loader-overlay ${isDashboard ? 'admin-page' : ''}`}>
       <div className="app-loader-content">
-        <div className="app-loader-leaf-container">
-          <svg viewBox="0 0 24 24" className="app-loader-leaf" fill="currentColor">
-            <path d="M17.5,7.5c-4-4-10.5-6.5-14.5-5.5c0,0,1.5,5.5,5.5,9.5s9.5,5.5,9.5,5.5C19,13,21.5,11.5,17.5,7.5z" style={{ color: 'var(--color-accent)' }} />
-            <path d="M6.5,16.5c4,4,10.5,6.5,14.5,5.5c0,0-1.5-5.5-5.5-9.5s-9.5-5.5-9.5-5.5C5,11,2.5,12.5,6.5,16.5z" style={{ color: 'var(--color-primary)' }} />
+        <div className="app-loader-logo-wrap">
+          <div className="app-loader-leaf-bg"></div>
+          <svg viewBox="0 0 24 24" className="app-loader-leaf" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.5 1.35 7.15a13.92 13.92 0 0 1-5.63 7.84M11 20c-1.5 1.5-3-1.5-3-1.5" />
+            <path d="M11 20c2.5 0 5-2.5 5-2.5" />
+            <path d="M11 20c.5-5 2-8 5-11" />
           </svg>
         </div>
-        <h2 className="app-loader-text">Savit</h2>
+        <h2 className="app-loader-text">Sávit</h2>
         <div className="app-loader-progress">
           <div className="app-loader-bar"></div>
         </div>
@@ -39,7 +39,6 @@ const Checkout = lazy(() => import('./pages/Checkout'));
 const OrderConfirm = lazy(() => import('./pages/OrderConfirm'));
 const Orders = lazy(() => import('./pages/Orders'));
 const Favorites = lazy(() => import('./pages/Favorites'));
-const Rewards   = lazy(() => import('./pages/Rewards'));
 
 // Pages Admin (Lazy)
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
@@ -48,10 +47,10 @@ const AdminProducts = lazy(() => import('./pages/admin/AdminProducts'));
 const AdminIngredients = lazy(() => import('./pages/admin/AdminIngredients'));
 const AdminConfig = lazy(() => import('./pages/admin/AdminConfig'));
 const AdminOffers = lazy(() => import('./pages/admin/AdminOffers'));
-const AdminAwards = lazy(() => import('./pages/admin/AdminAwards'));
-const AdminRewards = lazy(() => import('./pages/admin/AdminRewards'));
 const AdminSubscriptions = lazy(() => import('./pages/admin/AdminSubscriptions'));
 const AdminGate = lazy(() => import('./components/layout/AdminGate'));
+const AdminLayout = lazy(() => import('./components/layout/AdminLayout'));
+const ClientLayout = lazy(() => import('./components/layout/ClientLayout'));
 
 export default function App() {
   const { isCartOpen, setCartOpen } = useCart();
@@ -69,6 +68,13 @@ export default function App() {
       document.body.classList.remove('admin-page');
     }
   }, [location.pathname]);
+
+  useLayoutEffect(() => {
+    // Inicializar Dark Mode global
+    if (localStorage.getItem('savit_dark_mode') === 'true') {
+      document.body.classList.add('dark-mode');
+    }
+  }, []);
 
   // Lógica de redirección al recargar (montaje inicial)
   useEffect(() => {
@@ -98,24 +104,21 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Welcome />} />
           
-          <Route path="/home" element={<ClientHome />} />
-          <Route path="/catalog" element={<Home />} />
-          <Route path="/checkout" element={<Checkout />} />
-          <Route path="/orders"    element={<Orders />} />
-          <Route path="/favorites" element={<Favorites />} />
-          <Route path="/rewards"   element={<Rewards />} />
-          <Route path="/order-confirm" element={<OrderConfirm />} />
+          <Route path="/home" element={<ClientLayout><ClientHome /></ClientLayout>} />
+          <Route path="/catalog" element={<ClientLayout><Home /></ClientLayout>} />
+          <Route path="/checkout" element={<ClientLayout><Checkout /></ClientLayout>} />
+          <Route path="/orders"    element={<ClientLayout><Orders /></ClientLayout>} />
+          <Route path="/favorites" element={<ClientLayout><Favorites /></ClientLayout>} />
+          <Route path="/order-confirm" element={<ClientLayout><OrderConfirm /></ClientLayout>} />
 
-          {/* Admin Routes */}
-          <Route path="/admin" element={<AdminGate><AdminDashboard /></AdminGate>} />
-          <Route path="/admin/orders" element={<AdminGate><AdminOrders /></AdminGate>} />
-          <Route path="/admin/products" element={<AdminGate><AdminProducts /></AdminGate>} />
-          <Route path="/admin/ingredients" element={<AdminGate><AdminIngredients /></AdminGate>} />
-          <Route path="/admin/offers" element={<AdminGate><AdminOffers /></AdminGate>} />
-          <Route path="/admin/awards" element={<AdminGate><AdminAwards /></AdminGate>} />
-          <Route path="/admin/rewards" element={<AdminGate><AdminRewards /></AdminGate>} />
-          <Route path="/admin/config" element={<AdminGate><AdminConfig /></AdminGate>} />
-          <Route path="/admin/subscriptions" element={<AdminGate><AdminSubscriptions /></AdminGate>} />
+          {/* Admin Routes wrapped in Gate and Layout */}
+          <Route path="/admin" element={<AdminGate><AdminLayout><AdminDashboard /></AdminLayout></AdminGate>} />
+          <Route path="/admin/orders" element={<AdminGate><AdminLayout><AdminOrders /></AdminLayout></AdminGate>} />
+          <Route path="/admin/products" element={<AdminGate><AdminLayout><AdminProducts /></AdminLayout></AdminGate>} />
+          <Route path="/admin/ingredients" element={<AdminGate><AdminLayout><AdminIngredients /></AdminLayout></AdminGate>} />
+          <Route path="/admin/offers" element={<AdminGate><AdminLayout><AdminOffers /></AdminLayout></AdminGate>} />
+          <Route path="/admin/config" element={<AdminGate><AdminLayout><AdminConfig /></AdminLayout></AdminGate>} />
+          <Route path="/admin/subscriptions" element={<AdminGate><AdminLayout><AdminSubscriptions /></AdminLayout></AdminGate>} />
           
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
@@ -123,7 +126,6 @@ export default function App() {
 
       {isCartOpen && <CartDrawer onClose={() => setCartOpen(false)} />}
       <ToastContainer />
-      <Gamification />
     </>
   );
 }

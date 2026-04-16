@@ -37,7 +37,7 @@ export default function OrderConfirm() {
         <div className="order-confirm-animation" style={{ margin: '30px 0', height: '200px' }}>
           <LottiePlayer 
             key={animationKey}
-            animationData="https://lottie.host/df2526e8-782a-43cf-87cf-45371c5ec4d9/4vS3Hw6jS8.json" 
+            animationData="https://lottie.host/79015a88-6627-4a0b-80a5-f93897858971/mO9zI52w5k.json" 
             loop={false}
           />
         </div>

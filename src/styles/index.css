@@ -138,6 +138,105 @@
   --shadow-accent: 0 4px 20px rgba(132, 175, 36, 0.35);
 }
 
+/* ══════════════════════════════════════════════
+   🌑 OLED DARK MODE — Pure Black Elite System
+   Se activa con body.dark-mode
+   Máximo ahorro de batería en pantallas AMOLED
+   ══════════════════════════════════════════════ */
+body.dark-mode {
+  /* Fondos OLED — negro puro */
+  --color-bg:          #000000;
+  --color-bg-soft:     #0a0a0a;
+  --color-bg-card:     #0d0d0d;
+  --color-bg-overlay:  rgba(0, 0, 0, 0.85);
+
+  /* Texto — contraste alto sobre negro */
+  --color-text:            #e8f5e9;
+  --color-text-secondary:  #a5c8a7;
+  --color-text-muted:      #6b8c6d;
+  --color-text-on-primary: #ffffff;
+
+  /* Bordes sutiles */
+  --color-border:      #1a2b1b;
+  --color-border-soft: rgba(255, 255, 255, 0.06);
+
+  /* Primario — verde más brillante para legibilidad sobre negro */
+  --color-primary:       #3a8c3f;
+  --color-primary-dark:  #2d6a31;
+  --color-primary-light: #4caf52;
+
+  /* Sombras — negras profundas */
+  --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.7);
+  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.8);
+
+  /* Colores intermedios ajustados */
+  --tertiary-color: #0d1a0e;
+  --color-stone:    #1e2e1f;
+  --color-mid:      #2a4a2c;
+}
+
+/* Transición suave al cambiar modo */
+body {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Reglas globales dark mode */
+body.dark-mode {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+/* Cards, panels, modals en dark mode */
+body.dark-mode .cfg-card,
+body.dark-mode .dash-chart-card,
+body.dark-mode .dash-rank-item,
+body.dark-mode .dash-action-card,
+body.dark-mode .dash-alert-banner,
+body.dark-mode .modal-responsive,
+body.dark-mode .hero-stat-btn,
+body.dark-mode .premium-card,
+body.dark-mode .inv-card,
+body.dark-mode .order-card,
+body.dark-mode .product-card {
+  background: var(--color-bg-card) !important;
+  border-color: var(--color-border) !important;
+}
+
+/* Inputs en dark mode */
+body.dark-mode input,
+body.dark-mode textarea,
+body.dark-mode select {
+  background: #111 !important;
+  color: var(--color-text) !important;
+  border-color: var(--color-border) !important;
+}
+
+body.dark-mode input::placeholder,
+body.dark-mode textarea::placeholder {
+  color: var(--color-text-muted) !important;
+}
+
+/* Header / bottom nav en dark mode */
+body.dark-mode .header,
+body.dark-mode .bottom-nav {
+  background: rgba(0, 0, 0, 0.92) !important;
+  border-color: #111 !important;
+  backdrop-filter: blur(20px);
+}
+
+/* Sidebar admin en dark mode */
+body.dark-mode .admin-sidebar {
+  background: #000 !important;
+  border-color: #111 !important;
+}
+
+/* Hero sections en dark mode — conservan gradiente pero más oscuro */
+body.dark-mode .inv-hero {
+  background: linear-gradient(135deg, #0a1a0b 0%, #102012 100%) !important;
+}
+
 /* ?????? Empty States ?????? */
 .empty-state {
   display: flex;
@@ -1484,76 +1583,109 @@ h4 {
 }
 
 /* ?????? App Fullscreen Organic Loader ?????? */
+/* ── App Fullscreen Minimalist Loader ── */
 .app-loader-overlay {
   position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  inset: 0;
   max-width: var(--max-width);
   margin: 0 auto;
-  background: var(--color-bg-card);
+  background: #f7fdf2; /* Verde pastel exacto */
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 999999;
-  animation: fadeIn 0.5s ease-out;
-  box-shadow: var(--shadow-xl);
+  animation: appLoaderFadeIn 0.4s ease-out;
 }
 
 .app-loader-overlay.admin-page {
   max-width: 100% !important;
-  margin: 0;
-  background: var(--color-bg);
-}
-
-.app-loader-overlay.client-page {
-  background: white;
+  background: var(--color-bg) !important;
 }
 
 .app-loader-content {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 24px;
+  gap: 32px;
 }
 
-.app-loader-leaf-container {
+.app-loader-logo-wrap {
   position: relative;
-  width: 100px;
-  height: 100px;
+  width: 120px;
+  height: 120px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.85);
-  border: 2px solid var(--color-accent-soft);
-  border-radius: 50%;
-  box-shadow: 0 12px 32px rgba(36, 76, 38, 0.15);
-  animation: pulse-ring 2s infinite ease-in-out;
-  backdrop-filter: blur(8px);
+}
+
+.app-loader-leaf-bg {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: white;
+  border-radius: 40px;
+  transform: rotate(45deg);
+  box-shadow: 0 15px 35px rgba(36, 76, 38, 0.08);
+  animation: logoRotate 4s infinite ease-in-out;
 }
 
 .app-loader-leaf {
-  width: 55px;
-  height: 55px;
-  filter: drop-shadow(0 4px 8px rgba(36, 76, 38, 0.1));
+  width: 60px;
+  height: 60px;
+  z-index: 2;
+  color: var(--color-primary);
+  filter: drop-shadow(0 4px 10px rgba(36, 76, 38, 0.1));
 }
 
-@keyframes pulse-ring {
-  0% {
-    transform: scale(0.95);
-    box-shadow: 0 0 0 0 rgba(36, 76, 38, 0.2);
-  }
+.app-loader-text {
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: var(--color-primary);
+  letter-spacing: -2px;
+  margin: 0;
+  opacity: 0;
+  animation: textAppear 0.8s ease-out 0.2s forwards;
+}
 
-  70% {
-    transform: scale(1);
-    box-shadow: 0 0 0 25px rgba(36, 76, 38, 0);
-  }
+.app-loader-progress {
+  width: 140px;
+  height: 4px;
+  background: rgba(36, 76, 38, 0.05);
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
 
-  100% {
-    transform: scale(0.95);
-    box-shadow: 0 0 0 0 rgba(36, 76, 38, 0);
-  }
+.app-loader-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 40%;
+  background: linear-gradient(90deg, var(--color-accent), var(--color-primary));
+  border-radius: 10px;
+  animation: progressMove 1.5s infinite ease-in-out;
+}
+
+@keyframes logoRotate {
+  0%, 100% { transform: rotate(45deg) scale(1); }
+  50% { transform: rotate(50deg) scale(1.05); }
+}
+
+@keyframes textAppear {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes progressMove {
+  0% { left: -40%; width: 40%; }
+  50% { width: 60%; }
+  100% { left: 100%; width: 40%; }
+}
+
+@keyframes appLoaderFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes fadeIn {
@@ -2919,4 +3051,46 @@ header {
 
 .cart-btn-pulse {
   animation: cartBtnLand 0.55s cubic-bezier(0.22, 1, 0.36, 1) both !important;
+}
+
+/* ────────────────────────────────────────────────────────── */
+/* RENDIMIENTO Y FLUIDEZ (HARDWARE ACCELERATION & TOUCH MASK) */
+/* ────────────────────────────────────────────────────────── */
+
+/* 1. ELIMINAR EL RETRASO TÁCTIL (TAP DELAY) Y SELECCIÓN INVOLUNTARIA */
+* {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 2. ACELERACIÓN POR HARDWARE PARA PÁGINAS PRINCIPALES Y NAV */
+/* Esto obliga a usar la GPU sincronizado a los Hz de tu celular/monitor */
+.home,
+.home-page,
+.inventory-container,
+.favorites-page,
+.cart-page,
+.admin-dashboard,
+.desktop-main-content,
+.bottom-nav,
+.mobile-header,
+.desktop-sidebar {
+  transform: translateZ(0); 
+  will-change: opacity, transform;
+  backface-visibility: hidden;
+}
+
+/* 3. EFECTO FEEDBACK INMEDIATO DE BOTONES PARA PERCEPCIÓN DE RAPIDEZ (Ojos y Dedos) */
+button, 
+.action-btn, 
+.add-to-cart-btn, 
+.nav-item {
+  transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), filter 0.15s ease !important;
+}
+
+button:active, 
+.action-btn:active, 
+.add-to-cart-btn:active, 
+.nav-item:active {
+  transform: scale(0.95) translateZ(0) !important;
 }

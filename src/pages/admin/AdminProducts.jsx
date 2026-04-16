@@ -106,18 +106,23 @@ function ImageUploader({ value, onChange }) {
 
       {/* URL fallback input */}
       {!preview && (
-        <div className="img-uploader-url-row">
-          <span className="img-uploader-url-sep">o pega una URL directamente</span>
-          <input
-            className="input-field"
-            type="url"
-            placeholder="https://..."
-            value={value || ''}
-            onChange={(e) => {
-              onChange(e.target.value);
-              setPreview(e.target.value);
-            }}
-          />
+        <div className="img-uploader-url-area">
+          <div className="img-uploader-divider">
+            <span>o ingresa un enlace</span>
+          </div>
+          <div className="img-uploader-url-input-wrapper">
+            <span className="url-icon">🔗</span>
+            <input
+              className="img-uploader-url-field"
+              type="url"
+              placeholder="https://ejemplo.com/imagen.jpg"
+              value={value || ''}
+              onChange={(e) => {
+                onChange(e.target.value);
+                setPreview(e.target.value);
+              }}
+            />
+          </div>
         </div>
       )}
 
@@ -238,9 +243,10 @@ export default function AdminProducts() {
   const confirmDelete = async () => {
     if (!productToDelete) return;
     try {
-      await deleteProduct(productToDelete.id);
+      const idToDelete = productToDelete.id;
+      setProductToDelete(null); // Cerrar inmediatamente para mejor UX (Optimista)
+      await deleteProduct(idToDelete);
       showToast('Producto eliminado', 'success');
-      setProductToDelete(null);
     } catch (e) {
       showToast(e.message || 'Error al eliminar', 'error');
     }
@@ -458,28 +464,30 @@ export default function AdminProducts() {
 
                 <div className="input-group">
                   <label className="input-label">Configuración Logística</label>
-                  <div className="product-type-btn-group">
+                  <div className="product-type-cards">
                     <button 
                       type="button" 
-                      className={`product-type-btn ${form.type === 'net' ? 'active' : ''}`}
+                      className={`product-type-card ${form.type === 'net' ? 'active' : ''}`}
                       onClick={() => setForm({ ...form, type: 'net', additions: [] })}
                     >
-                      <span className="text-xl">📦</span>
-                      <div className="flex flex-col items-start ml-sm text-left">
-                        <span className="font-bold">Neto / Fijo</span>
-                        <span className="text-xs opacity-80">Producto cerrado</span>
+                      <div className="type-card-icon">📦</div>
+                      <div className="type-card-text">
+                        <span className="type-card-title">Neto / Fijo</span>
+                        <span className="type-card-desc">Producto sin cambios</span>
                       </div>
+                      <div className="type-card-radio"></div>
                     </button>
                     <button 
                       type="button" 
-                      className={`product-type-btn ${form.type === 'prepared' ? 'active' : ''}`}
+                      className={`product-type-card ${form.type === 'prepared' ? 'active' : ''}`}
                       onClick={() => setForm({ ...form, type: 'prepared' })}
                     >
-                      <span className="text-xl">👩‍🍳</span>
-                      <div className="flex flex-col items-start ml-sm text-left">
-                        <span className="font-bold">Preparado</span>
-                        <span className="text-xs opacity-80">Personalizable</span>
+                      <div className="type-card-icon">👩‍🍳</div>
+                      <div className="type-card-text">
+                        <span className="type-card-title">Preparado</span>
+                        <span className="type-card-desc">Personalizable</span>
                       </div>
+                      <div className="type-card-radio"></div>
                     </button>
                   </div>
 
@@ -532,11 +540,11 @@ export default function AdminProducts() {
                   />
                 </div>
 
-                <div className="flex gap-md pt-md">
-                  <button type="button" className="btn btn-secondary flex-1" onClick={() => setIsModalOpen(false)}>
+                <div className="modal-actions-centered">
+                  <button type="button" className="admin-btn-cancel ripple" onClick={() => setIsModalOpen(false)}>
                     Cancelar
                   </button>
-                  <button type="submit" className="btn btn-primary flex-2 shadow-lg" disabled={loading}>
+                  <button type="submit" className="admin-btn-save ripple" disabled={loading}>
                     {editingId ? 'Guardar Cambios' : 'Crear Producto'}
                   </button>
                 </div>
@@ -648,7 +656,13 @@ export default function AdminProducts() {
           <div className="modal-responsive" style={{ maxWidth: '400px', margin: 'auto' }}>
             <div className="modal-responsive-header border-none">
               <h2 className="modal-responsive-title">🗑️ Eliminar Producto</h2>
-              <button className="modal-responsive-close" onClick={() => setProductToDelete(null)}>✕</button>
+              <button 
+                className="modal-responsive-close" 
+                onClick={() => setProductToDelete(null)}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-muted)' }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
             </div>
             <div className="modal-responsive-body text-center pt-none pb-xl">
               <p className="mb-xl text-muted">¿Seguro que deseas eliminar <strong>{productToDelete.name}</strong>?<br/>Esta acción borrará el producto permanentemente.</p>

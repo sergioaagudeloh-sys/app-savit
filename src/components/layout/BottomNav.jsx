@@ -26,7 +26,7 @@ export default function BottomNav() {
   const clientNav = [
     { to: '/home',      label: 'Inicio',     icon: IconHome },
     { to: '/catalog',   label: 'Tienda',     icon: IconCategories },
-    { to: '/rewards',   label: 'Premios',    icon: IconRewards },
+    { to: '/favorites', label: 'Favoritos',  icon: IconHeart },
     { to: '/orders',    label: 'Pedidos',    icon: IconBox },
     { to: '#profile',   label: 'Perfil',     icon: IconProfile },
   ];
@@ -60,16 +60,6 @@ export default function BottomNav() {
               <button className="admin-menu-btn" onClick={() => { navigate('/admin/offers'); setShowAdminMenu(false); }}>
                 <span className="admin-menu-icon">{IconPromo}</span>
                 <span>Ofertas</span>
-              </button>
-              <button className="admin-menu-btn" onClick={() => { navigate('/admin/awards'); setShowAdminMenu(false); }}>
-                <span className="admin-menu-icon">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-                </span>
-                <span>Config Premios</span>
-              </button>
-              <button className="admin-menu-btn" onClick={() => { navigate('/admin/rewards'); setShowAdminMenu(false); }}>
-                <span className="admin-menu-icon">{IconRewards}</span>
-                <span>Canjes</span>
               </button>
               <button className="admin-menu-btn" onClick={() => { navigate('/admin/ingredients'); setShowAdminMenu(false); }}>
                  <span className="admin-menu-icon">

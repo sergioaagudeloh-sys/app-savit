@@ -232,3 +232,6 @@ Cualquier elemento que requiera una **decisión crítica** del usuario (borrar, 
 ---
 ---
 *La jerarquía correcta garantiza que el usuario siempre mantenga el control de la aplicación.*
+
+
+

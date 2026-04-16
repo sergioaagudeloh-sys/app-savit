@@ -1,0 +1,1 @@
+Savit Elite PWA: Actualizacion masiva de UI, IA Asistente, Modal de Productos y Mejoras de Seguridad (.env)

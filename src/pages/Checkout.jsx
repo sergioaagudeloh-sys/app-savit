@@ -18,7 +18,7 @@ export default function Checkout() {
   const { items, totalPrice, clearCart } = useCart();
   const { createOrder } = useOrders();
   const { config } = useStoreConfig();
-  const { customer, isIdentified, addPoints, hasPin } = useCustomer();
+  const { customer, isIdentified, hasPin } = useCustomer();
   const { addNotification } = useNotifications();
 
   const [deliveryMethod, setDeliveryMethod] = useState('domicilio');
@@ -110,16 +110,6 @@ export default function Checkout() {
         targetRole: 'admin'
       });
       
-      // Points Accrual Logic
-      if (isIdentified && config?.pointsConfig?.enabled) {
-        const { pointsPer1000 } = config.pointsConfig;
-        const pts = Math.floor(totalPrice / 1000) * (pointsPer1000 || 0);
-        if (pts > 0) {
-          addPoints(pts);
-          console.log(`Puntos otorgados: ${pts}`);
-        }
-      }
-
       clearCart();
       navigate('/order-confirm', { state: { orderId, message } });
 
@@ -205,26 +195,6 @@ export default function Checkout() {
             <span className="price price-lg">{formatCOP(totalPrice)}</span>
           </div>
           
-          {config?.pointsConfig?.enabled && (
-            <div className="checkout-points-notice animate-fade-in" style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '8px', 
-              marginTop: '12px',
-              padding: '8px 12px',
-              background: 'var(--color-primary-light)',
-              borderRadius: '8px',
-              color: 'var(--color-primary)',
-              fontSize: '0.85rem',
-              fontWeight: '600'
-            }}>
-              <span style={{ fontSize: '1.2rem' }}>✨</span>
-              <span>
-                Ganarás {Math.floor(totalPrice / 1000) * (config.pointsConfig.pointsPer1000 || 0)} Puntos Sávit con esta compra
-              </span>
-            </div>
-          )}
-
           {!config?.isOpen && (
             <div className="checkout-status-notice mt-md">
               <strong>🕒 Horario Comercial:</strong> 
@@ -415,7 +385,6 @@ export default function Checkout() {
           title="Confirma tu identidad para el pedido"
           onVerified={executeSubmit}
           onCancel={() => setShowPin(false)}
-          onCreatePin={() => { setShowPin(false); navigate('/rewards'); }}
         />
       )}
     </div>

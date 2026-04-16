@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useCustomer } from '../../context/CustomerContext';
 import { useStoreConfig } from '../../hooks/useOrders';
@@ -36,11 +36,13 @@ export default function Header({ showBack, title, onCartOpen }) {
 
   const isAdminRoute = location.pathname.startsWith('/admin');
   const isDashboard = location.pathname === '/admin';
-  const shouldShowBack = showBack || (isAdminRoute && !isDashboard);
+  const isClientHome = location.pathname === '/' || location.pathname === '/home' || location.pathname === '/client';
+  const hasHistory = window.history.state && window.history.state.idx > 0;
 
-  // Calcula los puntos proyectados del carrito actual
-  const conversionRate = config?.pointsConfig?.pointsPer1000 || 10;
-  const pendingPoints = totalPrice > 0 ? Math.floor(totalPrice / 1000) * conversionRate : 0;
+  // Mostrar botón atrás en:
+  // 1. Admin (todas las páginas excepto el Dashboard principal)
+  // 2. Cliente: sólo cuando hay historial y NO está en el Home
+  const shouldShowBack = showBack || (isAdminRoute && !isDashboard) || (!isAdminRoute && hasHistory && !isClientHome);
 
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -89,19 +91,14 @@ export default function Header({ showBack, title, onCartOpen }) {
           </button>
         )}
 
-        {isIdentified && config?.pointsConfig?.enabled && (
-           <div id="header-points-target" className="header-points-badge animate-fade-in" onClick={() => navigate('/rewards')}>
-             {pendingPoints > 0 && (
-               <div className="points-pending-tooltip">
-                 ¡Termina tu pedido para guardarlos!
-               </div>
-             )}
-             <span className="points-icon">✨</span>
-             <span className="points-value">
-               {customer.savitPoints || 0}
-               {pendingPoints > 0 && <span className="points-pending animate-pulse-soft">+{pendingPoints}</span>}
-             </span>
-           </div>
+        {isAdminRoute && (
+          <Link 
+            to="/admin/config" 
+            className={`header-store-status ${config?.isOpen !== false ? 'open' : 'closed'}`}
+          >
+            <span className="status-dot"></span>
+            <span className="status-text">{config?.isOpen !== false ? 'Abierta' : 'Cerrada'}</span>
+          </Link>
         )}
 
         <NotificationFAB />

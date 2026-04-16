@@ -44,10 +44,23 @@ export const NotificationProvider = ({ children }) => {
   const isFirstLoad = useRef(true);
 
   // --- TOAST LOGIC ---
-  const showToast = (message, type = 'info', title = '') => {
+  const showToast = (message, type = 'info', title = '', customDuration = null) => {
     const id = Date.now();
-    // Timing logic: 10s for orders, 2.5s for general notifications
-    const duration = type === 'order' ? 10000 : 2500;
+    
+    // Tiempos Dinámicos según requerimiento:
+    // - Órdenes: 10 segundos
+    // - Mensajes/Chat: 6 segundos para dar tiempo a leer
+    // - Sistema / Guardado / Info: 2.5 segundos (breve)
+    let duration = 2500;
+    if (customDuration) {
+      duration = customDuration;
+    } else if (type === 'order') {
+      duration = 10000;
+    } else if (type === 'chat' || type === 'message') {
+      duration = 6000;
+    } else {
+      duration = 2000;
+    }
     
     const newToast = { id, message, type, title, duration };
     setToasts(prev => [...prev, newToast]);

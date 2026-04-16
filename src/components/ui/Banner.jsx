@@ -20,10 +20,10 @@ const DEFAULT_BANNERS = [
     bg: 'linear-gradient(135deg, #325a24 0%, #41602b 100%)',
   },
   {
-    id: 'points',
-    title: 'Premiamos tu fidelidad',
-    subtitle: 'Acumula puntos Sávit con cada pedido',
-    bg: 'linear-gradient(135deg, #a4c93a 0%, #325a24 100%)',
+    id: 'delivery',
+    title: 'Domicilio Express',
+    subtitle: 'Llevamos la salud hasta la puerta de tu casa',
+    bg: 'linear-gradient(135deg, #c9a43a 0%, #8b6b1a 100%)',
   },
 ];
 

@@ -33,26 +33,43 @@
   max-width: 480px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.2);
 }
+.section-header {
+  margin: 6px 0 12px 0;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--color-primary);
+  margin: 0;
+}
 
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-sm);
-  padding: 0 var(--space-md) var(--space-md);
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+  row-gap: 24px;
+  padding: 12px;
+  align-items: stretch;
 }
 
-/* Staggered entrance animation for cards */
+.product-grid-item {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Removed entrance animation to prevent jitter in virtualized list */
 .product-grid > * {
-  animation: product-card-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
 }
 
-.product-grid > *:nth-child(1) { animation-delay: 0ms; }
-.product-grid > *:nth-child(2) { animation-delay: 50ms; }
-.product-grid > *:nth-child(3) { animation-delay: 100ms; }
-.product-grid > *:nth-child(4) { animation-delay: 150ms; }
-.product-grid > *:nth-child(5) { animation-delay: 200ms; }
-.product-grid > *:nth-child(6) { animation-delay: 250ms; }
-.product-grid > *:nth-child(n+7) { animation-delay: 300ms; }
+/* Grid layout stability improved */
+
 
 @keyframes product-card-in {
   from {
