@@ -8,6 +8,7 @@ export default defineConfig({
     open: true,
   },
   build: {
-    cssMinify: false,
+    // CSS minification enabled (default behavior)
   },
 })
+

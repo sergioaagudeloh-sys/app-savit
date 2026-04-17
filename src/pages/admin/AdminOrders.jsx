@@ -178,7 +178,7 @@ export default function AdminOrders() {
       setSelectedOrder(null);
 
       // Abrir WhatsApp con la cuenta de cobro
-      const msg = buildAdminToClientMessage(updatedOrder);
+      const msg = buildAdminToClientMessage(updatedOrder, config?.paymentAccount || '');
       openWhatsAppToClient(updatedOrder.customerPhone, msg);
     } catch (err) {
       showToast('Error al procesar', 'error');

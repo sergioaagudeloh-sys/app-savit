@@ -71,7 +71,7 @@ export function useOrders() {
 
     let q;
     if (isAdmin) {
-      q = collection(db, 'orders');
+      q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
     } else if (myWhatsapp) {
       q = query(collection(db, 'orders'), where('customerPhone', '==', myWhatsapp));
     } else {
@@ -151,9 +151,12 @@ export function useOrders() {
     return deleteDoc(doc(db, 'orders', id));
   };
 
+  const activeOrders = orders.filter(o => ['pending', 'approved', 'completed'].includes(o.status));
+
   return { 
     orders, 
     loading, 
+    activeOrders,
     createOrder, 
     updateOrderStatus, 
     updateOrderDelivery,

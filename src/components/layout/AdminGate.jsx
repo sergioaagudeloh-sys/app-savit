@@ -2,14 +2,11 @@
 import { useState, useEffect } from 'react';
 import {
   signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
 } from 'firebase/auth';
 import { auth, db, isFirebaseConfigured } from '../../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import './AdminGate.css';
 
-const ADMIN_EMAIL    = 'admin@savit.com';
-const ADMIN_PASSWORD = 'admin123';
 const SESSION_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 /** Detect browser name from userAgent */
@@ -24,21 +21,20 @@ function detectBrowser(ua) {
 
 /** Detect OS from userAgent */
 function detectOS(ua) {
-  if (/windows/i.test(ua))  return 'Windows';
-  if (/android/i.test(ua))  return 'Android';
+  if (/windows/i.test(ua))     return 'Windows';
+  if (/android/i.test(ua))     return 'Android';
   if (/iphone|ipad/i.test(ua)) return 'iOS';
-  if (/mac/i.test(ua))      return 'macOS';
-  if (/linux/i.test(ua))    return 'Linux';
+  if (/mac/i.test(ua))         return 'macOS';
+  if (/linux/i.test(ua))       return 'Linux';
   return 'Desconocido';
 }
 
 /**
  * AdminGate
  *
- * Three-layer protection:
- *  1. Local credential check (email + password match constants)
- *  2. Firebase Auth sign-in (enables Storage write access)
- *  3. 24h automatic session expiry
+ * Two-layer protection:
+ *  1. Firebase Auth sign-in (email + password)
+ *  2. 24h automatic session expiry
  *
  * Also logs each login device/browser to Firestore (adminLogs).
  */
@@ -82,47 +78,44 @@ export default function AdminGate({ children }) {
     e.preventDefault();
     setError('');
     setExpired(false);
+    setLoading(true);
 
-    // ── 1. Local credential check ──────────────────────────────
-    if (email !== ADMIN_EMAIL || password !== ADMIN_PASSWORD) {
-      setError('Credenciales incorrectas. Verifica tu correo y contraseña.');
+    // ── 1. Firebase Auth sign-in ──────────────────────────────
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (firebaseErr) {
+      const code = firebaseErr.code;
+      let msg = 'Error al iniciar sesión. Verifica tus credenciales.';
+      if (code === 'auth/user-not-found' || code === 'auth/invalid-credential') {
+        msg = 'Usuario no encontrado. Verifica el correo.';
+      } else if (code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
+        msg = 'Contraseña incorrecta.';
+      } else if (code === 'auth/too-many-requests') {
+        msg = 'Demasiados intentos. Espera un momento e intenta de nuevo.';
+      } else if (code === 'auth/network-request-failed') {
+        msg = 'Sin conexión a internet.';
+      }
+      setError(msg);
+      setLoading(false);
       return;
     }
 
-    setLoading(true);
-
-    // ── 2. Firebase Auth sign-in (for Storage write access) ────
-    try {
-      await signInWithEmailAndPassword(auth, ADMIN_EMAIL, ADMIN_PASSWORD);
-    } catch (firebaseErr) {
-      const code = firebaseErr.code;
-      if (code === 'auth/user-not-found' || code === 'auth/invalid-credential') {
-        // First-time setup: create the admin account in Firebase Auth
-        try {
-          await createUserWithEmailAndPassword(auth, ADMIN_EMAIL, ADMIN_PASSWORD);
-        } catch (createErr) {
-          console.warn('Could not create Firebase admin account:', createErr.message);
-        }
-      }
-      // Other errors (network, etc.) are non-blocking — skip silently.
-    }
-
-    // ── 3. Log device to Firestore ────────────────────────────
+    // ── 2. Log device to Firestore ────────────────────────────
     if (isFirebaseConfigured()) {
       try {
         const ua = navigator.userAgent;
         await addDoc(collection(db, 'adminLogs'), {
-          loginAt:  serverTimestamp(),
-          browser:  detectBrowser(ua),
-          os:       detectOS(ua),
-          userAgent: ua.slice(0, 200), // truncate for storage
+          loginAt:   serverTimestamp(),
+          browser:   detectBrowser(ua),
+          os:        detectOS(ua),
+          userAgent: ua.slice(0, 200),
         });
       } catch (logErr) {
         console.warn('Could not save admin login log:', logErr.message);
       }
     }
 
-    // ── 4. Persist session with timestamp & grant access ──────
+    // ── 3. Persist session with timestamp & grant access ──────
     localStorage.setItem('savit_admin_auth', 'true');
     localStorage.setItem('savit_admin_auth_time', String(Date.now()));
     setIsAuthenticated(true);

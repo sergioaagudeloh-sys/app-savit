@@ -59,7 +59,7 @@ export function openWhatsApp(message, targetNumber) {
   window.open(url, '_blank');
 }
 
-export function buildAdminToClientMessage(order) {
+export function buildAdminToClientMessage(order, paymentAccount = '') {
   const { items, total, deliveryCost, customerName, orderId, deliveryMethod } = order;
   const headerLine = `👋 ¡Hola ${customerName}! Tu pedido en *Savit* ha sido recibido y revisado.`;
   
@@ -76,6 +76,10 @@ export function buildAdminToClientMessage(order) {
     ? `🛵 *Domicilio Cotizado:* ${formatCOP(deliveryCost || 0)}` 
     : `🏪 *Recogida en tienda:* Gratis`;
 
+  const paymentLine = paymentAccount
+    ? `👉 *Nequi / Bancolombia:* ${paymentAccount}`
+    : `👉 *Método de pago:* Te compartimos los datos por este chat.`;
+
   const message = [
     headerLine,
     `-----------------------`,
@@ -89,13 +93,14 @@ export function buildAdminToClientMessage(order) {
     `💳 *INSTRUCCIONES DE PAGO*`,
     `Por favor, realiza la transferencia del valor total y envíame la foto del comprobante como respuesta a este chat.`,
     ``,
-    `👉 *Nequi / Bancolombia:* [Ingresa aquí tu número]`,
+    paymentLine,
     ``,
     `Apenas confirmemos la foto, empacaremos todo y actualizaremos el estado de tu pedido a Pagado. ¡Gracias por elegir bienestar! 🌿`
   ].join('\n');
 
   return message;
 }
+
 
 export function openWhatsAppToClient(customerPhone, message) {
   let phone = customerPhone.toString().replace(/\D/g,'');

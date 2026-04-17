@@ -19,6 +19,7 @@ export default function AdminConfig() {
     isOpen: true,
     whatsappNumber: '',
     storeName: '',
+    paymentAccount: '', // Número Nequi/Bancolombia para cobros
     scheduleEnabled: false,
     openTime: '09:00',
     closeTime: '18:00',
@@ -325,11 +326,36 @@ export default function AdminConfig() {
                   </div>
                 </div>
               </div>
+              {/* Cuenta de Cobro */}
+              <div className="cfg-card" style={{ '--card-i': 4 }}>
+                <div className="cfg-header">
+                  <div className="cfg-header-icon">💳</div>
+                  <div className="cfg-header-text">
+                    <h3>Cuenta de Cobro</h3>
+                    <p>Número Nequi o Bancolombia para mensajes de pago</p>
+                  </div>
+                </div>
+                <div className="cfg-body">
+                  <div className="cfg-input-group">
+                    <label className="cfg-label">Número Nequi / Bancolombia</label>
+                    <input
+                      className="cfg-input"
+                      name="paymentAccount"
+                      value={form.paymentAccount || ''}
+                      onChange={handleChange}
+                      placeholder="Ej: 3001234567"
+                    />
+                    <span className="cfg-hint">Aparece en el WhatsApp de cobro que se envía al cliente</span>
+                  </div>
+                  <div className="cfg-footer">
+                    <button type="button" className="btn btn-primary btn-sm" onClick={handleSubmit} disabled={saving}>
+                      {saving ? <span className="spinner" /> : 'Guardar'}
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
-
-
-
           {/* ─────────── TAB: MANTENIMIENTO ─────────── */}
           {activeTab === 'mantenimiento' && (
             <div className="cfg-tab-content" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>

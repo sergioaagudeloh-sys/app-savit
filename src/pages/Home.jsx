@@ -76,33 +76,38 @@ export default function Home() {
     threshold: 60
   });
 
+  // Instancia de Fuse cacheada — solo se recrea cuando cambian los productos
+  const fuseInstance = useMemo(() => {
+    if (!products) return null;
+    const fuseOptions = {
+      keys: [
+        { name: 'name',        weight: 0.7 },
+        { name: 'category',    weight: 0.1 },
+        { name: 'description', weight: 0.1 },
+        { name: 'tags',        weight: 0.1 }
+      ],
+      threshold: 0.35,
+      ignoreLocation: true
+    };
+    return new Fuse(products.filter(p => p.active !== false), fuseOptions);
+  }, [products]);
+
   const filtered = useMemo(() => {
     if (!products) return [];
-    
+
     const baseProducts = products.filter(p => {
       const matchesCat = selectedCat === 'Todos' || p.category === selectedCat;
       return matchesCat && p.active !== false;
     });
 
     const searchStr = search?.trim();
-    if (!searchStr) return baseProducts;
+    if (!searchStr || !fuseInstance) return baseProducts;
 
-    const fuseOptions = {
-      keys: [
-        { name: 'name', weight: 0.7 },
-        { name: 'category', weight: 0.1 },
-        { name: 'description', weight: 0.1 },
-        { name: 'tags', weight: 0.1 }
-      ],
-      threshold: 0.35,
-      ignoreLocation: true
-    };
-
-    const fuse = new Fuse(baseProducts, fuseOptions);
-    const results = fuse.search(searchStr);
-    
-    return results.map(res => res.item);
-  }, [products, search, selectedCat]);
+    const results = fuseInstance.search(searchStr);
+    return results
+      .map(res => res.item)
+      .filter(p => selectedCat === 'Todos' || p.category === selectedCat);
+  }, [products, search, selectedCat, fuseInstance]);
 
   const handleToast = useCallback((msg, type) => {
     showToast(msg, type);

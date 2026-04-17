@@ -10,6 +10,7 @@ const DEFAULT_CONFIG = {
   whatsappNumber: '573216513171',
   storeName: 'Savit - Mercado Saludable',
   googleDriveLink: '',
+  paymentAccount: '', // Número Nequi/Bancolombia para instrucciones de pago
   scheduleEnabled: false,
   openTime: '09:00',
   closeTime: '18:00',
