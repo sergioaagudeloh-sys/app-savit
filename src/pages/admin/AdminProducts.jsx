@@ -425,7 +425,7 @@ export default function AdminProducts() {
             </div>
             
             <div className="modal-responsive-body">
-              <form onSubmit={handleSave} className="flex flex-col gap-lg pb-xl">
+              <form onSubmit={handleSave} className="flex flex-col gap-md pb-xl">
                 
                 <div className="grid-2">
                   <div className="input-group">

@@ -1,7 +1,6 @@
 /* src/pages/admin/AdminDashboard.css */
 .admin-dashboard {
   background: var(--color-bg);
-  min-height: 100vh;
 }
 
 body.is-admin-route .admin-dashboard .admin-main-content {
@@ -83,9 +82,18 @@ body.is-admin-route .admin-dashboard .admin-main-content {
 .hero-stats-row {
   display: flex;
   justify-content: center;
-  gap: 12px; /* Increased from 4px */
-  margin: 12px 0 0; /* Increased margin */
+  gap: 12px;
+  margin: 12px 0 0;
   width: 100%;
+}
+
+@media (min-width: 769px) {
+  .hero-stats-row {
+    width: auto !important;
+    margin: 0 !important;
+    justify-content: flex-end !important;
+    flex-wrap: nowrap !important;
+  }
 }
 
 .hero-stat-btn {
@@ -249,7 +257,6 @@ body.is-admin-route .admin-dashboard .admin-main-content {
 
 .dash-pro.admin-page-content {
   background: white;
-  min-height: 80vh;
   border-radius: 32px 32px 0 0;
   margin-top: -40px; /* More overlap to reduce gap */
   position: relative;

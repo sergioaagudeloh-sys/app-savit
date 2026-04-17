@@ -190,28 +190,25 @@ export default function AdminDashboard() {
         {/* ── Dashboard Hero ── */}
         <div className="inv-hero">
           <div className="inv-hero-inner">
-            <div className="inv-hero-top" style={{ alignItems: 'center' }}>
+            <div className="inv-hero-top">
               <div className="inv-hero-title-area">
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: '4px' }}>
-                  <span className="inv-hero-label" style={{ marginBottom: 0 }}>Panel Central</span>
-                </div>
-                <h1 className="inv-hero-title" style={{ marginTop: '2px', marginBottom: '4px' }}>¡Hola, Admin! 👋</h1>
-                <span className="inv-hero-date" style={{ fontSize: '0.75rem', opacity: 0.7, marginBottom: '16px', display: 'block', fontWeight: 600 }}>
+                <span className="inv-hero-label">Panel Central</span>
+                <h1 className="inv-hero-title">¡Hola, Admin! 👋</h1>
+                <span className="inv-hero-date">
                   {new Date().toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' })}
                 </span>
               </div>
             </div>
 
-            {/* Fila de Estadísticas Premium en Hero */}
-            <div className="hero-stats-row" style={{ marginTop: '4px', marginBottom: '24px' }}>
-              <div className="hero-stat-btn ripple" onClick={() => setShowRevenueModal(true)}>
+            <div className="hero-stats-row">
+              <div className="hero-stat-btn" onClick={() => setShowRevenueModal(true)}>
                 <span className="hero-stat-icon">💰</span>
                 <div className="hero-stat-info">
                   <span className="hero-stat-val">{formatCOP(stats.totalRevenue)}</span>
                   <span className="hero-stat-lab">Ventas Hoy</span>
                 </div>
               </div>
-              <Link to="/admin/orders" className={`hero-stat-btn ripple ${stats.pendingCount > 0 ? 'urgent' : ''}`}>
+              <Link to="/admin/orders" className={`hero-stat-btn ${stats.pendingCount > 0 ? 'urgent' : ''}`}>
                 <span className="hero-stat-icon">⏳</span>
                 <div className="hero-stat-info">
                   <span className="hero-stat-val">{stats.pendingCount}</span>
