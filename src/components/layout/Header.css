@@ -101,6 +101,14 @@
   background: rgba(255, 255, 255, 0.22) !important; 
   transform: translateY(-1px);
 }
+/* Dark Icons Variant for OrderConfirm etc */
+.header-dark-icons .header-back,
+.header-dark-icons .header-cart {
+  background: var(--color-bg-soft) !important;
+  color: var(--color-primary) !important;
+  border-color: var(--color-primary-light) !important;
+  box-shadow: 0 4px 12px rgba(29, 59, 31, 0.1) !important;
+}
 
 .header-cart {
   position: relative;

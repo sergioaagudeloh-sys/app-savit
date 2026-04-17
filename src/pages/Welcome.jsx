@@ -1,20 +1,35 @@
 // src/pages/Welcome.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCustomer } from '../context/CustomerContext';
+import { motion, AnimatePresence } from 'framer-motion';
 import CustomerWizard from '../components/ui/CustomerWizard';
 import './Welcome.css';
 
 export default function Welcome() {
-  const navigate  = useNavigate();
+  const navigate = useNavigate();
   const { isIdentified } = useCustomer();
   const [showWizard, setShowWizard] = useState(false);
+  const [isEntering, setIsEntering] = useState(false);
 
-  const handleStart = () => {
-    if (isIdentified) {
-      navigate('/home');
-    } else {
-      setShowWizard(true);
+  // Experience redirection sync - IMMERSIVE TIMING
+  useEffect(() => {
+    if (isEntering) {
+      const timer = setTimeout(() => {
+        if (isIdentified) {
+          navigate('/home');
+        } else {
+          setShowWizard(true);
+        }
+      }, 950); 
+      return () => clearTimeout(timer);
+    }
+  }, [isEntering, isIdentified, navigate]);
+
+  const onDragEnd = (event, info) => {
+    // Detect UPWARD swipe
+    if (info.offset.y < -50) {
+      setIsEntering(true);
     }
   };
 
@@ -24,55 +39,103 @@ export default function Welcome() {
   };
 
   return (
-    <div className="welcome-container">
-      {/* Admin access */}
-      <button
-        className="admin-access-btn"
-        onClick={() => navigate('/admin')}
-        aria-label="Acceso Administrativo"
-        style={{
-          position: 'absolute', top: '20px', right: '20px', zIndex: 100,
-          background: 'rgba(255, 255, 255, 0.2)', backdropFilter: 'blur(8px)',
-          border: '1px solid rgba(255, 255, 255, 0.3)', borderRadius: '12px',
-          padding: '8px 12px', color: 'white', fontWeight: 'bold', fontSize: '1.2rem',
-          cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-        }}
-      >
-        ⚙️
-      </button>
+    <div className={`welcome-container ${isEntering ? 'entering-flow' : ''}`}>
+      {/* ⚙️ Secret Admin Control */}
+      {!isEntering && (
+        <motion.button
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="admin-touch-btn"
+          onClick={() => navigate('/admin')}
+          aria-label="Admin"
+        >
+          ⚙️
+        </motion.button>
+      )}
 
-      {/* Hero banner */}
-      <div className="welcome-image">
-        <img
-          src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&q=80"
-          alt="Mercado Saludable"
-          loading="eager"
+      {/* 1. TOP SECTION: THE FACADE IMAGE (IMMERSIVE ENGINE) */}
+      <div className="welcome-top-section">
+        <motion.img
+          src="/facade_v_final_v2.jpg?v=2" 
+          key="facade_v2_final"
+          alt="Sávit Facade"
+          initial={{ scale: 1 }}
+          animate={{
+            scale: isEntering ? 5 : 1, 
+          }}
+          transition={{
+            duration: 0.85, 
+            ease: "easeIn", // Immersive speed
+          }}
+          onError={(e) => {
+            e.target.src = "/facade.jpg";
+          }}
         />
       </div>
 
-      {/* Content card */}
-      <div className="welcome-content">
-        <h1 className="welcome-title">Cuidamos Tu Bienestar</h1>
-        <p className="welcome-desc">
-          Alimentamos tu vida con lo mejor de la naturaleza.
-        </p>
-
-        <div className="welcome-actions">
-          <button
-            className="btn btn-primary btn-lg w-full"
-            onClick={handleStart}
-            style={{ height: '60px', fontSize: '1.2rem', fontWeight: '800' }}
+      {/* 2. BOTTOM SECTION: CURVED MODAL (Compact & Lowered) */}
+      <motion.div 
+        className="welcome-bottom-section"
+        animate={{
+          y: isEntering ? '110%' : 0, 
+        }}
+        transition={{ duration: 0.8, ease: "easeIn" }}
+      >
+        {/* INTERACTION BADGE (Now clearly inside the banner) */}
+        <div className="welcome-badge-trigger-wrap">
+          <motion.div 
+            className="swipe-hint"
+            animate={{ y: [0, -6, 0] }} 
+            transition={{ repeat: Infinity, duration: 1.5 }}
           >
-            {isIdentified ? 'Ir al Inicio 🏠' : 'Ver Catálogo 🛒'}
-          </button>
+            <span className="swipe-arrow">↑</span>
+            <span className="swipe-text">Desliza para entrar</span>
+          </motion.div>
+
+          <motion.div
+            drag="y"
+            dragConstraints={{ top: -250, bottom: 0 }} 
+            dragElastic={0.05}
+            onDragEnd={onDragEnd}
+            whileDrag={{ scale: 1.1 }}
+            className="welcome-brand-badge interactive-badge"
+          >
+            <img 
+              src="/logo.png" 
+              alt="Sávit Logo" 
+              style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'contain' }} 
+            />
+          </motion.div>
         </div>
 
-        <div className="welcome-footer" style={{ marginTop: '24px', opacity: 0.7, fontSize: '0.85rem' }}>
+        {/* TEXT CONTENT (Compact at the bottom) */}
+        <div className="welcome-content-wrap">
+          <h1 className="welcome-title-split">Cuidamos Tu Bienestar</h1>
+          <p className="welcome-subtitle-split">
+            Alimentamos tu vida con lo mejor de la naturaleza, fresco y directo a tu hogar.
+          </p>
+        </div>
+
+        {/* FOOTER */}
+        <footer className="welcome-footer-tag">
           Sávit — Mercado Saludable
-        </div>
-      </div>
+        </footer>
+      </motion.div>
 
-      {/* Registration wizard */}
+      {/* 3. PERSISTENT FLASH COVER */}
+      <AnimatePresence>
+        {isEntering && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.65, duration: 0.3 }}
+            className="entry-flash-overlay"
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Customer Wizard */}
       {showWizard && <CustomerWizard onClose={handleWizardClose} />}
     </div>
   );

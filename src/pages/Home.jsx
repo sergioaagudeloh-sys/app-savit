@@ -15,6 +15,7 @@ import { useProducts, useCategories } from '../hooks/useProducts';
 import { useStoreConfig } from '../hooks/useOrders';
 import { useNotifications } from '../context/NotificationContext';
 import { useSwipe } from '../hooks/useSwipe';
+import EmptyState from '../components/common/EmptyState';
 import './Home.css';
 
 import { ProductSkeleton } from '../components/ui/Skeleton';
@@ -157,22 +158,22 @@ export default function Home() {
             )}
           />
         ) : (
-          <div className="empty-state animate-fade-in">
-            <div className="empty-state-icon">🍃</div>
-            <div className="empty-state-title">Aún no hay nada aquí</div>
-            <p className="empty-state-desc">
-              No encontramos productos que coincidan. ¡Prueba buscando otra cosa o cambia de categoría!
-            </p>
-            <button 
-              className="btn btn-primary-soft mt-md"
-              onClick={() => {
-                setSearch('');
-                setSelectedCat('Todos');
-              }}
-            >
-              Ver todo el catálogo
-            </button>
-          </div>
+          <EmptyState 
+            icon="🍃"
+            title="Aún no hay nada aquí"
+            message="No encontramos productos que coincidan. ¡Prueba buscando otra cosa o cambia de categoría!"
+            action={
+              <button 
+                className="btn btn-primary-soft"
+                onClick={() => {
+                  setSearch('');
+                  setSelectedCat('Todos');
+                }}
+              >
+                Ver todo el catálogo
+              </button>
+            }
+          />
         )}
       </main>
 

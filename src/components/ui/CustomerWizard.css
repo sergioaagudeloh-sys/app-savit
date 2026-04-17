@@ -603,3 +603,20 @@
   border-color: var(--color-danger, #e53935);
   box-shadow: 0 0 0 4px rgba(229, 57, 53, 0.1);
 }
+
+.cw-pin-active {
+  background: linear-gradient(135deg, #e8f5e9, #f1f8e9) !important;
+  border-color: #a5d6a7 !important;
+}
+
+.cw-pin-active strong {
+  color: #2e7d32 !important;
+}
+
+.cw-pin-active p {
+  color: #43a047 !important;
+}
+
+.cw-pin-active .cw-pin-warning-arrow {
+  color: #81c784 !important;
+}

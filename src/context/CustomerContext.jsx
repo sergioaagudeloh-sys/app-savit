@@ -82,18 +82,25 @@ export function CustomerProvider({ children }) {
   const identifyCustomer = useCallback(async ({ name, phone }) => {
     setLoading(true);
     const normalized = phone.replace(/\D/g, '');
+    let finalProfile = { name, phone: normalized };
+
     try {
       const ref  = doc(db, 'customers', normalized);
       const snap = await getDoc(ref);
+      
       if (snap.exists()) {
+        const existingData = snap.data();
         await updateDoc(ref, { name, lastSeen: new Date().toISOString() });
+        finalProfile = { ...existingData, ...finalProfile, lastSeen: new Date().toISOString() };
       } else {
-        await setDoc(ref, {
+        const newData = {
           name,
           phone: normalized,
           createdAt:  new Date().toISOString(),
           lastSeen:   new Date().toISOString(),
-        });
+        };
+        await setDoc(ref, newData);
+        finalProfile = newData;
       }
     } catch (e) {
       console.warn('CustomerContext: Could not save to Firestore:', e);
@@ -101,16 +108,13 @@ export function CustomerProvider({ children }) {
       setLoading(false);
     }
 
-    const profile = { name, phone: normalized };
     localStorage.setItem(KEYS.phone, normalized);
     localStorage.setItem(KEYS.name, name);
-    setCustomer(profile);
+    setCustomer(finalProfile);
   }, []);
 
   /**
    * Hash and save a 4-digit PIN for the current customer.
-   * Stores the hashed PIN in Firestore under `securityPin`.
-   * @param {string} pin – 4 digit string
    */
   const savePin = useCallback(async (pin) => {
     if (!customer?.phone) return false;
@@ -123,6 +127,28 @@ export function CustomerProvider({ children }) {
     } catch (e) {
       console.warn('CustomerContext: Error saving PIN', e);
       return false;
+    }
+  }, [customer]);
+
+  /**
+   * Verify and update an existing PIN.
+   */
+  const changePin = useCallback(async (oldPin, newPin) => {
+    if (!customer?.phone || !customer?.securityPin) return { ok: false, msg: 'No se encontró el PIN actual' };
+    
+    try {
+      const oldHashed = await hashPin(oldPin);
+      if (oldHashed !== customer.securityPin) {
+        return { ok: false, msg: 'El PIN actual no es correcto' };
+      }
+
+      const newHashed = await hashPin(newPin);
+      const ref = doc(db, 'customers', customer.phone);
+      await updateDoc(ref, { securityPin: newHashed });
+      setCustomer(prev => ({ ...prev, securityPin: newHashed }));
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, msg: 'Error al cambiar el PIN' };
     }
   }, [customer]);
 
@@ -161,6 +187,7 @@ export function CustomerProvider({ children }) {
       identifyCustomer,
       logoutCustomer,
       savePin,
+      changePin,
       verifyPin,
     }}>
       {children}

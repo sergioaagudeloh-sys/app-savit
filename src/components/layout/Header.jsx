@@ -54,8 +54,10 @@ export default function Header({ showBack, title, onCartOpen }) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const isOrderConfirm = location.pathname === '/order-confirm';
+
   return (
-    <header className={`header ${isScrolled ? 'header-scrolled' : ''}`}>
+    <header className={`header ${isScrolled ? 'header-scrolled' : ''} ${isOrderConfirm ? 'header-dark-icons' : ''}`}>
       <div className="header-left">
         {shouldShowBack ? (
           <button className="btn-icon header-back" onClick={handleBack} aria-label="Volver">

@@ -17,6 +17,7 @@ import '../components/ui/CategoryPills.css';
 import './ClientHome.css';
 
 import { playPromoSound } from '../utils/audio';
+import { vibrateTap } from '../utils/haptics';
 
 export default function ClientHome() {
   const [showPromoModal, setShowPromoModal] = useState(false);
@@ -229,7 +230,7 @@ export default function ClientHome() {
           <div className="promo-modal-overlay" onClick={() => setShowPromoModal(false)} />
           <div className="promo-modal-dialog">
             <div className="promo-modal-wrapper">
-              <button className="promo-modal-close" onClick={() => setShowPromoModal(false)}>✕</button>
+              <button className="promo-modal-close" onClick={() => { vibrateTap(); setShowPromoModal(false); }}>✕</button>
 
               {selectedPromo.imageUrl ? (
                 <div className="promo-modal-hero">

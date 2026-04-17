@@ -33,13 +33,15 @@
 
 .admin-analyst-panel {
   width: 100%;
-  max-width: 500px;
-  height: 85vh;
-  max-height: 800px;
-  background: #0f172a; /* Slate 900 */
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 24px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  max-width: 900px;
+  height: 90vh;
+  max-height: 900px;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(25px) saturate(180%);
+  -webkit-backdrop-filter: blur(25px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 32px;
+  box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.6), 0 0 30px rgba(74, 222, 128, 0.05);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -55,24 +57,44 @@
 
 /* Header */
 .analyst-header {
-  padding: 20px;
-  background: rgba(30, 41, 59, 0.8);
+  padding: 24px;
+  background: rgba(30, 41, 59, 0.4);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.analyst-aura {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(74, 222, 128, 0.05), transparent);
+  animation: analyst-scan 4s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes analyst-scan {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 
 .analyst-avatar {
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-  border-radius: 12px;
+  width: 46px;
+  height: 46px;
+  background: linear-gradient(135deg, #10b981, #3b82f6);
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
-  box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+  color: white;
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.3);
+  position: relative;
+  z-index: 1;
 }
 
 .analyst-info {

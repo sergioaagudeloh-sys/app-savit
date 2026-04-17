@@ -103,8 +103,8 @@ export default function AdminDashboard() {
         ? orderDayStart.getTime() === periodStart.getTime()
         : orderDate >= periodStart;
       const isToday = orderDayStart.getTime() === todayStart.getTime();
-      const isEffective = ['completed', 'paid', 'dispatched', 'delivered'].includes(o.status);
-      const isPending = isToday && o.status !== 'delivered' && o.status !== 'cancelled';
+      const isEffective = ['pending', 'completed', 'paid', 'dispatched', 'delivered'].includes(o.status);
+      const isPending = isToday && o.status === 'pending';
       if (isPending) pendingCount++;
 
       if (isEffective && inPeriod) {
@@ -121,7 +121,7 @@ export default function AdminDashboard() {
         }
       }
 
-      if (isToday && o.status === 'delivered') todayCount++;
+      if (isToday && o.status !== 'cancelled') todayCount++;
     });
 
     const allProducts = Object.values(calc);
@@ -205,7 +205,12 @@ export default function AdminDashboard() {
                 <span className="hero-stat-icon">💰</span>
                 <div className="hero-stat-info">
                   <span className="hero-stat-val">{formatCOP(stats.totalRevenue)}</span>
-                  <span className="hero-stat-lab">Ventas Hoy</span>
+                  <span className="hero-stat-lab">
+                    {period === 'day' 
+                      ? (selectedDate === new Date().toISOString().split('T')[0] ? 'Ventas Hoy' : `Ventas ${selectedDate.split('-').reverse().join('/')}`)
+                      : (period === 'week' ? 'Ventas Semana' : 'Ventas Mes')
+                    }
+                  </span>
                 </div>
               </div>
               <Link to="/admin/orders" className={`hero-stat-btn ${stats.pendingCount > 0 ? 'urgent' : ''}`}>

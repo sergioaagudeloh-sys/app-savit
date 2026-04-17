@@ -1,6 +1,7 @@
 // src/components/admin/AdminAnalyst.jsx
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { sendMessageToAnalyst } from '../../services/adminAiService';
+import { vibrateTap } from '../../utils/haptics';
 import './AdminAnalyst.css';
 
 const SUGGESTIONS = [
@@ -148,7 +149,14 @@ Resume cómo van las ventas hoy y sugiéreme una alerta o acción relacionada co
         
         {/* ── Header ── */}
         <div className="analyst-header">
-          <div className="analyst-avatar">📊</div>
+          <div className="analyst-aura" />
+          <div className="analyst-avatar">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z" />
+              <path d="M12 6a6 6 0 1 0 6 6 6 6 0 0 0-6-6zm0 10a4 4 0 1 1 4-4 4 4 0 0 1-4 4z" />
+              <circle cx="12" cy="12" r="2" fill="currentColor" />
+            </svg>
+          </div>
           <div className="analyst-info">
             <p className="analyst-name">Analista Estratégico</p>
             <p className="analyst-status">
@@ -159,14 +167,14 @@ Resume cómo van las ventas hoy y sugiéreme una alerta o acción relacionada co
 
           <button 
             className="analyst-tip-btn ripple" 
-            onClick={generateDailyInsight} 
+            onClick={() => { vibrateTap(); generateDailyInsight(); }} 
             title="Sávit Intelligence: Resumen del Día"
             disabled={isLoading}
           >
             ✨
           </button>
 
-          <button className="analyst-close-btn" onClick={onClose}>
+          <button className="analyst-close-btn" onClick={() => { vibrateTap(); onClose(); }}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M18 6L6 18M6 6l12 12"/>
             </svg>

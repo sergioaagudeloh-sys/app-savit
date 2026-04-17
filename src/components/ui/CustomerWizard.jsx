@@ -7,6 +7,7 @@ import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 import { db, isFirebaseConfigured } from '../../firebase';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { openWhatsAppToClient, buildWelcomeMessage } from '../../utils/whatsapp';
+import { vibrateSuccess, vibrateTap } from '../../utils/haptics';
 import './CustomerWizard.css';
 
 // Pasos del wizard:
@@ -61,7 +62,7 @@ function PinInputs({ pin, setPin, label, error }) {
 
 export default function CustomerWizard({ onClose }) {
   const navigate = useNavigate();
-  const { customer, checkCustomer, identifyCustomer, logoutCustomer, loading, hasPin, savePin } = useCustomer();
+  const { customer, checkCustomer, identifyCustomer, logoutCustomer, loading, hasPin, savePin, changePin } = useCustomer();
   const [step, setStep] = useState(customer ? 'profile' : 1);
   const [phone, setPhone] = useState(customer?.phone || '');
   const [name, setName] = useState(customer?.name || '');
@@ -71,10 +72,11 @@ export default function CustomerWizard({ onClose }) {
   const [isReturning, setIsReturning] = useState(false);
 
   // PIN state
-  const [pin, setPin]         = useState(Array(PIN_LENGTH).fill(''));
+  const [pin, setPin]               = useState(Array(PIN_LENGTH).fill(''));
   const [pinConfirm, setPinConfirm] = useState(Array(PIN_LENGTH).fill(''));
-  const [pinError, setPinError] = useState('');
-  const [savingPin, setSavingPin] = useState(false);
+  const [oldPin, setOldPin]         = useState(Array(PIN_LENGTH).fill(''));
+  const [pinError, setPinError]     = useState('');
+  const [savingPin, setSavingPin]   = useState(false);
 
   const isAdminAuth = localStorage.getItem('savit_admin_auth') === 'true';
 
@@ -98,6 +100,7 @@ export default function CustomerWizard({ onClose }) {
       setName(existing.name);
       setIsReturning(true);
       await identifyCustomer({ name: existing.name, phone: digits });
+      vibrateSuccess();
       setStep(4);
       setTimeout(onClose, 2200);
     } else {
@@ -161,6 +164,36 @@ export default function CustomerWizard({ onClose }) {
     }
   };
 
+  // ── Cambiar PIN desde el perfil (requiere PIN actual)
+  const handleChangePin = async () => {
+    const oldStr = oldPin.join('');
+    const newStr = pin.join('');
+    const confirmStr = pinConfirm.join('');
+
+    if (oldStr.length < PIN_LENGTH || newStr.length < PIN_LENGTH) {
+      setPinError('Ingresa todos los dígitos del PIN');
+      return;
+    }
+    if (newStr !== confirmStr) {
+      setPinError('Los nuevos PINs no coinciden');
+      return;
+    }
+
+    setSavingPin(true);
+    const res = await changePin(oldStr, newStr);
+    setSavingPin(false);
+
+    if (res.ok) {
+      vibrateSuccess();
+      setOldPin(Array(PIN_LENGTH).fill(''));
+      setPin(Array(PIN_LENGTH).fill(''));
+      setPinConfirm(Array(PIN_LENGTH).fill(''));
+      setStep('profile');
+    } else {
+      setPinError(res.msg || 'Error al cambiar el PIN');
+    }
+  };
+
   // ── Crear PIN desde el perfil (sin PIN previo)
   const handleCreatePinFromProfile = async () => {
     const pinStr = pin.join('');
@@ -182,7 +215,7 @@ export default function CustomerWizard({ onClose }) {
     setSavingPin(false);
 
     if (ok) {
-      onClose();
+      setStep('profile');
     } else {
       setPinError('Error al guardar el PIN. Inténtalo de nuevo.');
     }
@@ -198,7 +231,8 @@ export default function CustomerWizard({ onClose }) {
 
   // ── Texto dinámico del header
   const headerTitle =
-    step === 'profile'     ? 'Tu Perfil'
+    step === 'profile'      ? 'Tu Perfil'
+    : step === 'change-pin' ? 'Cambiar PIN 🔐'
     : step === 'create-pin' ? 'Crear PIN de Seguridad'
     : step === 3            ? 'Crea tu PIN 🔐'
     : step === 4
@@ -212,6 +246,7 @@ export default function CustomerWizard({ onClose }) {
     4:            isReturning ? 'Te reconocimos al instante 🌿' : '¡Tu perfil está listo! 🌿',
     profile:      'Gestiona tus datos de cliente',
     'create-pin': 'Solo tú podrás hacer pedidos',
+    'change-pin': 'Actualiza tu código de seguridad',
   };
 
   const dots = [1, 2, 3];
@@ -223,7 +258,7 @@ export default function CustomerWizard({ onClose }) {
     return createPortal(
       <div className="cw-overlay" onClick={onClose}>
         <div className="cw-card" onClick={e => e.stopPropagation()}>
-          <button className="cw-close-btn" onClick={onClose} aria-label="Cerrar modal">✕</button>
+          <button className="cw-close-btn" onClick={() => { vibrateTap(); onClose(); }} aria-label="Cerrar modal">✕</button>
 
           <div className="cw-header">
             <div className="cw-logo">🌿</div>
@@ -233,8 +268,17 @@ export default function CustomerWizard({ onClose }) {
 
           <div className="cw-body cw-step">
             {/* PIN warning banner */}
-            {!hasPin && (
-              <div className="cw-pin-warning" onClick={() => setStep('create-pin')}>
+            {hasPin ? (
+              <div className="cw-pin-warning cw-pin-active" onClick={() => { setPinError(''); setStep('change-pin'); }}>
+                <span className="cw-pin-warning-icon">🔐</span>
+                <div>
+                  <strong>PIN de Seguridad Activo</strong>
+                  <p>Toca aquí si deseas cambiarlo.</p>
+                </div>
+                <span className="cw-pin-warning-arrow">›</span>
+              </div>
+            ) : (
+              <div className="cw-pin-warning" onClick={() => { setPinError(''); setStep('create-pin'); }}>
                 <span className="cw-pin-warning-icon">🔒</span>
                 <div>
                   <strong>Crea tu PIN de Seguridad</strong>
@@ -296,7 +340,7 @@ export default function CustomerWizard({ onClose }) {
     return createPortal(
       <div className="cw-overlay" onClick={onClose}>
         <div className="cw-card" onClick={e => e.stopPropagation()}>
-          <button className="cw-close-btn" onClick={onClose} aria-label="Cerrar modal">✕</button>
+          <button className="cw-close-btn" onClick={() => { vibrateTap(); onClose(); }} aria-label="Cerrar modal">✕</button>
 
           <div className="cw-header">
             <div className="cw-logo">🔐</div>
@@ -313,7 +357,40 @@ export default function CustomerWizard({ onClose }) {
             <button className="cw-btn-primary" onClick={handleCreatePinFromProfile} disabled={savingPin}>
               {savingPin ? 'Guardando...' : 'Guardar PIN 🔐'}
             </button>
-            <button className="cw-btn-back" onClick={() => setStep('profile')}>← Volver</button>
+            <button className="cw-btn-back" onClick={() => { vibrateTap(); setStep('profile'); }}>← Volver</button>
+          </div>
+        </div>
+      </div>,
+      document.body
+    );
+  }
+
+  // ══════════════════════════════════════════
+  // ── Vista: Cambiar PIN
+  // ══════════════════════════════════════════
+  if (step === 'change-pin') {
+    return createPortal(
+      <div className="cw-overlay" onClick={onClose}>
+        <div className="cw-card" onClick={e => e.stopPropagation()}>
+          <button className="cw-close-btn" onClick={() => { vibrateTap(); onClose(); }} aria-label="Cerrar modal">✕</button>
+
+          <div className="cw-header">
+            <div className="cw-logo">🔐</div>
+            <h1 className="cw-header-title">{headerTitle}</h1>
+            <p className="cw-header-sub">{subtitles['change-pin']}</p>
+          </div>
+
+          <div className="cw-body cw-step">
+            <PinInputs pin={oldPin} setPin={setOldPin} label="Ingresa tu PIN ACTUAL" error={null} />
+            <PinInputs pin={pin} setPin={setPin} label="Ingresa el NUEVO PIN" error={null} />
+            <PinInputs pin={pinConfirm} setPin={setPinConfirm} label="Confirma el NUEVO PIN" error={pinError} />
+          </div>
+
+          <div className="cw-actions">
+            <button className="cw-btn-primary" onClick={handleChangePin} disabled={savingPin}>
+              {savingPin ? 'Actualizando...' : 'Actualizar PIN 🔐'}
+            </button>
+            <button className="cw-btn-back" onClick={() => { vibrateTap(); setStep('profile'); }}>← Volver</button>
           </div>
         </div>
       </div>,
@@ -328,7 +405,7 @@ export default function CustomerWizard({ onClose }) {
     <div className="cw-overlay" onClick={onClose}>
       <div className="cw-card" onClick={e => e.stopPropagation()}>
 
-        <button className="cw-close-btn" onClick={onClose} aria-label="Cerrar modal">✕</button>
+        <button className="cw-close-btn" onClick={() => { vibrateTap(); onClose(); }} aria-label="Cerrar modal">✕</button>
 
         <div className="cw-header">
           <div className="cw-logo">🌿</div>
@@ -441,7 +518,7 @@ export default function CustomerWizard({ onClose }) {
               <button className="cw-btn-primary" onClick={handlePinSave} disabled={savingPin}>
                 {savingPin ? 'Guardando…' : '¡Listo! Crear PIN 🔐'}
               </button>
-              <button className="cw-btn-back" onClick={() => setStep(2)}>← Volver</button>
+              <button className="cw-btn-back" onClick={() => { vibrateTap(); setStep(2); }}>← Volver</button>
             </div>
           </div>
         )}

@@ -85,16 +85,38 @@ export default function AdminConfig() {
   };
 
   const handleChange = (e) => {
-    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    
+    // Auto-limpieza de WhatsApp (solo n??meros)
+    if (name === 'whatsappNumber') {
+      const cleanValue = value.replace(/\D/g, '');
+      setForm(prev => ({ ...prev, [name]: cleanValue }));
+      return;
+    }
+
+    setForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const validateForm = () => {
+    if (!form.storeName.trim() || form.storeName.length < 3) {
+      showToast('El nombre del negocio debe tener al menos 3 caracteres', 'error');
+      return false;
+    }
+    if (!form.whatsappNumber || form.whatsappNumber.length < 10) {
+      showToast('Ingresa un número de WhatsApp válido (mín. 10 dígitos)', 'error');
+      return false;
+    }
+    return true;
   };
 
   const handleSaveDirect = async (dataToSave) => {
     setSaving(true);
     try {
+      // Solo enviamos los campos que realmente queremos actualizar
       await updateConfig(dataToSave);
-      showToast('Configuración actualizada', 'success');
+      showToast('Configuración guardada con éxito', 'success');
     } catch (e) {
-      showToast('Error al guardar', 'error');
+      showToast('Error de conexión al guardar', 'error');
     } finally {
       setSaving(false);
     }
@@ -102,7 +124,9 @@ export default function AdminConfig() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    handleSaveDirect(form);
+    if (validateForm()) {
+      handleSaveDirect(form);
+    }
   };
 
   const handleExportBackup = () => {

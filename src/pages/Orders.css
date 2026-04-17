@@ -329,3 +329,33 @@
 }
 
 /* Modal styles viven globalmente en index.css */
+
+.order-cancel-admin-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.btn-cancel-whatsapp {
+  width: 100%;
+  justify-content: center;
+  margin-top: 8px;
+  background: #25d366 !important;
+  color: white !important;
+  border: none !important;
+  font-weight: 700;
+  padding: 12px !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-cancel-whatsapp:active {
+  transform: scale(0.95);
+}
+
+.cancel-text {
+  line-height: 1.4;
+}

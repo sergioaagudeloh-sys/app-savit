@@ -6,6 +6,7 @@ import { useAuth } from './context/AuthContext';
 import CartDrawer from './components/cart/CartDrawer';
 import { useNotifications } from './context/NotificationContext';
 import ToastContainer from './components/ui/ToastContainer';
+import ErrorBoundary from './components/common/ErrorBoundary';
 
 // Premium Savit Loader para el Suspense / Router Transitions
 const FullPageLoader = () => {
@@ -15,14 +16,8 @@ const FullPageLoader = () => {
     <div className={`app-loader-overlay ${isDashboard ? 'admin-page' : ''}`}>
       <div className="app-loader-content">
         <div className="app-loader-logo-wrap">
-          <div className="app-loader-leaf-bg"></div>
-          <svg viewBox="0 0 24 24" className="app-loader-leaf" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.5 1.35 7.15a13.92 13.92 0 0 1-5.63 7.84M11 20c-1.5 1.5-3-1.5-3-1.5" />
-            <path d="M11 20c2.5 0 5-2.5 5-2.5" />
-            <path d="M11 20c.5-5 2-8 5-11" />
-          </svg>
+          <img src="/logo.png" alt="Sávit Logo" className="app-loader-brand-logo" />
         </div>
-        <h2 className="app-loader-text">Sávit</h2>
         <div className="app-loader-progress">
           <div className="app-loader-bar"></div>
         </div>
@@ -99,7 +94,7 @@ export default function App() {
   if (storeLoading || authLoading) return <FullPageLoader />;
 
   return (
-    <>
+    <ErrorBoundary>
       <Suspense fallback={<FullPageLoader />}>
         <Routes>
           <Route path="/" element={<Welcome />} />
@@ -126,6 +121,6 @@ export default function App() {
 
       {isCartOpen && <CartDrawer onClose={() => setCartOpen(false)} />}
       <ToastContainer />
-    </>
+    </ErrorBoundary>
   );
 }

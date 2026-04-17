@@ -6,7 +6,7 @@ import { useCart } from '../../context/CartContext';
 import { useFavorites } from '../../context/FavoritesContext';
 import LottiePlayer from '../common/LottiePlayer';
 import ProgressiveImage from '../ui/ProgressiveImage';
-import { vibrateSuccess } from '../../utils/haptics';
+import { vibrateSuccess, vibrateTap } from '../../utils/haptics';
 import { formatCOP } from '../../utils/formatters';
 import { useIngredients } from '../../hooks/useIngredients';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
@@ -138,7 +138,7 @@ export default function ProductCard({ product, onToast }) {
         {/* ── Favorite Button ── */}
         <button 
           className={`product-fav-btn ${isFavorite(product.id) ? 'product-fav-btn--active' : ''}`}
-          onClick={handleToggleFav}
+          onClick={(e) => { vibrateTap(); handleToggleFav(e); }}
           aria-label="Guardar en favoritos"
         >
           {isFavorite(product.id) ? '❤️' : '🤍'}
@@ -232,7 +232,7 @@ export default function ProductCard({ product, onToast }) {
       {showDetail && createPortal(
         <div className="product-detail-overlay" onClick={() => setShowDetail(false)}>
           <div className="product-detail-modal" onClick={e => e.stopPropagation()}>
-            <button className="detail-close" onClick={() => setShowDetail(false)}>✕</button>
+            <button className="detail-close" onClick={() => { vibrateTap(); setShowDetail(false); }}>✕</button>
             
             <div className="detail-hero">
               <ProgressiveImage 
@@ -340,6 +340,7 @@ export default function ProductCard({ product, onToast }) {
                       <button 
                         className="btn-go-cart"
                         onClick={() => {
+                          vibrateTap();
                           setShowDetail(false);
                           setCartOpen(true);
                         }}
@@ -377,7 +378,7 @@ export default function ProductCard({ product, onToast }) {
                 <h3>Personaliza tu Sávit</h3>
                 <p>Selecciona ingredientes frescos y premium</p>
               </div>
-              <button className="menu-close-btn" onClick={() => setShowIngredientsMenu(false)}>✕</button>
+              <button className="menu-close-btn" onClick={() => { vibrateTap(); setShowIngredientsMenu(false); }}>✕</button>
             </div>
 
             <div className="ingredients-menu-body">

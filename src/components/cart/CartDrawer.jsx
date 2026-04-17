@@ -4,8 +4,9 @@ import { useCart } from '../../context/CartContext';
 import { useStoreConfig, useOrders } from '../../hooks/useOrders';
 import { useSwipeToDismiss } from '../../hooks/useSwipeToDismiss';
 import { useSwipeToDelete } from '../../hooks/useSwipeToDelete';
-import { vibrateSuccess } from '../../utils/haptics';
+import { vibrateSuccess, vibrateTap } from '../../utils/haptics';
 import { formatCOP } from '../../utils/formatters';
+import EmptyState from '../common/EmptyState';
 import './CartDrawer.css';
 
 // Componente para cada item con soporte de gestos de deslizamiento
@@ -83,9 +84,9 @@ export default function CartDrawer({ onClose }) {
           <h2 className="cart-drawer-title">Mi Carrito 🛒</h2>
           <div className="cart-header-actions">
             {items.length > 0 && (
-              <button className="cart-clear-btn" onClick={clearCart}>Vaciar</button>
+              <button className="cart-clear-btn" onClick={() => { vibrateTap(); clearCart(); }}>Vaciar</button>
             )}
-            <button className="cart-close-btn" onClick={onClose} aria-label="Cerrar carrito">
+            <button className="cart-close-btn" onClick={() => { vibrateTap(); onClose(); }} aria-label="Cerrar carrito">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M18 6L6 18M6 6l12 12"/>
               </svg>
@@ -102,7 +103,7 @@ export default function CartDrawer({ onClose }) {
                 <div
                   key={order.id}
                   className="cart-order-item"
-                  onClick={() => { onClose(); navigate('/order-confirm', { state: { orderId: order.id } }); }}
+                  onClick={() => { vibrateTap(); onClose(); navigate('/order-confirm', { state: { orderId: order.id } }); }}
                 >
                   <div className="cart-order-info">
                     <span className="cart-order-id">Pedido #{order.id}</span>
@@ -120,14 +121,16 @@ export default function CartDrawer({ onClose }) {
         {/* Lista de items */}
         <div className="cart-items">
           {items.length === 0 ? (
-            <div className="cart-empty-state">
-              <div className="cart-empty-icon">🛒</div>
-              <div className="cart-empty-title">Carrito Vacío</div>
-              <p className="cart-empty-desc">Explora nuestros productos y llena tu vida de salud.</p>
-              <button className="btn btn-primary" style={{ marginTop: '16px' }} onClick={handleCatalogRedirect}>
-                🌿 Ver Catálogo
-              </button>
-            </div>
+            <EmptyState 
+              icon="🛒"
+              title="Carrito Vacío"
+              message="Explora nuestros productos y llena tu vida de salud."
+              action={
+                <button className="btn btn-primary" onClick={handleCatalogRedirect}>
+                  🌿 Ver Catálogo
+                </button>
+              }
+            />
           ) : (
             items.map(item => (
               <CartItem
@@ -156,7 +159,7 @@ export default function CartDrawer({ onClose }) {
             </div>
 
             <div className="cart-drawer-actions">
-              <button className="btn btn-primary btn-checkout" onClick={handleCheckout}>
+              <button className="btn btn-primary btn-checkout" onClick={() => { vibrateTap(); handleCheckout(); }}>
                 Ir a Pedir 🛍️
               </button>
             </div>

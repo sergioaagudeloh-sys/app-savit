@@ -208,13 +208,7 @@ body.is-admin-route .admin-orders .admin-main-content {
   font-size: 1rem;
 }
 
-.kanban-empty {
-  padding: var(--space-xl);
-  text-align: center;
-  color: var(--color-text-muted);
-  font-size: 0.85rem;
-  font-style: italic;
-}
+/* Replaced by EmptyState component */
 
 /* ── Hint de arrastrar ── */
 .orders-drag-hint {

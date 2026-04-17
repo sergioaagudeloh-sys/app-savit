@@ -13,6 +13,7 @@ import { useNotifications } from '../../context/NotificationContext';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 
 import './AdminOrders.css';
+import EmptyState from '../../components/common/EmptyState';
 
 const STATUS_LABELS = {
   pending: 'Pendientes (Cotizar)',
@@ -73,18 +74,27 @@ export default function AdminOrders() {
 
     const deliveredToday = orders.filter(o => {
       const orderDate = o.createdAt?.toDate ? o.createdAt.toDate() : new Date(o.createdAtMillis);
-      return o.status === 'delivered' && 
-             new Date(orderDate.getFullYear(), orderDate.getMonth(), orderDate.getDate()).getTime() === todayStart;
+      const isToday = new Date(orderDate.getFullYear(), orderDate.getMonth(), orderDate.getDate()).getTime() === todayStart;
+      return o.status === 'delivered' && isToday;
     });
 
     const pendingToday = orders.filter(o => {
       const orderDate = o.createdAt?.toDate ? o.createdAt.toDate() : new Date(o.createdAtMillis);
       const isToday = new Date(orderDate.getFullYear(), orderDate.getMonth(), orderDate.getDate()).getTime() === todayStart;
-      const isActive = o.status !== 'delivered' && o.status !== 'cancelled';
-      return isToday && isActive;
+      return o.status === 'pending' && isToday;
     });
 
-    return { deliveredToday: deliveredToday.length, pendingToday: pendingToday.length };
+    const activeToday = orders.filter(o => {
+      const orderDate = o.createdAt?.toDate ? o.createdAt.toDate() : new Date(o.createdAtMillis);
+      const isToday = new Date(orderDate.getFullYear(), orderDate.getMonth(), orderDate.getDate()).getTime() === todayStart;
+      return o.status !== 'cancelled' && isToday;
+    });
+
+    return { 
+      deliveredToday: deliveredToday.length, 
+      pendingToday: pendingToday.length,
+      totalToday: activeToday.length
+    };
   }, [orders]);
 
   const onDragStart = (e, orderId) => {
@@ -288,6 +298,10 @@ export default function AdminOrders() {
                 <span className="inv-stat-label">Pendientes Hoy</span>
               </div>
               <div className="inv-stat">
+                <span className="inv-stat-value">{dailyStats.totalToday}</span>
+                <span className="inv-stat-label">Total Hoy</span>
+              </div>
+              <div className="inv-stat">
                 <span className="inv-stat-value">{dailyStats.deliveredToday}</span>
                 <span className="inv-stat-label">Entregados Hoy</span>
               </div>
@@ -357,7 +371,11 @@ export default function AdminOrders() {
                       </div>
                     ))}
                     {paginatedItems.length === 0 && (
-                      <div className="kanban-empty">Sin pedidos {STATUS_LABELS[status].toLowerCase()}</div>
+                      <EmptyState 
+                        icon="📭"
+                        title="Sin pedidos"
+                        message={`No hay pedidos en estado ${STATUS_LABELS[status].toLowerCase()}.`}
+                      />
                     )}
 
                     {totalItems > ITEMS_PER_PAGE && (

@@ -20,7 +20,7 @@ export function buildBusinessSnapshot(orders, products, config) {
   orders.forEach(o => {
     const orderDate = o.createdAt?.toDate ? o.createdAt.toDate() : new Date(o.createdAtMillis);
     const orderDay  = orderDate.toISOString().split('T')[0];
-    const isEffective = ['completed', 'paid', 'dispatched', 'delivered'].includes(o.status);
+    const isEffective = ['pending', 'completed', 'paid', 'dispatched', 'delivered'].includes(o.status);
 
     if (isEffective) {
       totalRevenue += (o.total || 0);

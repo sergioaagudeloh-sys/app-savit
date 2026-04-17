@@ -1,102 +1,165 @@
-/* src/pages/Welcome.css */
+/* Welcome.css */
 .welcome-container {
+  height: 100dvh;
+  width: 100vw;
+  background-color: white;
+  overflow: hidden; 
+  position: relative;
   display: flex;
   flex-direction: column;
-  height: 100dvh;
-  width: 100%;
-  max-width: var(--max-width);
-  margin: 0 auto;
-  background: var(--color-bg);
-  position: relative;
-  overflow: hidden;
+  touch-action: none;
 }
 
-.welcome-image {
-  flex: 55%;
-  position: relative;
+/* 1. TOP: STORE PHOTO (50%) */
+.welcome-top-section {
+  height: 50%;
   width: 100%;
+  position: relative;
   overflow: hidden;
+  z-index: 1;
 }
 
-.welcome-image img {
+.welcome-top-section img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: top;
-  animation: breathingZoom 8s ease-in-out infinite alternate;
-  will-change: transform;
+  transform-origin: center center;
 }
 
-@keyframes breathingZoom {
-  from { transform: scale(1); }
-  to { transform: scale(1.15); } /* Increased scale for visibility */
-}
-
-.welcome-image::after {
+/* THE MAGIC: Deep fade to pure white at the 50% mark */
+.welcome-top-section::after {
   content: '';
   position: absolute;
-  inset: 0;
-  background: linear-gradient(to bottom, 
-    rgba(36, 76, 38, 0.1) 0%, 
-    transparent 40%, 
-    transparent 60%, 
-    rgba(247, 253, 242, 0.9) 100%);
-  pointer-events: none;
-  animation: wavePulse 8s ease-in-out infinite alternate;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 100%; 
+  background: linear-gradient(to bottom, transparent 40%, white 100%);
+  z-index: 2;
 }
 
-@keyframes wavePulse {
-  0% { opacity: 0.4; }
-  100% { opacity: 1; }
-}
-
-
-
-.welcome-content {
-  flex: 45%;
-  background: var(--color-bg-card);
-  border-radius: 40px 40px 0 0;
-  margin-top: -40px;
+/* 2. BOTTOM: SOLID WHITE BANNER (50%) */
+.welcome-bottom-section {
+  height: 50%; 
+  width: 100%;
+  background: white;
   position: relative;
   z-index: 10;
-  padding: var(--space-2xl) var(--space-xl);
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-start; /* Position from top of white area */
+  padding: 0 24px 30px;
   text-align: center;
-  box-shadow: 0 -20px 40px rgba(36, 76, 38, 0.1);
-  animation: contentSlideUp 1s cubic-bezier(0.16, 1, 0.3, 1);
+  /* Removed border-radius and shadow to ensure seamless blend with the fade */
 }
 
-@keyframes contentSlideUp {
-  from { transform: translateY(30px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-
-.welcome-title {
-  font-size: var(--font-size-3xl);
-  color: var(--color-primary);
-  line-height: 1.1;
-  margin-bottom: var(--space-sm);
-  font-weight: 800;
-  letter-spacing: -0.03em;
-}
-
-.welcome-desc {
-  font-size: var(--font-size-lg);
-  color: var(--color-text-secondary);
-  font-weight: 600;
-  line-height: 1.4;
-  margin-bottom: var(--space-xl);
-  max-width: 300px;
-}
-
-
-
-.welcome-actions {
-  width: 100%;
+.welcome-content-wrap {
   display: flex;
   flex-direction: column;
-  gap: var(--space-sm);
-  margin-top: auto;
+  align-items: center;
+  gap: 12px;
+  margin-top: 15px;
+}
+
+.welcome-title-split {
+  font-family: 'Outfit', sans-serif;
+  font-size: 2.3rem;
+  font-weight: 850;
+  color: #2D3A20;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.welcome-subtitle-split {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+  color: #666;
+  line-height: 1.4;
+  max-width: 90%;
+  margin: 0;
+}
+
+/* INTERACTION (UPWARD) - Positioned at the top of the white block */
+.welcome-badge-trigger-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding-top: 20px;
+  z-index: 20;
+}
+
+.welcome-brand-badge {
+  width: 85px;
+  height: 85px;
+  background: white;
+  border-radius: 50%;
+  padding: 4px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+  cursor: grab;
+  border: 4px solid #f9f9f9;
+}
+
+.welcome-brand-badge:active {
+  cursor: grabbing;
+}
+
+.swipe-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  opacity: 0.8;
+}
+
+.swipe-arrow {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: #384A2A;
+}
+
+.swipe-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #384A2A;
+}
+
+.welcome-footer-tag {
+  font-size: 0.7rem;
+  color: #BBB;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-top: auto; /* Push to the very bottom */
+}
+
+/* Persistent Flash Cover */
+.entry-flash-overlay {
+  position: fixed;
+  inset: 0;
+  background: white;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+/* Secret Admin Control */
+.admin-touch-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  background: rgba(255,255,255,0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  cursor: pointer;
 }
