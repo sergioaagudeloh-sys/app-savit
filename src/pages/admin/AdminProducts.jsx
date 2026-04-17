@@ -3,7 +3,6 @@ import { useState, useMemo, useEffect, useRef, forwardRef } from 'react';
 import { Virtuoso } from 'react-virtuoso';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Header from '../../components/layout/Header';
-import BottomNav from '../../components/layout/BottomNav';
 import AdminSidebar from '../../components/layout/AdminSidebar';
 import SearchBar from '../../components/ui/SearchBar';
 import { useProducts, useCategories, useCategoryManager } from '../../hooks/useProducts';
@@ -675,7 +674,7 @@ export default function AdminProducts() {
         </>
       )}
 
-      {!isModalOpen && !isCatModalOpen && !productToDelete && <BottomNav />}
+
       <Toast toasts={toasts} />
     </div>
   );

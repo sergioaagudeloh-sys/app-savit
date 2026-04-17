@@ -88,21 +88,84 @@
   gap: 12px;
   padding-top: 20px;
   z-index: 20;
+  position: relative; /* Base for pulse ring absolute positioning */
 }
 
+/* Base wrapper that Framer Motion pulls up */
 .welcome-brand-badge {
   width: 85px;
   height: 85px;
-  background: white;
-  border-radius: 50%;
-  padding: 4px;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+  position: relative;
+  z-index: 20;
   cursor: grab;
-  border: 4px solid #f9f9f9;
+  /* (NO MORE CSS BOUNCE ANIMATION - CAUSES BUG WITH DRAG y) */
 }
 
 .welcome-brand-badge:active {
   cursor: grabbing;
+}
+
+/* Inner box that maintains shape and clips the shimmer glare ONLY */
+.badge-inner-clipping {
+  position: absolute;
+  inset: 0; 
+  background: white;
+  border-radius: 50%;
+  padding: 4px;
+  box-sizing: border-box;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+  border: 4px solid #f9f9f9;
+  overflow: hidden;
+  z-index: 10;
+}
+
+.welcome-logo-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: contain;
+  position: relative;
+  z-index: 2;
+}
+
+/* ✨ Inner Linear Glow (Shimmer Sweeping Effect) */
+.badge-shimmer {
+  position: absolute;
+  top: -100%;
+  left: -100%;
+  width: 300%;
+  height: 300%;
+  background: linear-gradient(
+    45deg,
+    transparent 43%,
+    rgba(255, 255, 255, 0.9) 50%,
+    transparent 57%
+  );
+  transform: rotate(45deg);
+  animation: shimmerSweep 3.5s infinite;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* 🟢 Outer Pulse Ring (Aligned perfectly without translate trickery to evade framer conflicts) */
+.badge-pulse-ring {
+  position: absolute;
+  inset: 0;
+  border: 4px solid rgba(132, 175, 36, 0.4);
+  border-radius: 50%;
+  animation: outerPulse 2s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+  pointer-events: none;
+  z-index: 1; 
+}
+
+@keyframes outerPulse {
+  0% { transform: scale(0.9); opacity: 1; border-width: 4px; }
+  100% { transform: scale(1.6); opacity: 0; border-width: 1px; }
+}
+
+@keyframes shimmerSweep {
+  0% { transform: translate(-30%, -30%) rotate(45deg); }
+  25%, 100% { transform: translate(30%, 30%) rotate(45deg); }
 }
 
 .swipe-hint {
@@ -135,20 +198,20 @@
   text-transform: uppercase;
   font-weight: 700;
   margin-top: auto; 
-  padding-bottom: env(safe-area-inset-bottom, 10px); /* iPhone SE padding */
+  padding-bottom: env(safe-area-inset-bottom, 10px);
 }
 
 /* 📱 RESPONSIVE ADAPTATIONS (Small screens like iPhone SE) */
 @media (max-height: 700px) {
   .welcome-top-section {
-    height: 40%; /* More room for content banner */
+    height: 40%;
   }
   .welcome-bottom-section {
     height: 60%;
     padding: 0 20px 20px;
   }
   .welcome-title-split {
-    font-size: 1.8rem; /* Scaled down title */
+    font-size: 1.8rem;
   }
   .welcome-subtitle-split {
     font-size: 0.85rem;
@@ -158,7 +221,7 @@
     gap: 8px;
   }
   .welcome-brand-badge {
-    width: 72px; /* Smaller badge for compact screens */
+    width: 72px; 
     height: 72px;
   }
   .welcome-content-wrap {

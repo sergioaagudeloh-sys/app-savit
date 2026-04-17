@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 import Header from '../../components/layout/Header';
 import AdminSidebar from '../../components/layout/AdminSidebar';
-import BottomNav from '../../components/layout/BottomNav';
 import { db, isFirebaseConfigured } from '../../firebase';
 import { 
   collection, 
@@ -310,7 +309,6 @@ export default function AdminSubscriptions() {
           )}
         </div>
       </main>
-      <BottomNav />
     </div>
   );
 }

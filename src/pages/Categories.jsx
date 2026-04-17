@@ -1,6 +1,4 @@
-// src/pages/Categories.jsx
 import Header from '../components/layout/Header';
-import BottomNav from '../components/layout/BottomNav';
 import { useProducts, useCategories } from '../hooks/useProducts';
 import { useCart } from '../context/CartContext';
 
@@ -28,7 +26,6 @@ export default function Categories() {
           </div>
         </div>
       </main>
-      <BottomNav />
     </div>
   );
 }

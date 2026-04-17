@@ -1,11 +1,12 @@
 import React, { useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import Mascot from '../ui/Mascot';
+import BottomNav from './BottomNav';
 
 /**
  * ClientLayout
  * Wrapper para todas las páginas del cliente que asegura la presencia
- * global y persistente de Sávit IA (la ardilla).
+ * global y persistente de Sávit IA (la ardilla) y la navegación inferior.
  */
 export default function ClientLayout({ children }) {
   const location = useLocation();
@@ -26,6 +27,9 @@ export default function ClientLayout({ children }) {
     <>
       {/* Renderizado de la página actual */}
       {children}
+
+      {/* Navegación Inferior Global */}
+      <BottomNav />
 
       {/* Asistente IA Global (Squirrel Mascot) */}
       <Mascot page={pageType} key={pageType} />

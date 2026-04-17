@@ -559,7 +559,7 @@ body.admin-page .app-container {
   box-shadow: none !important;
   width: 100% !important;
   background: transparent !important;
-  height: 100vh !important; /* Fixed viewport height */
+  height: 100dvh !important; /* Dynamic viewport height to prevent BottomNav cutoff on mobile */
   overflow: hidden !important; /* Prevent global scroll */
   display: flex !important;
   flex-direction: column !important;
@@ -608,7 +608,7 @@ body.admin-page .admin-main-content {
   width: 100% !important;
   box-sizing: border-box;
   background: var(--color-bg);
-  height: 100vh !important; /* Matches parent */
+  height: 100dvh !important; /* Matches parent dvh */
   overflow-y: auto !important; /* The ONLY scrollable area */
   overflow-x: hidden !important;
   display: block !important;
@@ -1086,7 +1086,7 @@ body.admin-page .admin-main-content {
   display: flex;
   gap: var(--space-sm);
   flex-wrap: wrap;
-  justify-content: center; /* Centered buttons */
+  justify-content: flex-start;
   width: 100%;
   margin-bottom: 24px; /* Separation from the white area below */
 }
@@ -3270,4 +3270,9 @@ button:active,
   color: var(--color-danger) !important;
   transform: rotate(90deg) scale(1.1) !important;
   box-shadow: 0 4px 12px rgba(255, 71, 87, 0.15) !important;
+}
+
+/* -- BottomNav Visibility Fix -- */
+.page-content, .admin-main-content {
+  padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + 30px) !important;
 }

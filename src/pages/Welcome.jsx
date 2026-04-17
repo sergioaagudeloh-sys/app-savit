@@ -26,10 +26,14 @@ export default function Welcome() {
     }
   }, [isEntering, isIdentified, navigate]);
 
-  const onDragEnd = (event, info) => {
-    // Detect UPWARD swipe
-    if (info.offset.y < -50) {
+  const onDrag = (event, info) => {
+    // Detect movement in real time
+    if (!isEntering && info.offset.y < -40) {
+      if (window.navigator && window.navigator.vibrate) {
+        window.navigator.vibrate(50); // Small tactile click
+      }
       setIsEntering(true);
+      // The useEffect will handle the navigation/wizard logic
     }
   };
 
@@ -95,17 +99,24 @@ export default function Welcome() {
 
           <motion.div
             drag="y"
-            dragConstraints={{ top: -250, bottom: 0 }} 
-            dragElastic={0.05}
-            onDragEnd={onDragEnd}
+            dragConstraints={{ top: -100, bottom: 0 }}
+            dragElastic={0.2}
+            onDrag={onDrag}
             whileDrag={{ scale: 1.1 }}
             className="welcome-brand-badge interactive-badge"
           >
-            <img 
-              src="/logo.png" 
-              alt="Sávit Logo" 
-              style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'contain' }} 
-            />
+            {/* The outer pulse ring expands outside without absolute transform trickery */}
+            <div className="badge-pulse-ring"></div>
+            
+            {/* The inner clipping sphere for the shimmer and the logo */}
+            <div className="badge-inner-clipping">
+              <div className="badge-shimmer"></div>
+              <img 
+                src="/logo.png" 
+                alt="Sávit Logo" 
+                className="welcome-logo-img"
+              />
+            </div>
           </motion.div>
         </div>
 

@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../components/layout/Header';
-import BottomNav from '../../components/layout/BottomNav';
 import AdminSidebar from '../../components/layout/AdminSidebar';
 import { useStoreConfig } from '../../hooks/useOrders';
 import { useProducts } from '../../hooks/useProducts';
@@ -373,7 +372,7 @@ export default function AdminOffers() {
         </>
       )}
 
-      {!showDeleteModal && <BottomNav />}
+
       <Toast toasts={toasts} />
     </div>
   );

@@ -1,7 +1,6 @@
 // src/pages/admin/AdminOrders.jsx
 import { useMemo, useState } from 'react';
 import Header from '../../components/layout/Header';
-import BottomNav from '../../components/layout/BottomNav';
 import AdminSidebar from '../../components/layout/AdminSidebar';
 import { useOrders, useStoreConfig } from '../../hooks/useOrders';
 import { useToast } from '../../hooks/useToast';
@@ -292,10 +291,10 @@ export default function AdminOrders() {
               </div>
             </div>
 
-            <div className="inv-stats">
+            <div className="inv-stats orders-hero-stats">
               <div className="inv-stat highlight">
                 <span className="inv-stat-value">{dailyStats.pendingToday}</span>
-                <span className="inv-stat-label">Pendientes Hoy</span>
+                <span className="inv-stat-label">Pendientes</span>
               </div>
               <div className="inv-stat">
                 <span className="inv-stat-value">{dailyStats.totalToday}</span>
@@ -303,7 +302,7 @@ export default function AdminOrders() {
               </div>
               <div className="inv-stat">
                 <span className="inv-stat-value">{dailyStats.deliveredToday}</span>
-                <span className="inv-stat-label">Entregados Hoy</span>
+                <span className="inv-stat-label">Entregados</span>
               </div>
             </div>
           </div>
@@ -626,7 +625,7 @@ export default function AdminOrders() {
       </main>
       
       {/* Ocultar navegación si el drawer está abierto para evitar solapamientos en iOS */}
-      {!selectedOrder && <BottomNav />}
+      {!selectedOrder && null}
       
       <Toast toasts={toasts} />
     </div>

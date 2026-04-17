@@ -1,15 +1,22 @@
 .admin-gate-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: var(--color-bg);
+  inset: 0;
+  background-color: #0c160c; /* Deep forest green to match Welcome hero */
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
+  z-index: 10000;
   padding: var(--space-xl);
+}
+
+@keyframes adminEnter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes adminModalIn {
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .admin-gate-modal {
@@ -21,6 +28,7 @@
   box-shadow: var(--shadow-lg);
   border: 1px solid var(--color-border);
   text-align: center;
+  animation: adminModalIn 0.5s 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .admin-gate-icon {

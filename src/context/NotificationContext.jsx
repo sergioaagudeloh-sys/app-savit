@@ -48,18 +48,18 @@ export const NotificationProvider = ({ children }) => {
     const id = Date.now();
     
     // Tiempos Dinámicos según requerimiento:
-    // - Órdenes: 10 segundos
-    // - Mensajes/Chat: 6 segundos para dar tiempo a leer
-    // - Sistema / Guardado / Info: 2.5 segundos (breve)
-    let duration = 2500;
+    // - Órdenes: 8 segundos (suficiente para llamar la atención)
+    // - Mensajes/Chat: 4 segundos
+    // - Sistema / Guardado / Info: 1 segundo (rápido y ágil)
+    let duration = 1000;
     if (customDuration) {
       duration = customDuration;
     } else if (type === 'order') {
-      duration = 10000;
+      duration = 8000;
     } else if (type === 'chat' || type === 'message') {
-      duration = 6000;
+      duration = 4000;
     } else {
-      duration = 2000;
+      duration = 1000;
     }
     
     const newToast = { id, message, type, title, duration };

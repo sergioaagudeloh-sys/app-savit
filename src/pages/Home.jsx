@@ -10,7 +10,6 @@ import CategoryPills from '../components/ui/CategoryPills';
 import ProductCard from '../components/product/ProductCard';
 import StoreStatusBanner from '../components/ui/StoreStatusBanner';
 import { useCart } from '../context/CartContext';
-import BottomNav from '../components/layout/BottomNav';
 import { useProducts, useCategories } from '../hooks/useProducts';
 import { useStoreConfig } from '../hooks/useOrders';
 import { useNotifications } from '../context/NotificationContext';
@@ -181,8 +180,6 @@ export default function Home() {
           />
         )}
       </main>
-
-      <BottomNav />
     </div>
   );
 }

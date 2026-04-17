@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useOrders, useStoreConfig } from '../../hooks/useOrders';
 import { useProducts } from '../../hooks/useProducts';
 import AdminAnalyst from '../admin/AdminAnalyst';
+import BottomNav from './BottomNav';
 
 /**
  * AdminLayout
@@ -41,6 +42,7 @@ export default function AdminLayout({ children }) {
           config={config}
         />
       )}
+      <BottomNav />
     </>
   );
 }

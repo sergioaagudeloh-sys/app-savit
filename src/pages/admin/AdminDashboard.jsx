@@ -3,7 +3,6 @@ import { useMemo, useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import Header from '../../components/layout/Header';
-import BottomNav from '../../components/layout/BottomNav';
 import AdminSidebar from '../../components/layout/AdminSidebar';
 import { useOrders, useStoreConfig } from '../../hooks/useOrders';
 import { useProducts } from '../../hooks/useProducts';
@@ -175,7 +174,6 @@ export default function AdminDashboard() {
       <main className="page-content admin-main-content">
         <SkeletonDashboard />
       </main>
-      <BottomNav />
     </div>
   );
 
@@ -642,7 +640,6 @@ export default function AdminDashboard() {
         </>
       )}
 
-      {!showRevenueModal && !showTopProductsModal && !showCalendar && <BottomNav />}
 
     </div>
   );

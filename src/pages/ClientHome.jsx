@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/layout/Header';
-import BottomNav from '../components/layout/BottomNav';
 import { useCart } from '../context/CartContext';
 import { useCustomer } from '../context/CustomerContext';
 import { useCategoryManager } from '../hooks/useProducts';
@@ -288,7 +287,6 @@ export default function ClientHome() {
         </>
       )}
 
-      <BottomNav />
       <Toast toasts={toasts} />
     </div>
   );

@@ -490,3 +490,53 @@ body.is-admin-route .admin-orders .admin-main-content {
   font-family: 'Inter', sans-serif;
   letter-spacing: -0.01em;
 }
+
+/* -- Hero Stats Grid -- */
+.orders-hero-stats {
+ display: grid !important;
+ grid-template-columns: repeat(3, 1fr) !important;
+ gap: 10px !important;
+ margin-top: 20px !important;
+ width: 100% !important;
+}
+
+.orders-hero-stats .inv-stat {
+ background: rgba(255, 255, 255, 0.1) !important;
+ backdrop-filter: blur(10px);
+ -webkit-backdrop-filter: blur(10px);
+ border: 1px solid rgba(255, 255, 255, 0.2) !important;
+ border-radius: 16px !important;
+ padding: 12px 8px !important;
+ display: flex !important;
+ flex-direction: column !important;
+ align-items: center !important;
+ justify-content: center !important;
+ text-align: center !important;
+ min-width: 0 !important;
+ flex: none !important;
+}
+
+.orders-hero-stats .inv-stat-value {
+ font-size: 1.25rem !important;
+ font-weight: 900 !important;
+ color: white !important;
+ line-height: 1 !important;
+}
+
+.orders-hero-stats .inv-stat-label {
+ font-size: 0.65rem !important;
+ font-weight: 700 !important;
+ color: rgba(255, 255, 255, 0.7) !important;
+ text-transform: uppercase !important;
+ margin-top: 4px !important;
+ letter-spacing: 0.05em !important;
+}
+
+.orders-hero-stats .inv-stat.highlight {
+ background: rgba(132, 175, 36, 0.2) !important;
+ border-color: rgba(132, 175, 36, 0.4) !important;
+}
+
+.orders-hero-stats .inv-stat.highlight .inv-stat-value {
+ color: #c9ff58 !important;
+}

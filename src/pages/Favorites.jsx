@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/layout/Header';
-import BottomNav from '../components/layout/BottomNav';
 import ProductCard from '../components/product/ProductCard';
 import { useCart } from '../context/CartContext';
 import { useFavorites } from '../context/FavoritesContext';
@@ -113,7 +112,6 @@ export default function Favorites() {
         </>
       )}
 
-      <BottomNav />
       <Toast toasts={toasts} />
     </div>
   );

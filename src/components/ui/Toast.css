@@ -155,29 +155,34 @@
   to { transform: scaleX(0); }
 }
 
-/* Mobile Responsiveness */
+/* Mobile Responsiveness - Elegant top alignment */
 @media (max-width: 480px) {
   .toast-container {
-    top: 20px;
-    left: 20px;
-    right: 20px;
-    align-items: center;
+    top: env(safe-area-inset-top, 20px);
+    left: 12px;
+    right: 12px;
+    align-items: stretch; /* Full width for better presence */
   }
   
   .toast-item {
     width: 100%;
     min-width: 0;
-    max-width: 100%;
+    max-width: none;
     border-radius: 16px;
+    padding: 12px 14px;
   }
+
+  .toast-title { font-size: 13px; }
+  .toast-message { font-size: 12px; }
 }
 
-/* Dark Mode */
-body.admin-page .toast-item, body.dark-mode .toast-item {
-  background: rgba(17, 24, 39, 0.98); /* Fondo casi sólido para modo oscuro */
+/* Unified Theme: Glassmorphism for everyone (Admin & Client) */
+/* (Removed body.admin-page dark forces to match client's premium light feel) */
+body.dark-mode .toast-item {
+  background: rgba(17, 24, 39, 0.95);
   border-color: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
 }
 
-body.admin-page .toast-title, body.dark-mode .toast-title { color: #f9fafb; }
-body.admin-page .toast-message, body.dark-mode .toast-message { color: #d1d5db; }
+body.dark-mode .toast-title { color: #f9fafb; }
+body.dark-mode .toast-message { color: #d1d5db; }

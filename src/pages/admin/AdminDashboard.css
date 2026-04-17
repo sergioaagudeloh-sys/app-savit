@@ -1,6 +1,7 @@
 /* src/pages/admin/AdminDashboard.css */
 .admin-dashboard {
   background: var(--color-bg);
+  min-height: 100dvh;
 }
 
 body.is-admin-route .admin-dashboard .admin-main-content {
@@ -255,19 +256,34 @@ body.is-admin-route .admin-dashboard .admin-main-content {
   border: 1px solid var(--color-border);
 }
 
-.dash-pro.admin-page-content {
+.admin-dashboard .admin-page-content {
   background: white;
   border-radius: 32px 32px 0 0;
-  margin-top: -40px; /* More overlap to reduce gap */
+  margin-top: -50px;
   position: relative;
   z-index: 10;
-  padding: 20px 16px 100px !important; /* Reduced padding */
+  padding: 24px 16px calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + 30px) !important;
   box-shadow: 0 -15px 45px rgba(0, 0, 0, 0.15);
   width: 100% !important;
   box-sizing: border-box !important;
   display: flex;
   flex-direction: column;
   gap: 16px; 
+}
+
+/* Overrides para alinear a la izquierda el Hero solo en el Dashboard */
+.admin-dashboard .inv-hero {
+  text-align: left !important;
+  padding-bottom: 80px !important; /* Más espacio para solapar correctamente el content */
+}
+
+.admin-dashboard .inv-hero-top {
+  justify-content: flex-start !important;
+}
+
+.admin-dashboard .hero-stats-row {
+  justify-content: flex-start !important;
+  margin-top: 16px;
 }
 
 .dash-promo-rect-img {

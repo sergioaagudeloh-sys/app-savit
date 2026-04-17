@@ -3,7 +3,6 @@ import { useEffect } from 'react';
 import { useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { useState } from 'react';
 import Header from '../components/layout/Header';
-import BottomNav from '../components/layout/BottomNav';
 import LottiePlayer from '../components/common/LottiePlayer';
 import { openWhatsApp } from '../utils/whatsapp';
 import './OrderConfirm.css';
@@ -85,7 +84,6 @@ export default function OrderConfirm() {
           </div>
         </div>
       </main>
-      <BottomNav />
     </div>
   );
 }

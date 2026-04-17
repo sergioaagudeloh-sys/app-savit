@@ -91,6 +91,11 @@ export default function Checkout() {
         status: 'pending',
       });
 
+      // 📳 Haptic Feedback (Success Click)
+      if (window.navigator && window.navigator.vibrate) {
+        window.navigator.vibrate([100, 30, 100]); // Pulse: vibration, pause, vibration
+      }
+
       const message = buildWhatsAppMessage({
         items,
         total: totalPrice,

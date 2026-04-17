@@ -1,7 +1,6 @@
 // src/pages/admin/AdminIngredients.jsx
 import React, { useState } from 'react';
 import Header from '../../components/layout/Header';
-import BottomNav from '../../components/layout/BottomNav';
 import AdminSidebar from '../../components/layout/AdminSidebar';
 import { useIngredients } from '../../hooks/useIngredients';
 import { formatCOP } from '../../utils/formatters';
@@ -254,7 +253,7 @@ export default function AdminIngredients() {
 
       </main>
 
-      {!showForm && !showConfirm && <BottomNav />}
+
       <Toast toasts={toasts} />
     </div>
   );
