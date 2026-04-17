@@ -198,15 +198,29 @@
 
 /* Responsive adjustments for very small screens */
 @media (max-width: 380px) {
+  .home-hero, .promo-carousel-section, .promo-slide {
+    height: 190px !important; /* Shorter hero for small screens */
+  }
+  .home-greeting-title {
+    font-size: 20px;
+  }
+  .home-greeting-subtitle {
+    font-size: 13px;
+  }
   .home-section-header {
     padding: 0 var(--space-md);
   }
   .home-section-title {
-    font-size: 18px;
+    font-size: 17px;
   }
   .featured-categories {
     gap: var(--space-md);
-    padding: 8px var(--space-md) 16px;
+    padding: 8px var(--space-md) 12px;
+  }
+  .category-circle {
+    width: 60px;
+    height: 60px;
+    font-size: 20px;
   }
 }
 

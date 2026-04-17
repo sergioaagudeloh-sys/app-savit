@@ -134,7 +134,46 @@
   letter-spacing: 2.5px;
   text-transform: uppercase;
   font-weight: 700;
-  margin-top: auto; /* Push to the very bottom */
+  margin-top: auto; 
+  padding-bottom: env(safe-area-inset-bottom, 10px); /* iPhone SE padding */
+}
+
+/* 📱 RESPONSIVE ADAPTATIONS (Small screens like iPhone SE) */
+@media (max-height: 700px) {
+  .welcome-top-section {
+    height: 40%; /* More room for content banner */
+  }
+  .welcome-bottom-section {
+    height: 60%;
+    padding: 0 20px 20px;
+  }
+  .welcome-title-split {
+    font-size: 1.8rem; /* Scaled down title */
+  }
+  .welcome-subtitle-split {
+    font-size: 0.85rem;
+  }
+  .welcome-badge-trigger-wrap {
+    padding-top: 15px;
+    gap: 8px;
+  }
+  .welcome-brand-badge {
+    width: 72px; /* Smaller badge for compact screens */
+    height: 72px;
+  }
+  .welcome-content-wrap {
+    gap: 8px;
+  }
+}
+
+/* Very tiny height screens fallback */
+@media (max-height: 600px) {
+  .welcome-container {
+    overflow-y: auto; /* Safety scroll for extreme cases */
+  }
+  .welcome-top-section { height: 35%; }
+  .welcome-bottom-section { height: auto; min-height: 65%; }
+  .welcome-title-split { font-size: 1.5rem; }
 }
 
 /* Persistent Flash Cover */

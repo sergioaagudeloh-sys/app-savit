@@ -620,3 +620,81 @@
 .cw-pin-active .cw-pin-warning-arrow {
   color: #81c784 !important;
 }
+
+/* 📱 RESPONSIVE ADAPTATIONS (Small screens like iPhone SE) */
+@media (max-height: 700px) {
+  .cw-card {
+    max-height: 96vh;
+  }
+  
+  .cw-header {
+    padding: 20px 20px 15px;
+  }
+  
+  .cw-logo {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    margin-bottom: 6px;
+  }
+  
+  .cw-header-title {
+    font-size: 17px;
+  }
+  
+  .cw-header-sub {
+    font-size: 11px;
+  }
+  
+  .cw-progress {
+    margin-top: 10px;
+  }
+  
+  .cw-body {
+    padding: 16px 20px 12px;
+  }
+  
+  .cw-step-icon {
+    font-size: 28px;
+    margin-bottom: 4px;
+  }
+  
+  .cw-step-title {
+    font-size: 17px;
+  }
+  
+  .cw-step-desc {
+    font-size: 11px;
+    margin-bottom: 12px;
+  }
+  
+  .cw-field {
+    margin-bottom: 12px;
+  }
+  
+  .cw-input {
+    padding: 12px 14px;
+    font-size: 15px;
+  }
+  
+  .cw-actions {
+    padding: 0 20px 15px;
+    gap: 8px;
+  }
+  
+  .cw-btn-primary {
+    padding: 14px;
+    font-size: 15px;
+  }
+  
+  .cw-btn-home, .cw-btn-ghost {
+    padding: 8px;
+    font-size: 12px;
+  }
+
+  .cw-pin-input {
+    width: 48px;
+    height: 52px;
+    font-size: 1.3rem;
+  }
+}

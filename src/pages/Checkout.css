@@ -53,6 +53,25 @@
   letter-spacing: -0.02em;
 }
 
+/* 📱 RESPONSIVE ADAPTATIONS (iPhone SE) */
+@media (max-width: 380px) {
+  .checkout-hero {
+    padding: calc(var(--header-height) + 12px) var(--space-md) 20px;
+  }
+  .checkout-hero-title {
+    font-size: 24px;
+  }
+  .checkout-section {
+    padding: var(--space-sm) var(--space-md);
+  }
+  .delivery-option {
+    padding: var(--space-sm) var(--space-md);
+  }
+  .checkout-profile-info {
+    padding: var(--space-sm);
+  }
+}
+
 .checkout-section {
   padding: var(--space-md);
   margin-bottom: var(--space-sm);
