@@ -4,13 +4,12 @@ import Header from '../../components/layout/Header';
 import AdminSidebar from '../../components/layout/AdminSidebar';
 import { useIngredients } from '../../hooks/useIngredients';
 import { formatCOP } from '../../utils/formatters';
-import { useToast } from '../../hooks/useToast';
-import Toast from '../../components/layout/Toast';
+import { useNotifications } from '../../context/NotificationContext';
 import './AdminIngredients.css';
 
 export default function AdminIngredients() {
   const { ingredients, loading, error, addIngredient, updateIngredient, toggleIngredient, deleteIngredient } = useIngredients();
-  const { toasts, showToast } = useToast();
+  const { showToast } = useNotifications();
 
   const [showForm, setShowForm]         = useState(false);
   const [editingId, setEditingId]       = useState(null);
@@ -252,9 +251,6 @@ export default function AdminIngredients() {
         )}
 
       </main>
-
-
-      <Toast toasts={toasts} />
     </div>
   );
 }

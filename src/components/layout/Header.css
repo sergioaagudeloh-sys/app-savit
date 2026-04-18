@@ -1,26 +1,31 @@
 /* src/components/layout/Header.css */
 .header {
   position: fixed;
-  top: 0;
+  top: -1px; /* Prevenir bugs de 1px de gap en algunos móviles */
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
   max-width: var(--max-width);
-  height: var(--header-height);
-  background: transparent;
+  height: calc(var(--header-height) + env(safe-area-inset-top, 0px) + 1px) !important;
+  /* El backgroundSólido, box-shadow y border ahora se inyectan vía inline style en Header.jsx */
+  backdrop-filter: blur(12px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(180%) !important;
   display: flex;
   align-items: center;
-  padding: 0 var(--space-md);
-  z-index: 500;
+  padding: calc(env(safe-area-inset-top, 0px) + 1px) var(--space-md) 0 var(--space-md);
+  z-index: 1000;
   gap: var(--space-sm);
-  transition: background-color 0.3s ease, box-shadow 0.3s ease, backdrop-filter 0.3s ease;
+  transition: padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.header.header-scrolled {
-  background: rgba(36, 76, 38, 0.85); /* var(--color-primary) con opacidad */
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+.header.header-scrolled,
+body.admin-page .header.header-scrolled {
+  /* Evitar override con !important para el efecto fluido oscuro */
+}
+
+/* Ya no necesitamos un respaldo transparente */
+body.admin-page .header {
+  transition: background 0.3s ease;
 }
 
 .header-left {
@@ -91,15 +96,15 @@
 }
 
 .header-back {
-  background: rgba(255, 255, 255, 0.12) !important;
+  background: rgba(0, 0, 0, 0.15) !important; /* Fondo oscuro sutil para contraste */
   backdrop-filter: blur(12px) saturate(180%);
   -webkit-backdrop-filter: blur(12px) saturate(180%);
   color: white !important;
-  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
 }
 .header-back:hover { 
-  background: rgba(255, 255, 255, 0.22) !important; 
+  background: rgba(0, 0, 0, 0.25) !important; 
   transform: translateY(-1px);
 }
 /* Dark Icons Variant for OrderConfirm etc */
@@ -113,15 +118,15 @@
 
 .header-cart {
   position: relative;
-  background: rgba(255, 255, 255, 0.12) !important;
+  background: rgba(0, 0, 0, 0.15) !important; /* Fondo oscuro sutil para contraste */
   backdrop-filter: blur(12px) saturate(180%);
   -webkit-backdrop-filter: blur(12px) saturate(180%);
   color: white !important;
-  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
 }
 .header-cart:hover { 
-  background: rgba(255, 255, 255, 0.22) !important; 
+  background: rgba(0, 0, 0, 0.25) !important; 
   transform: scale(1.08) translateY(-1px);
 }
 .header-cart:active {

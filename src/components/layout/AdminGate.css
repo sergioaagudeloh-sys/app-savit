@@ -1,66 +1,171 @@
 .admin-gate-overlay {
   position: fixed;
   inset: 0;
-  background-color: #0c160c; /* Deep forest green to match Welcome hero */
+  /* Fondo moderno que evoca modo seguro premium */
+  background: var(--color-bg);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 10000;
-  padding: var(--space-xl);
-}
-
-@keyframes adminEnter {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  padding: var(--space-md);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 @keyframes adminModalIn {
-  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  from { opacity: 0; transform: translateY(30px) scale(0.95); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .admin-gate-modal {
-  background: var(--color-surface);
-  border-radius: var(--radius-xl);
-  padding: var(--space-xl);
+  /* Diseño glassmorphism Elite puro */
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border-radius: var(--radius-2xl);
+  padding: 40px var(--space-lg) var(--space-lg);
   width: 100%;
   max-width: 400px;
-  box-shadow: var(--shadow-lg);
-  border: 1px solid var(--color-border);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08), 
+              0 1px 3px rgba(0,0,0,0.02),
+              inset 0 1px 0 rgba(255,255,255,0.7);
+  border: 1px solid rgba(255, 255, 255, 0.4);
   text-align: center;
-  animation: adminModalIn 0.5s 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: adminModalIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  display: flex;
+  flex-direction: column;
 }
 
+/* Icono Candado Elite */
 .admin-gate-icon {
-  font-size: 3rem;
-  margin-bottom: var(--space-md);
-  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto var(--space-lg);
+  color: var(--color-primary);
+  background: rgba(66, 128, 59, 0.1);
+  border-radius: 50%;
+  box-shadow: 0 0 0 10px rgba(66, 128, 59, 0.05);
 }
 
 .admin-gate-title {
   font-family: var(--font-heading);
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-size: 1.4rem;
+  font-weight: 800;
   color: var(--color-text-primary);
-  margin-bottom: var(--space-sm);
+  margin-bottom: var(--space-xs);
+  letter-spacing: -0.02em;
 }
 
 .admin-gate-desc {
-  color: var(--color-text-secondary);
-  font-size: 0.95rem;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
   margin-bottom: var(--space-xl);
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 .admin-gate-form {
   display: flex;
   flex-direction: column;
-  gap: var(--space-sm);
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
 }
 
+/* Campos de entrada Premium */
+.admin-input-group {
+  position: relative;
+}
+
+.admin-input-elite {
+  width: 100%;
+  background: var(--color-bg);
+  border: 1.5px solid var(--color-border);
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  font-size: 0.95rem;
+  color: var(--color-text-primary);
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.admin-input-elite:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(66, 128, 59, 0.1);
+  background: white;
+}
+
+/* Botón de envío */
+.admin-btn-elite {
+  margin-top: var(--space-sm);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent-dark));
+  color: white;
+  border: none;
+  padding: 16px;
+  border-radius: var(--radius-lg);
+  font-weight: 900;
+  font-size: 0.9rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(66, 128, 59, 0.3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-btn-elite:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(66, 128, 59, 0.4);
+}
+
+.admin-btn-elite:active {
+  transform: translateY(0);
+}
+
+/* Botones secundarios (text only) */
+.admin-btn-text {
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: var(--space-sm);
+  transition: color 0.2s;
+}
+
+.admin-btn-text:hover {
+  color: var(--color-primary);
+}
+
+.admin-btn-text strong {
+  font-weight: 800;
+  color: var(--color-primary);
+}
+
+.admin-btn-text.minimal {
+  margin-top: 20px;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+}
+
+/* Error y cargador */
 .admin-gate-error {
   color: var(--color-danger);
   font-size: 0.85rem;
-  font-weight: 500;
-  margin-top: var(--space-xs);
+  font-weight: 600;
+  margin-top: -5px;
+  background: rgba(220, 53, 69, 0.1);
+  padding: 10px;
+  border-radius: var(--radius-sm);
+}
+
+.elite-spinner {
+  border-color: rgba(255,255,255,0.3);
+  border-top-color: white;
+  width: 20px;
+  height: 20px;
 }

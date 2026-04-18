@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth, db, isFirebaseConfigured } from '../../firebase';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, query, where } from 'firebase/firestore';
 import { useNotifications } from '../../context/NotificationContext';
 import './AdminSidebar.css';
 

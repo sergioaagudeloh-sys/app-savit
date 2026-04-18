@@ -4,14 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import Header from '../../components/layout/Header';
 import AdminSidebar from '../../components/layout/AdminSidebar';
 import { useStoreConfig } from '../../hooks/useOrders';
-import { useToast } from '../../hooks/useToast';
-import Toast from '../../components/layout/Toast';
+import { useNotifications } from '../../context/NotificationContext';
 import { SkeletonHero, SkeletonCard } from '../../components/ui/Skeleton';
 import './AdminConfig.css';
 
 export default function AdminConfig() {
   const { config, updateConfig, loading } = useStoreConfig();
-  const { toasts, showToast } = useToast();
+  const { showToast } = useNotifications();
   const navigate = useNavigate();
 
   // Store Config State
@@ -378,6 +377,28 @@ export default function AdminConfig() {
                   </div>
                 </div>
               </div>
+
+              {/* Tarjeta de Soporte Técnico Elite */}
+              <div className="cfg-card cfg-support-card" style={{ '--card-i': 1 }}>
+                <div className="cfg-support-content">
+                  <div className="cfg-support-badge">SOPORTE ELITE</div>
+                  <div className="cfg-support-body">
+                    <div className="cfg-support-info">
+                      <h3>SmartFix | Soluciones Integrales</h3>
+                      <p>Estamos disponibles para resolver dudas técnicas, optimizar tu aplicación o añadir nuevas funciones personalizadas a tu PWA.</p>
+                    </div>
+                    <a 
+                      href="https://wa.me/573242882751?text=Hola%20SmartFix,%20necesito%20asistencia%20técnica%20con%20mi%20aplicación%20Sávit." 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="cfg-support-btn"
+                    >
+                      <span className="btn-icon">💬</span>
+                      <span className="btn-text">Contactar Soporte</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
@@ -421,7 +442,6 @@ export default function AdminConfig() {
 
         </div>
       </main>
-      <Toast toasts={toasts} />
     </div>
   );
 }

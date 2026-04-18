@@ -120,7 +120,7 @@ export default function PinModal({ title = 'Confirma tu identidad', onVerified, 
               value={d}
               onChange={e => handleDigitChange(i, e.target.value)}
               onKeyDown={e => handleKeyDown(i, e)}
-              autoComplete="off"
+              autoComplete="new-password"
             />
           ))}
         </div>

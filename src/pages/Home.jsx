@@ -118,7 +118,6 @@ export default function Home() {
 
       <div className="catalog-hero-wrapper">
         <Banner />
-        <StoreStatusBanner isOpen={config?.isOpen !== false} variant="catalog" />
       </div>
 
       <main className="page-content catalog-content">

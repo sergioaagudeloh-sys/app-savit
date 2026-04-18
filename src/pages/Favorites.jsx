@@ -5,20 +5,20 @@ import Header from '../components/layout/Header';
 import ProductCard from '../components/product/ProductCard';
 import { useCart } from '../context/CartContext';
 import { useFavorites } from '../context/FavoritesContext';
-import { useToast } from '../hooks/useToast';
-import Toast from '../components/layout/Toast';
+import { useNotifications } from '../context/NotificationContext';
 import './Favorites.css';
 
 export default function Favorites() {
   const navigate = useNavigate();
   const { setCartOpen } = useCart();
   const { favorites, clearFavorites } = useFavorites();
-  const { toasts, showToast } = useToast();
+  const { showToast } = useNotifications();
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   return (
     <div className="app-container favorites-page">
-      <Header onCartOpen={() => setCartOpen(true)} />
+      {/* 46, 83, 57 equivale al verde oscuro #2e5339 (fav-hero-label), para que resalte y haga contraste en el scroll */}
+      <Header onCartOpen={() => setCartOpen(true)} heroRgb="46, 83, 57" />
 
       {/* ── Hero ── */}
       <div className="fav-hero">
@@ -112,7 +112,6 @@ export default function Favorites() {
         </>
       )}
 
-      <Toast toasts={toasts} />
     </div>
   );
 }

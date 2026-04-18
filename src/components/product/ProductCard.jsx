@@ -37,10 +37,12 @@ export default function ProductCard({ product, onToast }) {
   if (!product) return null;
 
   const isSoldOut = product.soldOut === true || product.stock === 0;
+  const isPromo = product.isPromo === true && product.promoPrice > 0;
   const hasDiscount = product.discount > 0;
-  const currentPrice = hasDiscount 
-    ? product.price * (1 - product.discount / 100) 
-    : product.price;
+  
+  const currentPrice = isPromo 
+    ? product.promoPrice 
+    : (hasDiscount ? product.price * (1 - product.discount / 100) : product.price);
 
   // Find item if already in cart (without additions for the main catalog view)
   const itemInCart = useMemo(() => 
@@ -107,6 +109,7 @@ export default function ProductCard({ product, onToast }) {
   }, [itemInCart, product.id, updateQty, quantity, triggerFlyAnimation, triggerLeaveAnimation, product.imageUrl, product.image]);
 
   const handleToggleAddit = (ing) => {
+    if (!ing.active) return; // Safety: skip inactive ingredients
     setSelectedAdditions(prev => {
       const isSelected = prev.find(i => i.id === ing.id);
       if (isSelected) return prev.filter(i => i.id !== ing.id);
@@ -144,8 +147,14 @@ export default function ProductCard({ product, onToast }) {
           {isFavorite(product.id) ? '❤️' : '🤍'}
         </button>
 
-        {/* ── Badge ── */}
-        {hasDiscount && !isSoldOut && (
+        {/* ── Badges ── */}
+        {isPromo && !isSoldOut && (
+          <div className="product-badge product-badge--promo">
+            OFERTA
+          </div>
+        )}
+
+        {hasDiscount && !isPromo && !isSoldOut && (
           <div className="product-badge">
             -{product.discount}%
           </div>
@@ -179,7 +188,7 @@ export default function ProductCard({ product, onToast }) {
           <div className="product-bottom">
             {/* ── Pricing Section ── */}
             <div className="product-price">
-              {hasDiscount ? (
+              {(isPromo || hasDiscount) ? (
                 <div className="price-stack">
                   <span className="price-old">{formatCOP(product.price)}</span>
                   <span className="price-current">{formatCOP(currentPrice)}</span>
@@ -239,7 +248,8 @@ export default function ProductCard({ product, onToast }) {
                 src={product.imageUrl || product.image} 
                 alt={product.name}
               />
-              {hasDiscount && <div className="detail-badge">-{product.discount}%</div>}
+              {isPromo && !isSoldOut && <div className="detail-badge detail-badge--promo">OFERTA</div>}
+              {hasDiscount && !isPromo && !isSoldOut && <div className="detail-badge">-{product.discount}%</div>}
             </div>
 
             <div className="detail-content">
@@ -249,7 +259,7 @@ export default function ProductCard({ product, onToast }) {
                   <h2 className="detail-title">{product.name}</h2>
                 </div>
                 <div className="detail-price-box">
-                  {hasDiscount ? (
+                  {(isPromo || hasDiscount) ? (
                     <>
                       <span className="detail-price-current">{formatCOP(totalPrice)}</span>
                       <span className="detail-price-old">{formatCOP(product.price)}</span>
@@ -383,22 +393,33 @@ export default function ProductCard({ product, onToast }) {
 
             <div className="ingredients-menu-body">
               <div className="ingredients-premium-grid">
-                {product.additions.map(addId => {
+                {product.additions?.map(addId => {
                   const ing = ingredients.find(i => i.id === addId);
                   if (!ing) return null;
                   const isSelected = selectedAdditions.some(s => s.id === ing.id);
+                  const isInactive = ing.active === false;
+
                   return (
                     <div 
                       key={ing.id} 
-                      className={`premium-ingredient-card ${isSelected ? 'selected' : ''}`}
-                      onClick={() => handleToggleAddit(ing)}
+                      className={`premium-ingredient-card ${isSelected ? 'selected' : ''} ${isInactive ? 'inactive' : ''}`}
+                      onClick={() => !isInactive && handleToggleAddit(ing)}
                     >
                       <div className="ingredient-card-check">
-                        {isSelected && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                        {isInactive ? (
+                          <span className="inactive-icon">🚫</span>
+                        ) : (
+                          isSelected && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        )}
                       </div>
                       <div className="ingredient-card-info">
-                        <span className="ingredient-card-name">{ing.name}</span>
-                        <span className="ingredient-card-price">+{formatCOP(ing.price || 0)}</span>
+                        <span className="ingredient-card-name">
+                          {ing.name}
+                          {isInactive && <span className="sold-out-tag"> - Agotado</span>}
+                        </span>
+                        <span className="ingredient-card-price">
+                          {isInactive ? 'No disponible' : `+${formatCOP(ing.price || 0)}`}
+                        </span>
                       </div>
                     </div>
                   );

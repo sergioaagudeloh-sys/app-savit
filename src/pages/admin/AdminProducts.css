@@ -832,6 +832,46 @@ body.is-admin-route .admin-products .admin-main-content {
   }
 }
 
+/* ── Promotion Configuration UI ── */
+.promo-config-group {
+  background: rgba(132, 175, 36, 0.05); /* Very light accent background */
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px dashed var(--color-accent);
+  margin: 10px 0;
+  transition: all 0.3s ease;
+}
+
+.promo-checkbox {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
+.promo-price-input {
+  border-top: 1px solid rgba(132, 175, 36, 0.1);
+  padding-top: 12px;
+  margin-top: 12px;
+}
+
+.animate-slide-down {
+  animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideDown {
+  from { 
+    opacity: 0; 
+    transform: translateY(-12px);
+    max-height: 0;
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0);
+    max-height: 200px;
+  }
+}
+
 /* ── Mobile UI Fixes ── */
 
 /* Refined Stats */

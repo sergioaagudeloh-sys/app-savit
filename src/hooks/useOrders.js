@@ -130,15 +130,26 @@ export function useOrders() {
     });
   };
 
-  const updateOrderDelivery = async (id, deliveryCost) => {
+  const updateOrderDelivery = async (id, deliveryCost, orderTotal = 0) => {
     const numericCost = Number(deliveryCost);
+    // totalWithDelivery: total real pagado por el cliente (subtotal + domicilio)
+    const totalWithDelivery = (Number(orderTotal) || 0) + numericCost;
     if (!isFirebaseConfigured()) {
       const current = getDemoOrders();
-      const updated = current.map(o => o.id === id ? { ...o, deliveryCost: numericCost, status: 'approved' } : o);
+      const updated = current.map(o =>
+        o.id === id
+          ? { ...o, deliveryCost: numericCost, totalWithDelivery, status: 'approved' }
+          : o
+      );
       saveDemoOrders(updated);
       return;
     }
-    return updateDoc(doc(db, 'orders', id), { deliveryCost: numericCost, status: 'approved', updatedAt: serverTimestamp() });
+    return updateDoc(doc(db, 'orders', id), {
+      deliveryCost: numericCost,
+      totalWithDelivery,
+      status: 'approved',
+      updatedAt: serverTimestamp()
+    });
   };
 
   const deleteOrder = async (id) => {

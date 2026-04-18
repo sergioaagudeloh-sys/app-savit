@@ -38,6 +38,13 @@ export default function OrderConfirm() {
         <div className="confirm-hero">
           <div className="confirm-hero-inner">
             <div className="success-lottie-container">
+              {/* Fallback Static Icon */}
+              <div className="success-fallback-icon">
+                <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </div>
+              
               <LottiePlayer 
                 key={animationKey}
                 animationData="https://lottie.host/79015a88-6627-4a0b-80a5-f93897858971/mO9zI52w5k.json" 

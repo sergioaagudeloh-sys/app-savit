@@ -28,12 +28,13 @@ export default function Orders() {
   const [orderToCancel, setOrderToCancel] = useState(null);
 
   const handleClearHistory = async () => {
-    // Identificamos órdenes que el usuario quiere "limpiar" (canceladas o ya entregadas)
     const ordersToProcess = myOrders.filter(o => o.status === 'cancelled' || o.status === 'delivered');
         
     try {
-      // Usamos Promise.all para que sea más rápido y eficiente
-      await Promise.all(ordersToProcess.map(order => deleteOrder(order.id)));
+      // En lugar de borrar, los ocultamos para el cliente pero los dejamos para el admin
+      await Promise.all(ordersToProcess.map(order => 
+        updateOrderStatus(order.id, order.status, { hiddenForCustomer: true })
+      ));
     } catch (error) {
       console.error('Error al limpiar historial:', error);
     }
@@ -58,7 +59,7 @@ export default function Orders() {
   };
 
   const myOrders = useMemo(() => {
-    return orders;
+    return orders.filter(o => !o.hiddenForCustomer);
   }, [orders]);
 
   return (

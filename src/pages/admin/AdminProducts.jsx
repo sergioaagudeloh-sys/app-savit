@@ -6,13 +6,12 @@ import Header from '../../components/layout/Header';
 import AdminSidebar from '../../components/layout/AdminSidebar';
 import SearchBar from '../../components/ui/SearchBar';
 import { useProducts, useCategories, useCategoryManager } from '../../hooks/useProducts';
-import { useToast } from '../../hooks/useToast';
 import { useImageUpload } from '../../hooks/useImageUpload';
 import { useIngredients } from '../../hooks/useIngredients';
-import Toast from '../../components/layout/Toast';
 import { formatCOP } from '../../utils/formatters';
 import { AdminProductSkeleton } from '../../components/ui/Skeleton';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
+import { useNotifications } from '../../context/NotificationContext';
 import './AdminProducts.css';
 
 // ── Virtualization Components ────────────────────────────────────────────────
@@ -146,7 +145,7 @@ export default function AdminProducts() {
   const categories = useCategories(products).filter(c => c !== 'Todos');
   const navigate = useNavigate();
   const location = useLocation();
-  const { toasts, showToast } = useToast();
+  const { showToast } = useNotifications();
 
   const [isModalOpen,    setIsModalOpen]    = useState(false);
   const [isCatModalOpen, setIsCatModalOpen] = useState(false);
@@ -156,7 +155,8 @@ export default function AdminProducts() {
   const [newCatName,     setNewCatName]     = useState('');
   const [newCatIcon,     setNewCatIcon]     = useState('🏷️');
   const [form, setForm] = useState({
-    name: '', description: '', price: '', category: '', imageUrl: '', active: true, type: 'net', additions: []
+    name: '', description: '', price: '', category: '', imageUrl: '', active: true, type: 'net', additions: [],
+    isPromo: false, promoPrice: ''
   });
 
   useBodyScrollLock(isModalOpen || !!productToDelete);
@@ -185,7 +185,7 @@ export default function AdminProducts() {
   const totalProducts = products.length;
 
   const openNew = () => {
-    setForm({ name: '', description: '', price: '', category: '', imageUrl: '', active: true, type: 'net', additions: [] });
+    setForm({ name: '', description: '', price: '', category: '', imageUrl: '', active: true, type: 'net', additions: [], isPromo: false, promoPrice: '' });
     setEditingId(null);
     setIsModalOpen(true);
   };
@@ -221,10 +221,22 @@ export default function AdminProducts() {
   const handleSave = async (e) => {
     e.preventDefault();
     if (!form.category) { showToast('Selecciona una categoría', 'warning'); return; }
+    
     const priceVal = Number(form.price);
     if (isNaN(priceVal) || priceVal <= 0) { showToast('El precio debe ser un número válido', 'error'); return; }
+
+    const promoPriceVal = form.isPromo ? Number(form.promoPrice) : null;
+    if (form.isPromo && (isNaN(promoPriceVal) || promoPriceVal <= 0 || promoPriceVal >= priceVal)) {
+      showToast('El precio de oferta debe ser menor al precio base', 'error');
+      return;
+    }
+
     try {
-      const payload = { ...form, price: priceVal };
+      const payload = { 
+        ...form, 
+        price: priceVal,
+        promoPrice: promoPriceVal
+      };
       if (editingId) {
         await updateProduct(editingId, payload);
         showToast('Producto actualizado ✅', 'success');
@@ -531,6 +543,33 @@ export default function AdminProducts() {
                   )}
                 </div>
 
+                <div className="input-group promo-config-group">
+                  <label className="input-label" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', userSelect: 'none' }}>
+                    <input 
+                      type="checkbox" 
+                      className="promo-checkbox"
+                      checked={form.isPromo}
+                      onChange={e => setForm({ ...form, isPromo: e.target.checked })}
+                    />
+                    <span style={{ fontWeight: 600, color: 'var(--color-primary)' }}>¿Poner en Promoción / Oferta? 🏷️</span>
+                  </label>
+                  
+                  {form.isPromo && (
+                    <div className="animate-slide-down mt-sm promo-price-input" style={{ marginLeft: '24px', padding: '12px', background: 'var(--color-bg-soft)', borderRadius: '12px', border: '1px solid var(--color-primary-light)' }}>
+                      <label className="input-label text-xs">Precio de Oferta (COP)</label>
+                      <input 
+                        className="input-field" 
+                        type="number" 
+                        min="0" 
+                        placeholder="Ej: 10000" 
+                        value={form.promoPrice} 
+                        onChange={e => setForm({...form, promoPrice: e.target.value})} 
+                      />
+                      <p className="text-xs text-muted mt-xs">Este precio se mostrará como el actual y el base aparecerá tachado.</p>
+                    </div>
+                  )}
+                </div>
+
                 <div className="input-group">
                   <label className="input-label">Imagen de Presentación</label>
                   <ImageUploader
@@ -674,8 +713,6 @@ export default function AdminProducts() {
         </>
       )}
 
-
-      <Toast toasts={toasts} />
     </div>
   );
 }

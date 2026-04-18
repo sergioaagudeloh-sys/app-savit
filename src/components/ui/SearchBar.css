@@ -22,10 +22,8 @@
 .searchbar-input {
   width: 100%;
   padding: 15px 46px 15px 52px; /* Adjusted padding to accommodate the icon */
-  background: rgba(255, 255, 255, 0.85); /* Premium glass base */
-  backdrop-filter: blur(12px) saturate(180%);
-  -webkit-backdrop-filter: blur(12px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  background: #ffffff; /* Solid white background per user request */
+  border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 20px;
   font-size: 1rem;
   color: #1a1a1a;
@@ -37,7 +35,7 @@
 }
 
 .searchbar-input:focus {
-  background: rgba(255, 255, 255, 0.98);
+  background: #ffffff;
   border-color: var(--color-primary);
   box-shadow: 
     0 0 0 4px rgba(132, 175, 36, 0.15),

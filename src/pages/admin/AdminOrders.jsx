@@ -3,14 +3,11 @@ import { useMemo, useState } from 'react';
 import Header from '../../components/layout/Header';
 import AdminSidebar from '../../components/layout/AdminSidebar';
 import { useOrders, useStoreConfig } from '../../hooks/useOrders';
-import { useToast } from '../../hooks/useToast';
-import Toast from '../../components/layout/Toast';
 import SearchBar from '../../components/ui/SearchBar';
 import { buildAdminToClientMessage, openWhatsAppToClient } from '../../utils/whatsapp';
-import { formatCOP, formatDateShort } from '../../utils/formatters';
+import { formatCOP, formatDateShort, isOrderFromToday } from '../../utils/formatters';
 import { useNotifications } from '../../context/NotificationContext';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
-
 import './AdminOrders.css';
 import EmptyState from '../../components/common/EmptyState';
 
@@ -19,37 +16,81 @@ const STATUS_LABELS = {
   approved: 'Aprobados (Esperando Pago)',
   completed: 'En Camino',
   delivered: 'Entregados',
+  cancelled: 'Cancelados',
 };
 
 export default function AdminOrders() {
   const { orders, loading, updateOrderStatus, updateOrderDelivery, deleteOrder } = useOrders();
   const { config } = useStoreConfig();
-  const { toasts, showToast } = useToast();
-  const { addNotification } = useNotifications();
+  const { showToast, addNotification } = useNotifications();
 
   
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [orderToCancel, setOrderToCancel] = useState(null);
-  const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [archiveConfig, setArchiveConfig] = useState(null); // { status, count }
   const [deliveryInput, setDeliveryInput] = useState('');
+  const [activeTab, setActiveTab] = useState('pending');
   const [pages, setPages] = useState({
     pending: 0,
     approved: 0,
     completed: 0,
-    delivered: 0
+    delivered: 0,
+    cancelled: 0
   });
   const ITEMS_PER_PAGE = 5;
-  const [expandedSections, setExpandedSections] = useState({
-    pending: true,
-    approved: true,
-    completed: true,
-    delivered: false
-  });
 
-  useBodyScrollLock(!!selectedOrder || !!orderToCancel || showClearConfirm);
+  useBodyScrollLock(!!selectedOrder || !!orderToCancel || !!archiveConfig);
 
-  const toggleSection = (section) => {
-    setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
+  const onQuickAction = (e, order, targetStatus) => {
+    e.stopPropagation(); // Prevenir que abra el modal padre
+    if (targetStatus === 'approved' && order?.deliveryMethod === 'domicilio' && !order.deliveryCost) {
+      handleCardClick(order);
+      showToast('Indica el costo de envío para aprobar este pedido', 'info');
+      return;
+    }
+    processQuickAction(order, targetStatus);
+  };
+
+  const processQuickAction = async (order, targetStatus) => {
+    try {
+      if (targetStatus === 'approved') {
+        const cost = order.deliveryCost || 0;
+        await updateOrderDelivery(order.id, cost, order.total);
+        await updateOrderStatus(order.id, 'approved');
+        showToast('Pedido aprobado', 'success');
+        
+        let urlMsg = buildAdminToClientMessage({ ...order, deliveryCost: cost, status: 'approved' }, config?.paymentAccount || '');
+        openWhatsAppToClient(order.customerPhone, urlMsg);
+
+        addNotification({
+          title: '¡Pedido Aprobado! 🛵',
+          message: `Tu pedido #${order.orderId} ha sido aprobado. Costo de envío: ${formatCOP(cost)}. Por favor, realiza el pago por WhatsApp.`,
+          orderId: order.id,
+          targetRole: 'client',
+          userId: order.customerPhone
+        });
+      } else if (targetStatus === 'completed') {
+        await updateOrderStatus(order.id, 'completed');
+        showToast('Pago confirmado ✅', 'success');
+        addNotification({
+          title: 'Pago Confirmado ✅',
+          message: `Tu pedido #${order.orderId} se encuentra en camino 🛵.`,
+          orderId: order.id,
+          targetRole: 'client',
+          userId: order.customerPhone
+        });
+      } else if (targetStatus === 'delivered') {
+        await updateOrderStatus(order.id, 'delivered');
+        showToast('Pedido entregado y finalizado', 'success');
+        addNotification({
+          title: 'Pedido Entregado 📦',
+          message: `¡Tu pedido #${order.orderId} ha sido entregado! Gracias por elegir Savit.`,
+          orderId: order.id, targetRole: 'client', userId: order.customerPhone
+        });
+      }
+    } catch (err) {
+      showToast('Error al actualizar el estado', 'error');
+    }
   };
 
   const columns = useMemo(() => {
@@ -60,93 +101,27 @@ export default function AdminOrders() {
     };
 
     return {
-      pending: orders.filter(o => o.status === 'pending').sort(sortByDate),
-      approved: orders.filter(o => o.status === 'approved').sort(sortByDate),
-      completed: orders.filter(o => o.status === 'completed' || o.status === 'paid' || o.status === 'dispatched').sort(sortByDate),
-      delivered: orders.filter(o => o.status === 'delivered').sort(sortByDate),
+      pending: orders.filter(o => o.status === 'pending' && !o.archivedByAdmin).sort(sortByDate),
+      approved: orders.filter(o => o.status === 'approved' && !o.archivedByAdmin).sort(sortByDate),
+      completed: orders.filter(o => (o.status === 'completed' || o.status === 'paid' || o.status === 'dispatched') && !o.archivedByAdmin).sort(sortByDate),
+      delivered: orders.filter(o => o.status === 'delivered' && !o.archivedByAdmin).sort(sortByDate),
+      cancelled: orders.filter(o => o.status === 'cancelled' && !o.archivedByAdmin).sort(sortByDate),
     };
   }, [orders]);
 
   const dailyStats = useMemo(() => {
-    const now = new Date();
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const deliveredToday = orders.filter(o => o.status === 'delivered' && isOrderFromToday(o));
+    const pendingToday   = orders.filter(o => o.status === 'pending'   && isOrderFromToday(o));
+    const activeToday    = orders.filter(o => o.status !== 'cancelled'  && isOrderFromToday(o));
 
-    const deliveredToday = orders.filter(o => {
-      const orderDate = o.createdAt?.toDate ? o.createdAt.toDate() : new Date(o.createdAtMillis);
-      const isToday = new Date(orderDate.getFullYear(), orderDate.getMonth(), orderDate.getDate()).getTime() === todayStart;
-      return o.status === 'delivered' && isToday;
-    });
-
-    const pendingToday = orders.filter(o => {
-      const orderDate = o.createdAt?.toDate ? o.createdAt.toDate() : new Date(o.createdAtMillis);
-      const isToday = new Date(orderDate.getFullYear(), orderDate.getMonth(), orderDate.getDate()).getTime() === todayStart;
-      return o.status === 'pending' && isToday;
-    });
-
-    const activeToday = orders.filter(o => {
-      const orderDate = o.createdAt?.toDate ? o.createdAt.toDate() : new Date(o.createdAtMillis);
-      const isToday = new Date(orderDate.getFullYear(), orderDate.getMonth(), orderDate.getDate()).getTime() === todayStart;
-      return o.status !== 'cancelled' && isToday;
-    });
-
-    return { 
-      deliveredToday: deliveredToday.length, 
+    return {
+      deliveredToday: deliveredToday.length,
       pendingToday: pendingToday.length,
       totalToday: activeToday.length
     };
   }, [orders]);
 
-  const onDragStart = (e, orderId) => {
-    e.dataTransfer.setData('orderId', orderId);
-  };
 
-  const onDrop = async (e, status) => {
-    const orderId = e.dataTransfer.getData('orderId');
-    const order = orders.find(o => o.id === orderId);
-    if (!order) return;
-
-    // Si se arrastra a aprobado y es domicilio, forzar apertura de detalle para poner precio
-    if (status === 'approved' && order?.deliveryMethod === 'domicilio' && !order.deliveryCost) {
-      handleCardClick(order);
-      showToast('Indica el costo de envío para aprobar este pedido', 'info');
-      return;
-    }
-
-    try {
-      await updateOrderStatus(orderId, status);
-      showToast(`Pedido actualizado a ${STATUS_LABELS[status] || status}`, 'success');
-
-      // Notificar al cliente según el nuevo estado
-      if (status === 'approved') {
-        addNotification({
-          title: '¡Pedido Aprobado! 🛵',
-          message: `Tu pedido #${order.orderId} ha sido aprobado. Costo de envío: ${formatCOP(order.deliveryCost || 0)}. Por favor, realiza el pago por WhatsApp.`,
-          orderId: order.id,
-          targetRole: 'client',
-          userId: order.customerPhone
-        });
-      } else if (status === 'completed') {
-        addNotification({
-          title: 'Pago Confirmado ✅',
-          message: `Tu pedido #${order.orderId} se encuentra en camino 🛵.`,
-          orderId: order.id,
-          targetRole: 'client',
-          userId: order.customerPhone
-        });
-      } else if (status === 'delivered') {
-        addNotification({
-          title: 'Pedido Entregado 📦',
-          message: `¡Tu pedido #${order.orderId} ha sido entregado! Gracias por elegir Savit.`,
-          orderId: order.id,
-          targetRole: 'client',
-          userId: order.customerPhone
-        });
-
-      }
-    } catch (err) {
-      showToast('Error al actualizar el estado', 'error');
-    }
-  };
 
   const handleCardClick = (order) => {
     setSelectedOrder(order);
@@ -161,7 +136,8 @@ export default function AdminOrders() {
       }
       
       const newCost = selectedOrder.deliveryMethod === 'domicilio' ? Number(deliveryInput) : 0;
-      await updateOrderDelivery(selectedOrder.id, newCost);
+      // Pasar selectedOrder.total para persistir totalWithDelivery correctamente en Firestore
+      await updateOrderDelivery(selectedOrder.id, newCost, selectedOrder.total);
       const updatedOrder = { ...selectedOrder, deliveryCost: newCost, status: 'approved' };
       
       showToast('Pedido cotizado y aprobado', 'success');
@@ -246,24 +222,27 @@ export default function AdminOrders() {
     }
   };
 
-  const handleDeleteCancelled = () => {
-    const cancelledOrders = orders.filter(o => o.status === 'cancelled');
-    if (cancelledOrders.length === 0) {
-      showToast('No hay pedidos cancelados para limpiar', 'info');
+  const handleArchiveStatus = (status) => {
+    const ordersToProcess = orders.filter(o => o.status === status && !o.archivedByAdmin);
+    if (ordersToProcess.length === 0) {
+      showToast(`No hay pedidos ${STATUS_LABELS[status] || status} para archivar`, 'info');
       return;
     }
-    setShowClearConfirm(true);
+    setArchiveConfig({ status, count: ordersToProcess.length });
   };
 
-  const confirmDeleteCancelled = async () => {
-    const cancelledOrders = orders.filter(o => o.status === 'cancelled');
+  const confirmArchive = async () => {
+    const { status } = archiveConfig;
+    const ordersToProcess = orders.filter(o => o.status === status && !o.archivedByAdmin);
     try {
-      await Promise.all(cancelledOrders.map(o => deleteOrder(o.id)));
-      showToast('Pedidos cancelados eliminados definitivamente', 'success');
+      await Promise.all(ordersToProcess.map(o => 
+        updateOrderStatus(o.id, o.status, { archivedByAdmin: true })
+      ));
+      showToast(`Pedidos archivados correctamente. Se mantienen en estadísticas.`, 'success');
     } catch (err) {
-      showToast('Error al eliminar pedidos', 'error');
+      showToast('Error al archivar pedidos', 'error');
     } finally {
-      setShowClearConfirm(false);
+      setArchiveConfig(null);
     }
   };
 
@@ -309,49 +288,60 @@ export default function AdminOrders() {
         </div>
 
 
-        <div className="admin-page-content">
+        <div className="admin-page-content" style={{ paddingTop: '5px' }}>
           {/* Unified Tooling: Centered Actions */}
-          <div className="inv-toolbar-base centered-toolbar">
+          <div className="inv-toolbar-base centered-toolbar" style={{ gap: '6px' }}>
             <button 
-              className="inv-action-btn danger animate-pulse" 
-              onClick={handleDeleteCancelled}
-              title="Vaciar pedidos cancelados"
+              className="inv-action-btn secondary" 
+              onClick={() => handleArchiveStatus('delivered')}
+            >
+              <span className="inv-action-icon">📦</span>
+              <span className="inv-action-text">Archivar Entregados</span>
+            </button>
+            <button 
+              className="inv-action-btn danger" 
+              onClick={() => handleArchiveStatus('cancelled')}
             >
               <span className="inv-action-icon">🗑️</span>
-              <span className="inv-action-text">Vaciar pedidos cancelados</span>
+              <span className="inv-action-text">Archivar Cancelados</span>
             </button>
           </div>
 
-          <div className="orders-board-vertical">
-            {Object.keys(STATUS_LABELS).map(status => {
-              const allItems = columns[status];
+          <div className="ao-tabs-container">
+            <div className="ao-tabs-list">
+              {Object.keys(STATUS_LABELS).map(status => {
+                const count = (columns[status] || []).length;
+                return (
+                  <button 
+                    key={status}
+                    className={`ao-tab ${activeTab === status ? 'active' : ''}`}
+                    onClick={() => setActiveTab(status)}
+                  >
+                    <span>{STATUS_LABELS[status].split('(')[0].trim()}</span>
+                    <span className={`ao-tab-count status-${status} ${activeTab === status ? 'active-count' : ''}`}>
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="orders-board-tabs">
+            {(() => {
+              const status = activeTab;
+              const allItems = columns[status] || [];
               const totalItems = allItems.length;
               const currentPage = pages[status] || 0;
               const paginatedItems = allItems.slice(currentPage * ITEMS_PER_PAGE, (currentPage + 1) * ITEMS_PER_PAGE);
-              
+
               return (
-                <div 
-                  key={status} 
-                  className={`order-group ${expandedSections[status] ? 'expanded' : 'collapsed'}`}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e) => onDrop(e, status)}
-                >
-                  <div className={`order-group-header status-${status}`} onClick={() => toggleSection(status)}>
-                    <div className="flex items-center gap-sm">
-                      <span className="expand-icon">{expandedSections[status] ? '▾' : '▸'}</span>
-                      {STATUS_LABELS[status]}
-                      <span className="kanban-count">{totalItems}</span>
-                    </div>
-                  </div>
-                
-                {expandedSections[status] && (
+                <div className={`order-group active-tab-group`}>
                   <div className="order-group-body">
                     {paginatedItems.map(order => (
                       <div 
                         key={order.id} 
-                        className="admin-compact-card"
-                        draggable
-                        onDragStart={(e) => onDragStart(e, order.id)}
+                        className={`admin-compact-card card-${status}`}
                         onClick={() => handleCardClick(order)}
                       >
                         <div className="compact-card-top">
@@ -367,13 +357,35 @@ export default function AdminOrders() {
                             <span className="compact-total">{formatCOP(order.total || 0)}</span>
                           </div>
                         </div>
+
+                        {/* Quick Action Bar for Statuses */}
+                        {(status === 'pending' || status === 'approved' || status === 'completed' || status === 'dispatched' || status === 'paid') && (
+                          <div className="quick-action-bar">
+                            {status === 'pending' && (
+                              <button className="quick-action-btn primary" onClick={(e) => onQuickAction(e, order, 'approved')}>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg> Aprobar (Esperar Pago)
+                              </button>
+                            )}
+                            {status === 'approved' && (
+                              <button className="quick-action-btn success" onClick={(e) => onQuickAction(e, order, 'completed')}>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Pago Recibido (Despachar)
+                              </button>
+                            )}
+                            {(status === 'completed' || status === 'paid' || status === 'dispatched') && (
+                              <button className="quick-action-btn primary" onClick={(e) => onQuickAction(e, order, 'delivered')}>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><path d="M5 12l5 5l10 -10" /></svg> Marcar Entregado
+                              </button>
+                            )}
+                          </div>
+                        )}
                       </div>
                     ))}
+                    
                     {paginatedItems.length === 0 && (
                       <EmptyState 
                         icon="📭"
-                        title="Sin pedidos"
-                        message={`No hay pedidos en estado ${STATUS_LABELS[status].toLowerCase()}.`}
+                        title="Lista Vacía"
+                        message={`No hay pedidos en etapa de ${STATUS_LABELS[status].split('(')[0].trim().toLowerCase()}`}
                       />
                     )}
 
@@ -399,15 +411,11 @@ export default function AdminOrders() {
                       </div>
                     )}
                   </div>
-                )}
-              </div>
-            );
-          })}
+                </div>
+              );
+            })()}
+          </div>
         </div>
-        </div>
-        <p className="orders-drag-hint">
-          💡 Clic para detalle / Arrastra para cambiar de estado
-        </p>
 
         {selectedOrder && (
           <>
@@ -596,25 +604,27 @@ export default function AdminOrders() {
           </>
         )}
 
-        {/* Modal: Confirmación Limpiar Cancelados */}
-        {showClearConfirm && (
+        {/* Modal: Confirmación Archivar */}
+        {archiveConfig && (
           <>
-            <div className="overlay" onClick={() => setShowClearConfirm(false)} />
+            <div className="overlay" onClick={() => setArchiveConfig(null)} />
             <div className="modal-responsive" style={{ maxWidth: '450px' }}>
               <div className="modal-responsive-header">
-                <h2 className="modal-responsive-title">🗑️ ¿Limpiar Cancelados?</h2>
-                <button className="modal-responsive-close" onClick={() => setShowClearConfirm(false)}>✕</button>
+                <h2 className="modal-responsive-title">📦 ¿Archivar pedidos?</h2>
+                <button className="modal-responsive-close" onClick={() => setArchiveConfig(null)}>✕</button>
               </div>
               <div className="modal-responsive-body">
                 <p className="modal-desc" style={{ marginBottom: '24px', fontSize: '1.05rem', lineHeight: '1.5' }}>
-                  Se eliminarán permanentemente {orders.filter(o => o.status === 'cancelled').length} pedidos cancelados de la base de datos. Esta acción no se puede deshacer.
+                  Se ocultarán visualmente {archiveConfig.count} pedido(s) <strong>{STATUS_LABELS[archiveConfig.status]}</strong> de la lista de gestión.
+                  <br /><br />
+                  <small>Nota: Los datos no se borran, se mantienen para el contador de ventas e historial del administrador.</small>
                 </p>
                 <div className="modal-actions" style={{ display: 'flex', gap: '12px' }}>
-                  <button className="btn btn-soft flex-1" onClick={() => setShowClearConfirm(false)}>
+                  <button className="btn btn-soft flex-1" onClick={() => setArchiveConfig(null)}>
                     Cancelar
                   </button>
-                  <button className="btn btn-primary bg-danger flex-1" onClick={confirmDeleteCancelled}>
-                    Sí, eliminar
+                  <button className="btn btn-primary flex-1" onClick={confirmArchive}>
+                    Sí, archivar
                   </button>
                 </div>
               </div>
@@ -626,8 +636,6 @@ export default function AdminOrders() {
       
       {/* Ocultar navegación si el drawer está abierto para evitar solapamientos en iOS */}
       {!selectedOrder && null}
-      
-      <Toast toasts={toasts} />
     </div>
   );
 }

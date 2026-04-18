@@ -5,11 +5,10 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import Header from '../../components/layout/Header';
 import AdminSidebar from '../../components/layout/AdminSidebar';
 import { useOrders, useStoreConfig } from '../../hooks/useOrders';
+import { useSubscriptions } from '../../hooks/useSubscriptions';
 import { useProducts } from '../../hooks/useProducts';
 import { useNotifications } from '../../context/NotificationContext';
-import { formatCOP } from '../../utils/formatters';
-import { db, isFirebaseConfigured } from '../../firebase';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { formatCOP, isEffectiveOrder, getOrderDate, isOrderFromToday } from '../../utils/formatters';
 import { SkeletonDashboard } from '../../components/ui/Skeleton';
 import './AdminDashboard.css';
 
@@ -20,7 +19,8 @@ export default function AdminDashboard() {
   const { products } = useProducts();
   const { config } = useStoreConfig();
   const { showToast } = useNotifications();
-  const [subscriptions, setSubscriptions] = useState([]);
+  // Hook centralizado — elimina el listener duplicado que existía aquí
+  const { subscriptions, activeSubscriptions, totalMonthly } = useSubscriptions();
 
   const [showRevenueModal, setShowRevenueModal] = useState(false);
   const [showTopProductsModal, setShowTopProductsModal] = useState(false);
@@ -55,17 +55,6 @@ export default function AdminDashboard() {
     }
   }, [activeSlide, activePromos.length]);
 
-  useEffect(() => {
-    if (isFirebaseConfigured()) {
-      const q = query(collection(db, 'subscriptions'), where('active', '==', true));
-      return onSnapshot(q, (snap) => {
-        setSubscriptions(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      });
-    } else {
-      setSubscriptions(JSON.parse(localStorage.getItem('savit_subscriptions') || '[]'));
-    }
-  }, []);
-
 
   const stats = useMemo(() => {
     if (!orders.length) return { chartData: [], totalRevenue: 0, todayCount: 0, pendingCount: 0, top: [], bottom: [], premium: null };
@@ -77,9 +66,6 @@ export default function AdminDashboard() {
     let pendingCount = 0;
 
     const now = new Date();
-    const todayStart = new Date(now);
-    todayStart.setHours(0, 0, 0, 0);
-
     const periodStart = new Date(now);
     if (period === 'day') {
       const parts = selectedDate.split('-');
@@ -94,20 +80,22 @@ export default function AdminDashboard() {
     }
 
     orders.forEach(o => {
-      const orderDate = o.createdAt?.toDate ? o.createdAt.toDate() : new Date(o.createdAtMillis);
+      // Usa las funciones compartidas desde formatters.js
+      const orderDate = getOrderDate(o);
       const orderDayStart = new Date(orderDate);
       orderDayStart.setHours(0, 0, 0, 0);
 
       const inPeriod = period === 'day'
         ? orderDayStart.getTime() === periodStart.getTime()
         : orderDate >= periodStart;
-      const isToday = orderDayStart.getTime() === todayStart.getTime();
-      const isEffective = ['pending', 'completed', 'paid', 'dispatched', 'delivered'].includes(o.status);
+      const isToday = isOrderFromToday(o);
+      const isEffective = isEffectiveOrder(o);
       const isPending = isToday && o.status === 'pending';
       if (isPending) pendingCount++;
 
       if (isEffective && inPeriod) {
-        totalRevenue += (o.total || 0);
+        // Usar totalWithDelivery si existe (pedidos nuevos), si no total (retrocompatibilidad)
+        totalRevenue += (o.totalWithDelivery || o.total || 0);
         if (o.items && Array.isArray(o.items)) {
           o.items.forEach(item => {
             if (!calc[item.name]) {
@@ -120,25 +108,27 @@ export default function AdminDashboard() {
         }
       }
 
-      if (isToday && o.status !== 'cancelled') todayCount++;
+      if (isToday && isEffective) todayCount++;
     });
 
-    const allProducts = Object.values(calc);
+    const allProducts = Object.values(calc).sort((a, b) => b.revenue - a.revenue);
+
+    const revenueChartData = allProducts.map(p => ({
+      name: p.name,
+      ingresos: p.revenue,
+      quantity: p.quantity
+    }));
 
     return {
       chartData: allProducts
-        .map(p => ({ name: p.name.length > 15 ? p.name.substring(0, 12) + '...' : p.name, ventas: p.quantity }))
-        .sort((a, b) => b.ventas - a.ventas)
-        .slice(0, 5),
-      revenueChartData: [...allProducts]
-        .sort((a, b) => b.revenue - a.revenue)
-        .slice(0, 5)
-        .map(p => ({ name: p.name.length > 15 ? p.name.substring(0, 12) + '...' : p.name, ingresos: p.revenue, quantity: p.quantity })),
+        .slice(0, 6)
+        .map(p => ({ name: p.name.length > 12 ? p.name.substring(0, 10) + '...' : p.name, ventas: p.quantity })),
+      revenueChartData,
       totalRevenue,
       todayCount,
       pendingCount,
-      top: [...allProducts].sort((a, b) => b.quantity - a.quantity).slice(0, 5),
-      bottom: [...allProducts].sort((a, b) => a.quantity - b.quantity).slice(0, 5),
+      top: allProducts.slice(0, 5),
+      bottom: [...allProducts].reverse().slice(0, 5),
       premium: premiumProd,
     };
 
@@ -225,11 +215,26 @@ export default function AdminDashboard() {
         {/* ── Content Area ── */}
         <div className="admin-page-content">
           
-          {/* Smart Promotions Grid (Responsive) - PRIORITIZED TOP */}
+          {/* Pending orders alert (Prominent) - NOW AT TOP */}
+          {stats.pendingCount > 0 && (
+            <Link to="/admin/orders" className="dash-alert-banner" style={{ textDecoration: 'none', marginBottom: '6px' }}>
+              <span className="dash-alert-icon">🔔</span>
+              <div className="dash-alert-body">
+                <strong>Tienes {stats.pendingCount} pedido{stats.pendingCount > 1 ? 's' : ''} pendiente{stats.pendingCount > 1 ? 's' : ''}</strong>
+                <span>Toca aquí para gestionarlos</span>
+              </div>
+              <span className="dash-alert-arrow">❯</span>
+            </Link>
+          )}
+
+          {/* Smart Promotions Grid (Responsive) */}
           {activePromos.length > 0 && (
             <div className="dash-promos-container">
               <div className="dash-section-header">
                 <h2 className="dash-section-title">📢 Promociones Activas</h2>
+                <Link to="/admin/offers" className="dash-section-action">
+                  Gestionar ❯
+                </Link>
               </div>
               <div className={`dash-promos-grid items-${activePromos.length > 2 ? 'multi' : activePromos.length}`}>
                 {activePromos.map((promo, idx) => (
@@ -242,103 +247,12 @@ export default function AdminDashboard() {
                   </div>
                 ))}
               </div>
-              <div style={{ marginTop: '16px' }}>
-                <Link to="/admin/offers" className="btn w-full" style={{ background: 'var(--color-bg-soft)', color: 'var(--color-primary)', border: '1px solid var(--color-border)', justifyContent: 'center', boxShadow: 'none' }}>
-                  Gestionar Ofertas ❯
-                </Link>
-              </div>
             </div>
           )}
 
-          {/* Quick Actions */}
-          <div className="dash-section-header">
-            <h2 className="dash-section-title">Acciones Rápidas</h2>
-          </div>
-          <div className="dash-quick-actions">
-            <Link to="/admin/orders" className="dash-action-card">
-              <span className="action-emoji">📋</span>
-              <span className="action-text">Pedidos</span>
-            </Link>
-            <Link to="/admin/products" className="dash-action-card">
-              <span className="action-emoji">🥗</span>
-              <span className="action-text">Productos</span>
-            </Link>
-            <Link to="/admin/offers" className="dash-action-card">
-              <span className="action-emoji">🔥</span>
-              <span className="action-text">Ofertas</span>
-            </Link>
-
-            <Link to="/admin/config" className="dash-action-card">
-              <span className="action-emoji">⚙️</span>
-              <span className="action-text">Config</span>
-            </Link>
-          </div>
-          
-          {/* Pending orders alert (Prominent) */}
-          {stats.pendingCount > 0 && (
-            <Link to="/admin/orders" className="dash-alert-banner" style={{ textDecoration: 'none' }}>
-              <span className="dash-alert-icon">🔔</span>
-              <div className="dash-alert-body">
-                <strong>Tienes {stats.pendingCount} pedido{stats.pendingCount > 1 ? 's' : ''} pendiente{stats.pendingCount > 1 ? 's' : ''}</strong>
-                <span>Toca aquí para gestionarlos</span>
-              </div>
-              <span className="dash-alert-arrow">❯</span>
-            </Link>
-          )}
-
-
-          {/* Upcoming Payments Alert */}
-          {(() => {
-            const today = new Date().getDate();
-            const upcoming = subscriptions.filter(s => {
-              const diff = s.dayOfMonth - today;
-              return s.active && diff >= 0 && diff <= 3;
-            }).sort((a,b) => a.dayOfMonth - b.dayOfMonth);
-
-            if (upcoming.length === 0) return null;
-
-            return (
-              <div className="dash-section-header mt-lg">
-                <h2 className="dash-section-title">📅 Pagos Próximos</h2>
-                <Link to="/admin/subscriptions" className="dash-section-action">Gestionar ❯</Link>
-              </div>
-            );
-          })()}
-
-          <div className="dash-upcoming-list">
-            {subscriptions
-              .filter(s => {
-                const diff = s.dayOfMonth - new Date().getDate();
-                return s.active && (diff <= 3); // Muestra si vence en <= 3 días o si ya venció
-              })
-              .sort((a, b) => (a.dayOfMonth - new Date().getDate()) - (b.dayOfMonth - new Date().getDate()))
-              .map(sub => {
-                const diff = sub.dayOfMonth - new Date().getDate();
-                const isOverdue = diff < 0;
-                const isToday = diff === 0;
-
-                return (
-                  <div 
-                    key={sub.id} 
-                    className={`dash-sub-item ${isOverdue ? 'overdue' : isToday ? 'today' : ''}`}
-                    onClick={() => window.location.href = '/admin/subscriptions'}
-                  >
-
-                    <div className="sub-item-info">
-                      <span className="sub-item-name">{sub.name}</span>
-                      <span className="sub-item-date">
-                        {isOverdue ? `¡VENCIDO el día ${sub.dayOfMonth}! 🛑` : isToday ? 'VENCE HOY ⚠️' : `Vence el día ${sub.dayOfMonth}`}
-                      </span>
-                    </div>
-                    <div className="sub-item-amount">{formatCOP(sub.amount)}</div>
-                  </div>
-                );
-              })}
-          </div>
-
-          {/* Performance Preview */}
-          <div className="dash-section-header">
-            <h2 className="dash-section-title">Rendimiento</h2>
+          {/* Performance Preview (Rendimiento) - MOVED UP */}
+          <div className="dash-section-header" style={{ paddingTop: '16px', paddingBottom: '8px' }}>
+            <h2 className="dash-section-title">📊 Rendimiento</h2>
             <button
               className="dash-section-action"
               onClick={() => setShowRevenueModal(true)}
@@ -348,44 +262,52 @@ export default function AdminDashboard() {
           </div>
 
           {stats.chartData.length > 0 ? (
-            <div className="dash-chart-card" onClick={() => setShowRevenueModal(true)} style={{ transform: 'translateZ(0)' }}>
-              <ResponsiveContainer width="100%" height={160}>
-                <PieChart>
-                  <Pie
-                    data={stats.chartData}
-                    dataKey="ventas"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={45}
-                    outerRadius={65}
-                    stroke="none"
-                    paddingAngle={4}
-                    animationDuration={450}
-                    animationBegin={0}
-                  >
-                    {stats.chartData.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip wrapperStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }} />
-                </PieChart>
-              </ResponsiveContainer>
-              <p className="dash-chart-label">Distribución productos más vendidos · Toca para detalles</p>
+            <div className="dash-metrics-grid" onClick={() => setShowRevenueModal(true)} style={{ marginBottom: '16px' }}>
+              <div className="dash-metric-item">
+                <span className="metric-icon">📦</span>
+                <span className="metric-val">{stats.chartData.reduce((acc, curr) => acc + curr.ventas, 0)}</span>
+                <span className="metric-lab">Ventas Totales</span>
+              </div>
+              <div className="dash-metric-item highlight">
+                <span className="metric-icon">💰</span>
+                <span className="metric-val">{formatCOP(stats.totalRevenue)}</span>
+                <span className="metric-lab">Ingresos Brutos</span>
+              </div>
+              <div className="dash-metric-item">
+                <span className="metric-icon">📈</span>
+                <span className="metric-val">
+                  {stats.chartData.reduce((acc, curr) => acc + curr.ventas, 0) > 0 
+                    ? formatCOP(stats.totalRevenue / stats.chartData.reduce((acc, curr) => acc + curr.ventas, 0)) 
+                    : '$0'}
+                </span>
+                <span className="metric-lab">Ticket Promedio</span>
+              </div>
             </div>
           ) : (
-            <div className="dash-empty-chart">
-              <span>📉</span>
-              <p>Aún no hay datos de ventas para este período</p>
-              <button className="btn btn-soft" onClick={() => setShowRevenueModal(true)}>
-                Ver análisis detallado
-              </button>
+            <div className="dash-performance-empty">
+              <div className="empty-content-card">
+                <div className="empty-visual">
+                  <div className="pulse-bg"></div>
+                  <span className="empty-icon">📈</span>
+                </div>
+                <div className="empty-info">
+                  <h3 className="empty-title">Esperando tu primera venta</h3>
+                  <p className="empty-text">Las estadísticas de rendimiento cobran vida cuando tus clientes realizan pedidos. ¡Pronto verás aquí tus resultados!</p>
+                </div>
+                <button 
+                  className="admin-btn-elite small-elite" 
+                  onClick={() => setShowRevenueModal(true)}
+                >
+                  <span className="btn-icon">🔍</span>
+                  Explorar Historial
+                </button>
+              </div>
             </div>
           )}
 
-          {/* Ranking Preview */}
+          {/* Ranking Preview (Top Productos) - MOVED UP */}
           {stats.chartData.length > 0 && (
-            <div className="dash-ranking-preview" style={{ marginTop: 'var(--space-lg)' }}>
+            <div className="dash-ranking-preview" style={{ marginBottom: '16px' }}>
               <div className="dash-section-header">
                 <h2 className="dash-section-title">🏆 Top Productos</h2>
                 <button className="dash-section-action" onClick={() => setShowTopProductsModal(true)}>Ver más ❯</button>
@@ -401,6 +323,55 @@ export default function AdminDashboard() {
               </div>
             </div>
           )}
+
+          {/* Upcoming Payments Alert - MOVED DOWN */}
+          {(() => {
+            const today = new Date().getDate();
+            const upcoming = subscriptions.filter(s => {
+              const diff = s.dayOfMonth - today;
+              return s.active && diff >= 0 && diff <= 3;
+            }).sort((a,b) => a.dayOfMonth - b.dayOfMonth);
+
+            if (upcoming.length === 0) return null;
+
+            return (
+              <>
+                <div className="dash-section-header mt-lg" style={{ paddingTop: '8px' }}>
+                  <h2 className="dash-section-title">📅 Pagos Próximos</h2>
+                  <Link to="/admin/subscriptions" className="dash-section-action">Gestionar ❯</Link>
+                </div>
+                <div className="dash-upcoming-list">
+                  {subscriptions
+                    .filter(s => {
+                      const diff = s.dayOfMonth - new Date().getDate();
+                      return s.active && (diff <= 3); 
+                    })
+                    .sort((a, b) => (a.dayOfMonth - new Date().getDate()) - (b.dayOfMonth - new Date().getDate()))
+                    .map(sub => {
+                      const diff = sub.dayOfMonth - new Date().getDate();
+                      const isOverdue = diff < 0;
+                      const isToday = diff === 0;
+
+                      return (
+                        <div 
+                          key={sub.id} 
+                          className={`dash-sub-item ${isOverdue ? 'overdue' : isToday ? 'today' : ''}`}
+                          onClick={() => window.location.href = '/admin/subscriptions'}
+                        >
+                          <div className="sub-item-info">
+                            <span className="sub-item-name">{sub.name}</span>
+                            <span className="sub-item-date">
+                              {isOverdue ? `¡VENCIDO el día ${sub.dayOfMonth}! 🛑` : isToday ? 'VENCE HOY ⚠️' : `Vence el día ${sub.dayOfMonth}`}
+                            </span>
+                          </div>
+                          <div className="sub-item-amount">{formatCOP(sub.amount)}</div>
+                        </div>
+                      );
+                    })}
+                </div>
+              </>
+            );
+          })()}
         </div>
       </main>
 
@@ -448,39 +419,6 @@ export default function AdminDashboard() {
                   <div className="stats-card-sub">Solo pedidos completados / pagados</div>
                 </div>
 
-                {/* Revenue distribution chart */}
-                <h3 className="stats-section-title">Distribución por Producto (ingresos $)</h3>
-                <div className="chart-container" style={{ background: 'var(--color-bg-soft)', borderRadius: 'var(--radius-lg)', padding: 'var(--space-md)', marginBottom: 'var(--space-lg)' }}>
-                  {stats.revenueChartData?.length > 0 ? (
-                    <ResponsiveContainer width="100%" height={220}>
-                      <PieChart>
-                        <Pie 
-                          data={stats.revenueChartData} 
-                          dataKey="ingresos" 
-                          nameKey="name" 
-                          cx="50%" 
-                          cy="50%" 
-                          innerRadius={50} 
-                          outerRadius={70} 
-                          stroke="none" 
-                          paddingAngle={5}
-                          animationDuration={500}
-                          animationBegin={0}
-                        >
-                          {stats.revenueChartData.map((_, index) => (
-                            <Cell key={`cell-r-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip
-                          formatter={(value) => [formatCOP(value), 'Ingresos']}
-                          wrapperStyle={{ borderRadius: '8px', border: 'none', boxShadow: 'var(--shadow-md)' }}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <div className="empty-chart">Sin datos para este período</div>
-                  )}
-                </div>
 
                 {/* Revenue table */}
                 {stats.revenueChartData?.length > 0 && (
@@ -533,55 +471,68 @@ export default function AdminDashboard() {
                     {/* Podio top 3 */}
                     <h3 className="stats-section-title">🥇 Más Vendidos</h3>
                     <div className="podium-grid">
-                      {[1, 0, 2].map((rankIdx) => {
-                        const product = stats.top[rankIdx];
-                        if (!product) return <div key={rankIdx} className="podium-empty" />;
-                        const medals = ['🥇', '🥈', '🥉'];
-                        const positions = [2, 1, 3]; // visual order: silver left, gold center, bronze right
-                        const positionIdx = [1, 0, 2];
-                        return (
-                          <div
-                            key={rankIdx}
-                            className={`podium-card podium-pos-${positionIdx[rankIdx] + 1}`}
-                          >
-                            <span className="podium-medal">{medals[rankIdx]}</span>
-                            <span className="podium-name">{product.name}</span>
-                            <span className="podium-qty">{product.quantity} uds</span>
-                            <span className="podium-revenue">{formatCOP(product.revenue)}</span>
-                          </div>
-                        );
-                      })}
+                      {/* Plata (Top 2) */}
+                      {stats.top[1] && (
+                        <div className="podium-card podium-silver">
+                          <span className="podium-medal">🥈</span>
+                          <span className="podium-name">{stats.top[1].name}</span>
+                          <span className="podium-qty">{stats.top[1].quantity} uds</span>
+                          <span className="podium-revenue">{formatCOP(stats.top[1].revenue)}</span>
+                        </div>
+                      )}
+                      
+                      {/* Oro (Top 1) */}
+                      {stats.top[0] && (
+                        <div className="podium-card podium-gold">
+                          <span className="podium-medal">🥇</span>
+                          <span className="podium-name">{stats.top[0].name}</span>
+                          <span className="podium-qty">{stats.top[0].quantity} uds</span>
+                          <span className="podium-revenue">{formatCOP(stats.top[0].revenue)}</span>
+                        </div>
+                      )}
+
+                      {/* Bronce (Top 3) */}
+                      {stats.top[2] && (
+                        <div className="podium-card podium-bronze">
+                          <span className="podium-medal">🥉</span>
+                          <span className="podium-name">{stats.top[2].name}</span>
+                          <span className="podium-qty">{stats.top[2].quantity} uds</span>
+                          <span className="podium-revenue">{formatCOP(stats.top[2].revenue)}</span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Resto del ranking (4 y 5) */}
                     {stats.top.slice(3).length > 0 && (
-                      <>
-                        <h3 className="stats-section-title" style={{ marginTop: 'var(--space-lg)' }}>Posiciones 4–5</h3>
-                        <div className="stats-card">
-                          <ul className="stats-list">
+                      <div className="ranking-extra-section">
+                        <h3 className="stats-section-title">Posiciones 4–5</h3>
+                        <div className="stats-list-card">
+                          <ul className="stats-ranking-list">
                             {stats.top.slice(3).map((p, i) => (
-                              <li key={i} className="stats-list-item">
-                                <span className="ranking-pos">#{i + 4}</span>
-                                <span className="stats-item-name">{p.name}</span>
-                                <span className="stats-item-val">{p.quantity} uds</span>
+                              <li key={i} className="stats-ranking-item">
+                                <div className="rank-pos-badge">#{i + 4}</div>
+                                <span className="rank-item-name">{p.name}</span>
+                                <span className="rank-item-val"><strong>{p.quantity}</strong> uds</span>
                               </li>
                             ))}
                           </ul>
                         </div>
-                      </>
+                      </div>
                     )}
 
                     {/* Menos vendidos */}
-                    <h3 className="stats-section-title" style={{ marginTop: 'var(--space-lg)' }}>📉 Necesitan Impulso</h3>
-                    <div className="stats-card" style={{ borderLeft: '4px solid #ffb74d' }}>
-                      <ul className="stats-list">
-                        {stats.bottom.map((p, i) => (
-                          <li key={i} className="stats-list-item">
-                            <span className="stats-item-name" style={{ color: 'var(--color-text-muted)' }}>{p.name}</span>
-                            <span className="stats-item-val" style={{ color: '#f57c00' }}>{p.quantity} uds</span>
-                          </li>
-                        ))}
-                      </ul>
+                    <div className="needs-boost-section">
+                      <h3 className="stats-section-title">📉 Necesitan Impulso</h3>
+                      <div className="stats-list-card needs-boost-card">
+                        <ul className="stats-ranking-list">
+                          {stats.bottom.map((p, i) => (
+                            <li key={i} className="stats-ranking-item">
+                              <span className="rank-item-name">{p.name}</span>
+                              <span className="rank-item-val boost-val"><strong>{p.quantity}</strong> uds</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
                     </div>
                   </>
                 ) : (

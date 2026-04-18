@@ -398,3 +398,101 @@ body.is-admin-route .admin-config .admin-main-content {
   animation: slideUpFade 0.3s ease both;
   padding: 0 16px 14px;
 }
+
+/* ── Elite Support Card ── */
+.cfg-support-card {
+  background: linear-gradient(135deg, #0c2b1a 0%, #05140c 100%) !important;
+  border: 1px solid rgba(255, 215, 0, 0.4) !important;
+  position: relative;
+  overflow: hidden;
+  padding: 20px;
+}
+
+.cfg-support-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 215, 0, 0.05) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.cfg-support-badge {
+  display: inline-block;
+  background: #ffd700;
+  color: #0c2b1a;
+  font-size: 0.55rem;
+  font-weight: 900;
+  padding: 3px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.1em;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 10px rgba(255, 215, 0, 0.2);
+}
+
+.cfg-support-info h3 {
+  color: #ffd700 !important;
+  font-size: 1rem;
+  font-weight: 800;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.cfg-support-info p {
+  color: rgba(255, 255, 255, 0.7) !important;
+  font-size: 0.75rem;
+  margin: 6px 0 16px;
+  line-height: 1.4;
+}
+
+.cfg-support-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white !important;
+  padding: 12px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 700;
+  transition: all 0.3s ease;
+}
+
+.cfg-support-btn:hover {
+  background: #ffd700;
+  color: #0c2b1a !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(255, 215, 0, 0.3);
+  border-color: #ffd700;
+}
+
+.cfg-support-btn .btn-icon {
+  font-size: 1.1rem;
+}
+
+@media (min-width: 769px) {
+  .cfg-support-body {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+  }
+  
+  .cfg-support-info {
+    flex: 1;
+  }
+  
+  .cfg-support-info p {
+    margin-bottom: 0;
+  }
+  
+  .cfg-support-btn {
+    min-width: 200px;
+  }
+}

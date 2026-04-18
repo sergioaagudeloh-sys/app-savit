@@ -243,9 +243,13 @@
 .entry-flash-overlay {
   position: fixed;
   inset: 0;
-  background: white;
+  background: rgba(255, 255, 255, 0.4); /* Semi-transparent for blur effect */
   z-index: 9999;
   pointer-events: none;
+}
+
+.entry-flash-overlay.premium-fade {
+  background: radial-gradient(circle at center, rgba(255,255,255,0.7) 0%, rgba(132, 175, 36, 0.15) 100%);
 }
 
 /* Secret Admin Control */

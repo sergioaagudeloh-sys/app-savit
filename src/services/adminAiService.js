@@ -1,5 +1,6 @@
 // src/services/adminAiService.js
 // Analista de Negocios Inteligente de Sávit — usando Groq (Llama 3.3 70B)
+import { isEffectiveOrder, getOrderDate, formatCOP } from '../utils/formatters';
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
@@ -10,22 +11,23 @@ const GROQ_MODEL   = 'llama-3.3-70b-versatile';
  * Genera un resumen ejecutivo de las métricas del negocio
  */
 export function buildBusinessSnapshot(orders, products, config) {
-  const now   = new Date();
-  const today = now.toISOString().split('T')[0];
+  const today = new Date().toISOString().split('T')[0];
 
   let totalRevenue = 0, todayRevenue = 0, completedOrders = 0;
   const totalOrders = orders.length;
   const productSales = {};
 
   orders.forEach(o => {
-    const orderDate = o.createdAt?.toDate ? o.createdAt.toDate() : new Date(o.createdAtMillis);
+    const orderDate = getOrderDate(o);
     const orderDay  = orderDate.toISOString().split('T')[0];
-    const isEffective = ['pending', 'completed', 'paid', 'dispatched', 'delivered'].includes(o.status);
 
-    if (isEffective) {
-      totalRevenue += (o.total || 0);
+    // Criterio único: solo pedidos entregados generan ingreso
+    if (isEffectiveOrder(o)) {
+      // Usar totalWithDelivery si existe (pedidos nuevos), si no usar total (retrocompatibilidad)
+      const revenue = o.totalWithDelivery || o.total || 0;
+      totalRevenue += revenue;
       completedOrders++;
-      if (orderDay === today) todayRevenue += (o.total || 0);
+      if (orderDay === today) todayRevenue += revenue;
 
       if (o.items && Array.isArray(o.items)) {
         o.items.forEach(item => {
@@ -47,10 +49,10 @@ export function buildBusinessSnapshot(orders, products, config) {
 
   return `
 ESTADO ACTUAL DEL NEGOCIO (SÁVIT):
-- Ventas Totales Históricas: $${totalRevenue.toLocaleString('es-CO')}
-- Ventas de Hoy (${today}): $${todayRevenue.toLocaleString('es-CO')}
-- Pedidos Totales: ${totalOrders} (Efectivos: ${completedOrders})
-- Ticket Promedio: $${completedOrders > 0 ? Math.round(totalRevenue / completedOrders).toLocaleString('es-CO') : 0}
+- Ventas Totales Históricas: ${formatCOP(totalRevenue)}
+- Ventas de Hoy (${today}): ${formatCOP(todayRevenue)}
+- Pedidos Totales: ${totalOrders} (Entregados: ${completedOrders})
+- Ticket Promedio: ${formatCOP(completedOrders > 0 ? Math.round(totalRevenue / completedOrders) : 0)}
 - Top 5 Productos más vendidos: ${topProducts || 'N/A'}
 - Inventario: ${activeProducts} activos, ${soldOutCount} agotados de un total de ${products.length}.
 - Productos en Stock Crítico (≤5 uds): ${stockCritico || 'Todo bajo control.'}

@@ -168,8 +168,6 @@ export default function Checkout() {
            </div>
         </div>
 
-        <StoreStatusBanner isOpen={config?.isOpen !== false} />
-
         {/* Order Summary */}
         <section className="checkout-section">
           <h2 className="checkout-section-title">📦 Tu Pedido</h2>

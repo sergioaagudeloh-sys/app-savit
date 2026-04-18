@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCustomer } from '../../context/CustomerContext';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 import { db, isFirebaseConfigured } from '../../firebase';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc } from 'firebase/firestore';
 import { openWhatsAppToClient, buildWelcomeMessage } from '../../utils/whatsapp';
 import { vibrateSuccess, vibrateTap } from '../../utils/haptics';
 import './CustomerWizard.css';
@@ -51,7 +51,7 @@ function PinInputs({ pin, setPin, label, error }) {
             value={d}
             onChange={e => handleChange(i, e.target.value)}
             onKeyDown={e => handleKeyDown(i, e)}
-            autoComplete="off"
+            autoComplete="new-password"
           />
         ))}
       </div>

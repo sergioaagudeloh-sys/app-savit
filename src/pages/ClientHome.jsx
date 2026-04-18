@@ -6,8 +6,7 @@ import { useCustomer } from '../context/CustomerContext';
 import { useCategoryManager } from '../hooks/useProducts';
 import { useStoreConfig } from '../hooks/useOrders';
 import { CategorySkeleton } from '../components/ui/Skeleton';
-import { useToast } from '../hooks/useToast';
-import Toast from '../components/layout/Toast';
+import { useNotifications } from '../context/NotificationContext';
 import HealthyTip from '../components/ui/HealthyTip';
 import StoreStatusBanner from '../components/ui/StoreStatusBanner';
 import { formatCOP } from '../utils/formatters';
@@ -29,7 +28,7 @@ export default function ClientHome() {
   const navigate = useNavigate();
   const { addItem, setCartOpen } = useCart();
   const { customer } = useCustomer();
-  const { toasts, showToast } = useToast();
+  const { showToast } = useNotifications();
   const { categories: customCats, loading } = useCategoryManager();
   const { config } = useStoreConfig();
 
@@ -287,7 +286,6 @@ export default function ClientHome() {
         </>
       )}
 
-      <Toast toasts={toasts} />
     </div>
   );
 }

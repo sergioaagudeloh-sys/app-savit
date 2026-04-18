@@ -186,79 +186,90 @@ export default function AdminGate({ children }) {
   return (
     <div className="admin-gate-overlay">
       <div className="admin-gate-modal">
-        <div className="admin-gate-icon">🛡️</div>
+        <div className="admin-gate-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <rect x="9" y="10" width="6" height="4" rx="1"/>
+            <path d="M12 14v2"/>
+          </svg>
+        </div>
+        
         <h2 className="admin-gate-title">
-          {isRegisterMode ? 'Registro de Sistema' : 'Acceso Administrativo'}
+          {isRegisterMode ? 'Configuración Maestra' : 'Acceso Administrativo'}
         </h2>
         <p className="admin-gate-desc">
           {isRegisterMode 
-            ? 'Configura la cuenta de administrador maestro de Sávit.' 
-            : 'Solo personal autorizado de Sávit.'}
+            ? 'Crea tu superusuario de acceso seguro a Sávit.' 
+            : 'Módulo reservado para directivos Sávit.'}
         </p>
 
         <form onSubmit={handleSubmit} className="admin-gate-form">
-          <input
-            type="email"
-            placeholder="Correo Electrónico"
-            className="input-field"
-            style={{ marginBottom: '12px' }}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            autoComplete="email"
-          />
-          <input
-            type="password"
-            placeholder="Contraseña"
-            className="input-field"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            autoComplete={isRegisterMode ? "new-password" : "current-password"}
-            minLength={isRegisterMode ? 6 : undefined}
-          />
+          <div className="admin-input-group">
+            <input
+              type="email"
+              placeholder="Correo Administrativo"
+              className="admin-input-elite"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              autoComplete="email"
+            />
+          </div>
+          
+          <div className="admin-input-group">
+            <input
+              type="password"
+              placeholder="Clave de seguridad"
+              className="admin-input-elite"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              autoComplete={isRegisterMode ? "new-password" : "current-password"}
+              minLength={isRegisterMode ? 6 : undefined}
+            />
+          </div>
           
           {error && <p className="admin-gate-error">{error}</p>}
           
           <button
             type="submit"
-            className="btn btn-primary w-full mt-md"
+            className="admin-btn-elite"
             disabled={loading}
           >
-            {loading ? <span className="spinner" /> : (isRegisterMode ? 'Crear Administrador' : 'Verificar Identidad')}
+            {loading ? <span className="spinner elite-spinner" /> : (isRegisterMode ? 'CREAR PERFIL MAESTRO' : 'VERIFICAR IDENTIDAD')}
           </button>
         </form>
 
         {adminExists === false && !isRegisterMode && (
           <button
-            className="btn btn-accent w-full mt-sm text-sm"
+            className="admin-btn-text"
             onClick={() => {
               setIsRegisterMode(true);
               setError('');
             }}
           >
-            Registro
+            Aún no hay Superusuarios. <strong>Regístrate</strong>
           </button>
         )}
 
         {isRegisterMode && (
           <button
-            className="btn btn-ghost w-full mt-sm text-sm"
+            className="admin-btn-text"
             onClick={() => {
               setIsRegisterMode(false);
               setError('');
             }}
           >
-            Volver al inicio de sesión
+            Volver a inicio de sesión seguro
           </button>
         )}
 
         {!isRegisterMode && (
           <button
-            className="btn btn-ghost w-full mt-sm text-sm"
+            className="admin-btn-text minimal mt-auto"
             onClick={() => (window.location.href = '/')}
           >
-            Volver a la Tienda
+            Regresar a la tienda
           </button>
         )}
       </div>

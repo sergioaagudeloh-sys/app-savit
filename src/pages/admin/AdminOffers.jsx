@@ -5,8 +5,7 @@ import Header from '../../components/layout/Header';
 import AdminSidebar from '../../components/layout/AdminSidebar';
 import { useStoreConfig } from '../../hooks/useOrders';
 import { useProducts } from '../../hooks/useProducts';
-import { useToast } from '../../hooks/useToast';
-import Toast from '../../components/layout/Toast';
+import { useNotifications } from '../../context/NotificationContext';
 import ProductPicker from '../../components/ui/ProductPicker';
 import './AdminOffers.css';
 
@@ -22,7 +21,7 @@ const DEFAULT_PROMO = {
 export default function AdminOffers() {
   const { config, updateConfig, loading } = useStoreConfig();
   const { products } = useProducts();
-  const { toasts, showToast } = useToast();
+  const { showToast } = useNotifications();
   const navigate = useNavigate();
 
   const [promos, setPromos]                 = useState([]);
@@ -372,8 +371,6 @@ export default function AdminOffers() {
         </>
       )}
 
-
-      <Toast toasts={toasts} />
     </div>
   );
 }

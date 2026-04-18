@@ -233,6 +233,21 @@
   text-transform: uppercase;
 }
 
+.product-badge--promo {
+  background: var(--color-primary);
+  color: white;
+  min-width: 60px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(36, 76, 38, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  animation: badge-float 3s ease-in-out infinite;
+}
+
+@keyframes badge-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
 .product-soldout-overlay {
   position: absolute;
   inset: 0;
@@ -452,6 +467,11 @@
   border-radius: var(--radius-pill);
   font-weight: 800;
   font-size: 0.9rem;
+}
+
+.detail-badge--promo {
+  background: var(--color-primary);
+  box-shadow: 0 4px 12px rgba(36, 76, 38, 0.2);
 }
 
 .detail-content {
@@ -878,6 +898,29 @@
   background: white;
   border-color: var(--color-primary);
   box-shadow: 0 8px 16px rgba(62, 114, 27, 0.1);
+}
+
+.premium-ingredient-card.inactive {
+  opacity: 0.6;
+  filter: grayscale(0.5);
+  cursor: not-allowed;
+  background: #f0f0f0;
+  border-color: #e0e0e0;
+}
+
+.premium-ingredient-card.inactive:hover {
+  transform: none;
+}
+
+.sold-out-tag {
+  font-size: 0.7rem;
+  color: var(--color-danger);
+  font-weight: 700;
+  margin-left: 4px;
+}
+
+.inactive-icon {
+  font-size: 0.9rem;
 }
 
 .ingredient-card-check {

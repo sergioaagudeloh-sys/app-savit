@@ -8,7 +8,7 @@ import CartBadge from '../ui/CartBadge';
 import CustomerWizard from '../ui/CustomerWizard';
 import './Header.css';
 
-export default function Header({ showBack, title, onCartOpen }) {
+export default function Header({ showBack, title, onCartOpen, heroRgb = '26, 58, 28' }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { totalItems, addCount, totalPrice } = useCart();
@@ -45,19 +45,59 @@ export default function Header({ showBack, title, onCartOpen }) {
   const shouldShowBack = showBack || (isAdminRoute && !isDashboard) || (!isAdminRoute && hasHistory && !isClientHome);
 
   const [isScrolled, setIsScrolled] = useState(false);
+  const [scrollOpacity, setScrollOpacity] = useState(0);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 0);
+    const handleScroll = (e) => {
+      // Intentamos detectar el scroll de window
+      let scrollPos = window.scrollY || document.documentElement.scrollTop || 0;
+      
+      // Detectamos scroll de contenedores internos (PWA / div con overflow)
+      if (e && e.target) {
+        if (typeof e.target.scrollTop === 'number') {
+          scrollPos = Math.max(scrollPos, e.target.scrollTop);
+        } else if (e.target.scrollingElement && typeof e.target.scrollingElement.scrollTop === 'number') {
+          scrollPos = Math.max(scrollPos, e.target.scrollingElement.scrollTop);
+        }
+      }
+      
+      // Calcular la opacidad gradualmente
+      // Limitamos la opacidad a 0.92 para conservar el efecto cristal traslúcido
+      const maxScroll = 60;
+      const maxOpacity = 0.92; 
+      const opacity = Math.min(Math.max((scrollPos / maxScroll) * maxOpacity, 0), maxOpacity);
+      setScrollOpacity(opacity);
+      setIsScrolled(scrollPos > 10);
     };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+
+    // Escuchamos en window y en modo captura para atrapar scrolls internos
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    // Captura = true es clave para detectar scroll en divs que no burbujean hacia el window
+    document.addEventListener('scroll', handleScroll, { capture: true, passive: true });
+    
+    // Ejecutamos una vez al inicio
+    handleScroll();
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      document.removeEventListener('scroll', handleScroll, { capture: true });
+    };
   }, []);
 
   const isOrderConfirm = location.pathname === '/order-confirm';
 
+  // Usamos el heroRgb para adaptarse dinámicamente al color del banner subyacente
+  const headerOpacityStyle = {
+    backgroundColor: `rgba(${heroRgb}, ${scrollOpacity})`,
+    boxShadow: scrollOpacity > 0 ? `0 4px 12px rgba(0, 0, 0, ${0.2 * Math.min(scrollOpacity, 1)})` : 'none',
+    borderBottom: scrollOpacity > 0 ? `1px solid rgba(255, 255, 255, ${0.05 * Math.min(scrollOpacity, 1)})` : 'none'
+  };
+
   return (
-    <header className={`header ${isScrolled ? 'header-scrolled' : ''} ${isOrderConfirm ? 'header-dark-icons' : ''}`}>
+    <header 
+      className={`header ${isScrolled ? 'header-scrolled' : ''} ${isOrderConfirm ? 'header-dark-icons' : ''}`}
+      style={headerOpacityStyle}
+    >
       <div className="header-left">
         {shouldShowBack ? (
           <button className="btn-icon header-back" onClick={handleBack} aria-label="Volver">

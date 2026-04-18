@@ -233,7 +233,7 @@ body.dark-mode textarea::placeholder {
 /* Header / bottom nav en dark mode */
 body.dark-mode .header,
 body.dark-mode .bottom-nav {
-  background: rgba(0, 0, 0, 0.92) !important;
+  background: #000000 !important;
   border-color: #111 !important;
   backdrop-filter: blur(20px);
 }
@@ -1920,7 +1920,9 @@ body:has(.drawer) .bottom-nav, body:has(.product-detail-dialog) .bottom-nav, bod
   align-items: center;
   border-bottom: 1px solid var(--color-border);
   flex-shrink: 0;
-  background: var(--color-bg-card);
+  background: var(--color-bg-card) !important;
+  opacity: 1 !important;
+  backdrop-filter: none !important;
   position: sticky;
   top: 0;
   z-index: 2;
@@ -2574,7 +2576,7 @@ body:has(.drawer) .bottom-nav, body:has(.product-detail-dialog) .bottom-nav, bod
 }
 
 .modal-responsive-body {
-  padding: 16px 20px 40px;
+  padding: 16px 20px 100px; /* Aumentado de 40px para evitar recortes con la barra de navegación */
   overflow-y: auto;
   flex: 1;
   -webkit-overflow-scrolling: touch;
@@ -3044,6 +3046,201 @@ header {
 }
 
 .pulse-button {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg,
+      transparent 20%,
+      rgba(255, 255, 255, 0.85) 45%,
+      rgba(255, 255, 255, 0.95) 50%,
+      rgba(255, 255, 255, 0.85) 55%,
+      transparent 80%);
+  transform: translate3d(-100%, 0, 0);
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translate3d(-120%, 0, 0);
+  }
+
+  100% {
+    transform: translate3d(120%, 0, 0);
+  }
+}
+
+@keyframes modalSheetUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes modalScaleIn {
+  from {
+    transform: translate(-50%, -40%) scale(0.95);
+    opacity: 0;
+  }
+
+  to {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+
+.skeleton-t.client-home-header {
+  margin-bottom: 30px;
+}
+
+.client-section-title {
+  margin-bottom: 20px;
+}
+
+/* ???????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????? 
+   ADMIN DESKTOP LAYOUT  ??? 960px
+   ????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????  */
+@media (min-width: 960px) {
+
+  .admin-page .admin-main-content {
+    padding-left: 240px;
+    padding-right: 0;
+    padding-top: var(--header-height);
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .admin-page .bottom-nav {
+    display: none !important;
+  }
+
+  .admin-page .fab {
+    bottom: 32px !important;
+    right: 32px !important;
+  }
+
+  .modal-responsive {
+    top: 50% !important;
+    bottom: auto !important;
+    left: 50% !important;
+    right: auto !important;
+    width: 90% !important;
+    max-width: 660px !important;
+    border-radius: 24px !important;
+    transform: translate(-50%, -50%) !important;
+    max-height: 88vh !important;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28) !important;
+    animation: modalScaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+
+  .admin-page .overlay {
+    left: 0 !important;
+    right: 0 !important;
+  }
+
+  .admin-orders .orders-board-vertical {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    align-items: start;
+  }
+
+  .admin-dashboard .admin-section {
+    margin: 0 0 16px;
+  }
+
+  .admin-config .admin-main-content,
+  .admin-offers .admin-main-content {
+    max-width: none;
+  }
+
+  .admin-page .page-content,
+  .admin-page .page-content--no-nav {
+    padding-bottom: 40px;
+  }
+}
+
+/* Temporarily removed for build debugging
+::view-transition-group(root) {
+  animation-duration: 0.3s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  mix-blend-mode: normal;
+}
+
+[style*="view-transition-name: product-img-"] {
+  contain: layout;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(root) {
+    animation: none;
+  }
+}
+*/
+
+/* Persistent elements to smooth out jumps between pages */
+header {
+  view-transition-name: main-header;
+}
+
+.bottom-nav {
+  view-transition-name: bottom-nav;
+}
+
+/* ?????? Admin Shared Utilities ?????? */
+.premium-card {
+  background: white;
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.card-header-icon {
+  position: absolute;
+  top: -15px;
+  right: -15px;
+  width: 90px;
+  height: 90px;
+  background: var(--color-bg-soft);
+  opacity: 0.85;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  transform: rotate(15deg);
+  font-size: 2.2rem;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.animate-slide-down {
+  animation: slideDown 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.pulse-button {
   animation: pulse-shadow 2s infinite;
 }
 
@@ -3079,7 +3276,6 @@ header {
     0 8px 24px rgba(0, 0, 0, 0.22),
     0 0 0 3px rgba(132, 175, 36, 0.35);
   will-change: transform, opacity;
-  /* Las imágenes dentro del ghost se estiran para cubrir el círculo */
 }
 
 .cart-fly-ghost img {
@@ -3089,7 +3285,6 @@ header {
   border-radius: 50%;
 }
 
-/* Pulso en el botón del carrito cuando el ghost aterriza */
 @keyframes cartBtnLand {
   0%   { transform: scale(1); box-shadow: 0 0 0 0 rgba(132, 175, 36, 0.6); }
   35%  { transform: scale(1.28); box-shadow: 0 0 0 8px rgba(132, 175, 36, 0.2); }
@@ -3111,15 +3306,7 @@ header {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* 2. ACELERACIÓN POR HARDWARE PARA PÁGINAS PRINCIPALES Y NAV */
-/* Esto obliga a usar la GPU sincronizado a los Hz de tu celular/monitor */
-.home,
-.home-page,
-.inventory-container,
-.favorites-page,
-.cart-page,
-.admin-dashboard,
-.desktop-main-content,
+/* 2. ACELERACIÓN POR HARDWARE PARA ELEMENTOS FIJOS */
 .bottom-nav,
 .mobile-header,
 .desktop-sidebar {
@@ -3179,8 +3366,10 @@ button:active,
 }
 
 .error-boundary-icon svg {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  display: block;
 }
 
 .error-boundary-title {

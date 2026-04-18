@@ -1,5 +1,5 @@
 // src/pages/Welcome.jsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCustomer } from '../context/CustomerContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -27,14 +27,16 @@ export default function Welcome() {
   }, [isEntering, isIdentified, navigate]);
 
   const onDrag = (event, info) => {
-    // Detect movement in real time
-    if (!isEntering && info.offset.y < -40) {
-      if (window.navigator && window.navigator.vibrate) {
-        window.navigator.vibrate(50); // Small tactile click
-      }
+    if (isEntering) return;
+
+    // Trigger Activation
+    if (info.offset.y < -75) {
       setIsEntering(true);
-      // The useEffect will handle the navigation/wizard logic
     }
+  };
+
+  const onDragEnd = () => {
+    // removed audio references
   };
 
   const handleWizardClose = () => {
@@ -58,7 +60,7 @@ export default function Welcome() {
         </motion.button>
       )}
 
-      {/* 1. TOP SECTION: THE FACADE IMAGE (IMMERSIVE ENGINE) */}
+      {/* 1. TOP SECTION: THE FACADE IMAGE */}
       <div className="welcome-top-section">
         <motion.img
           src="/facade_v_final_v2.jpg?v=2" 
@@ -70,7 +72,7 @@ export default function Welcome() {
           }}
           transition={{
             duration: 0.85, 
-            ease: "easeIn", // Immersive speed
+            ease: "easeIn",
           }}
           onError={(e) => {
             e.target.src = "/facade.jpg";
@@ -78,7 +80,7 @@ export default function Welcome() {
         />
       </div>
 
-      {/* 2. BOTTOM SECTION: CURVED MODAL (Compact & Lowered) */}
+      {/* 2. BOTTOM SECTION: CURVED MODAL */}
       <motion.div 
         className="welcome-bottom-section"
         animate={{
@@ -86,7 +88,6 @@ export default function Welcome() {
         }}
         transition={{ duration: 0.8, ease: "easeIn" }}
       >
-        {/* INTERACTION BADGE (Now clearly inside the banner) */}
         <div className="welcome-badge-trigger-wrap">
           <motion.div 
             className="swipe-hint"
@@ -102,13 +103,11 @@ export default function Welcome() {
             dragConstraints={{ top: -100, bottom: 0 }}
             dragElastic={0.2}
             onDrag={onDrag}
-            whileDrag={{ scale: 1.1 }}
+            onDragEnd={onDragEnd}
+            whileDrag={{ scale: 1.15 }}
             className="welcome-brand-badge interactive-badge"
           >
-            {/* The outer pulse ring expands outside without absolute transform trickery */}
             <div className="badge-pulse-ring"></div>
-            
-            {/* The inner clipping sphere for the shimmer and the logo */}
             <div className="badge-inner-clipping">
               <div className="badge-shimmer"></div>
               <img 
@@ -120,7 +119,6 @@ export default function Welcome() {
           </motion.div>
         </div>
 
-        {/* TEXT CONTENT (Compact at the bottom) */}
         <div className="welcome-content-wrap">
           <h1 className="welcome-title-split">Cuidamos Tu Bienestar</h1>
           <p className="welcome-subtitle-split">
@@ -128,20 +126,19 @@ export default function Welcome() {
           </p>
         </div>
 
-        {/* FOOTER */}
         <footer className="welcome-footer-tag">
           Sávit — Mercado Saludable
         </footer>
       </motion.div>
 
-      {/* 3. PERSISTENT FLASH COVER */}
+      {/* 3. PERSISTENT FLASH COVER (Premium Transition) */}
       <AnimatePresence>
         {isEntering && (
           <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.65, duration: 0.3 }}
-            className="entry-flash-overlay"
+            initial={{ opacity: 0, backdropFilter: 'blur(0px)' }}
+            animate={{ opacity: 1, backdropFilter: 'blur(15px)' }}
+            transition={{ delay: 0.4, duration: 0.5 }}
+            className="entry-flash-overlay premium-fade"
           />
         )}
       </AnimatePresence>
