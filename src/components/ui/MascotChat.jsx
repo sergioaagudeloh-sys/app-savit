@@ -212,7 +212,7 @@ export default function MascotChat({ onClose }) {
       `(SISTEMA: El cliente acaba de agregar "${productName}" — lleva ${totalItems} productos en el carrito. ` +
       `${cartSummary} Usa el MODO_CIERRE de la Regla 9: celebra su selección mencionando ` +
       `cómo combinan los productos, genera confianza para finalizar y termina con ` +
-      `[ACTION:Finalizar pedido ✅|TECH:GO_TO_CART] y [ACTION:Seguir agregando 🛒|TECH:OPEN_CART].)`
+      `[ACTION:Finalizar pedido ✅|TECH:GO_TO_CART] y [ACTION:Seguir agregando 🛒|/].)`
     );
   };
 

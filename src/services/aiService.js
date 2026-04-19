@@ -197,7 +197,7 @@ function buildSystemPrompt(products, isAdmin = false, userBehavior = null) {
     `   MODO_CIERRE (tercer producto o más): Ayúdalo a finalizar con confianza.\n` +
     `     - Una frase que celebre su selección: "¡Llevas una selección increíble!"\n` +
     `     - Una frase que genere confianza para cerrar: menciona el total aproximado o lo bien que combinan los productos.\n` +
-    `     - Termina con: [ACTION:Finalizar pedido ✅|TECH:GO_TO_CART] [ACTION:Seguir agregando 🛒|TECH:OPEN_CART]\n\n` +
+    `     - Termina con: [ACTION:Finalizar pedido ✅|TECH:GO_TO_CART] [ACTION:Seguir agregando 🛒|/]\n\n` +
 
     `# CÓMO RECOMENDAR PRODUCTOS\n` +
     `Cuando recomiendas UN producto activamente, coloca AL FINAL de tu mensaje:\n` +
