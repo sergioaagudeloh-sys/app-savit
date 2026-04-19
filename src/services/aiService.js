@@ -12,8 +12,11 @@ async function fetchWithRetry(url, options, maxRetries = 3) {
   let lastResponse;
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     const response = await fetch(url, options);
-    if (response.status !== 429) return response;
+    if (response.status !== 429 && response.status !== 503) return response;
+    
+    await response.text().catch(() => {}); // Liberar conexión
     lastResponse = response;
+    
     if (attempt < maxRetries - 1) {
       await new Promise(r => setTimeout(r, Math.pow(2, attempt) * 1000));
     }
@@ -353,28 +356,30 @@ export async function sendMessageToAI(
       }),
     };
 
-    if (shouldStream) {
-      // Streaming: no usar fetchWithRetry (no compatible con streams)
-      const response = await fetch(GROQ_API_URL, requestOptions);
-      if (response.status === 429) {
-        throw new Error('Sávit está muy ocupada ahora 🌿. Espera unos segundos e intenta de nuevo.');
-      }
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error(err?.error?.message || `Error de API: ${response.status}`);
-      }
-      return await consumeStream(response, onChunk);
+    let response = await fetchWithRetry(GROQ_API_URL, requestOptions);
+
+    // Fallback a modelo más rápido/ligero si hay 429
+    if (response.status === 429 && model === GROQ_MODEL_CLIENT) {
+      const fallbackOptions = {
+        ...requestOptions,
+        body: JSON.stringify({
+          ...JSON.parse(requestOptions.body),
+          model: GROQ_MODEL_ADMIN
+        }),
+      };
+      response = await fetchWithRetry(GROQ_API_URL, fallbackOptions, 2);
     }
 
-    // Sin streaming (admin o fallback)
-    const response = await fetchWithRetry(GROQ_API_URL, requestOptions);
-
-    if (response.status === 429) {
+    if (response.status === 429 || response.status === 503) {
       throw new Error('Sávit está muy ocupada ahora 🌿. Espera unos segundos e intenta de nuevo.');
     }
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData?.error?.message || `Error de API: ${response.status}`);
+    }
+
+    if (shouldStream) {
+      return await consumeStream(response, onChunk);
     }
 
     const data = await response.json();

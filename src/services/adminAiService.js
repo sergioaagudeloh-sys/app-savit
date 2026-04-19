@@ -14,8 +14,11 @@ async function fetchWithRetry(url, options, maxRetries = 3) {
   let lastResponse;
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     const response = await fetch(url, options);
-    if (response.status !== 429) return response;
+    if (response.status !== 429 && response.status !== 503) return response;
+    
+    await response.text().catch(() => {}); // Liberar conexión
     lastResponse = response;
+    
     if (attempt < maxRetries - 1) {
       await new Promise(r => setTimeout(r, Math.pow(2, attempt) * 1000));
     }
@@ -26,10 +29,10 @@ async function fetchWithRetry(url, options, maxRetries = 3) {
 // ─── Streaming SSE (mismo patrón que aiService.js) ────────────────────────────
 // MEJORA 3 FIX: Admin ahora también tiene streaming
 async function consumeStream(response, onChunk) {
-  const reader  = response.body.getReader();
+  const reader = response.body.getReader();
   const decoder = new TextDecoder();
-  let fullText  = '';
-  let buffer    = '';
+  let fullText = '';
+  let buffer = '';
 
   while (true) {
     const { value, done } = await reader.read();
@@ -46,7 +49,7 @@ async function consumeStream(response, onChunk) {
 
       try {
         const parsed = JSON.parse(data);
-        const token  = parsed.choices?.[0]?.delta?.content || '';
+        const token = parsed.choices?.[0]?.delta?.content || '';
         if (token) {
           fullText += token;
           onChunk(fullText);
@@ -61,12 +64,12 @@ async function consumeStream(response, onChunk) {
 function detectContextNeeds(message) {
   const msg = (message || '').toLowerCase();
   return {
-    needsOrders:       /pedido|orden|pendiente|cliente|entrega|cancel|compra|histori/.test(msg),
-    needsStock:        /stock|inventario|producto|agotado|quedan|unidades|existencia/.test(msg),
-    needsRevenue:      /venta|ingreso|ganancia|dinero|plata|balance|factur|ticket|cuanto|revenue/.test(msg),
-    needsTopProducts:  /popular|top|más vendido|tendencia|estrella|demand/.test(msg),
-    needsConfig:       /tienda|config|abierto|cerrado|pago|banco|horario|domicilio/.test(msg),
-    needsProjections:  /proyecci|estimaci|cuánto vender|proyecto|mes que viene|próximo mes/.test(msg),
+    needsOrders: /pedido|orden|pendiente|cliente|entrega|cancel|compra|histori/.test(msg),
+    needsStock: /stock|inventario|producto|agotado|quedan|unidades|existencia/.test(msg),
+    needsRevenue: /venta|ingreso|ganancia|dinero|plata|balance|factur|ticket|cuanto|revenue/.test(msg),
+    needsTopProducts: /popular|top|más vendido|tendencia|estrella|demand/.test(msg),
+    needsConfig: /tienda|config|abierto|cerrado|pago|banco|horario|domicilio/.test(msg),
+    needsProjections: /proyecci|estimaci|cuánto vender|proyecto|mes que viene|próximo mes/.test(msg),
   };
 }
 
@@ -87,9 +90,9 @@ function buildBaseSnapshot(orders, products, config) {
     }
   });
 
-  const pendingCount   = orders.filter(o => o.status === 'pending').length;
+  const pendingCount = orders.filter(o => o.status === 'pending').length;
   const activeProducts = products.filter(p => p.active).length;
-  const soldOutCount   = products.filter(p => p.active && p.soldOut).length;
+  const soldOutCount = products.filter(p => p.active && p.soldOut).length;
 
   return (
     `=== SÁVIT — RESUMEN EJECUTIVO (${today}) ===\n` +
@@ -103,10 +106,10 @@ function buildBaseSnapshot(orders, products, config) {
 // ─── Módulo INGRESOS ──────────────────────────────────────────────────────────
 function buildRevenueSection(orders) {
   const completed = orders.filter(isEffectiveOrder);
-  const totalRev  = completed.reduce((s, o) => s + (o.totalWithDelivery || o.total || 0), 0);
+  const totalRev = completed.reduce((s, o) => s + (o.totalWithDelivery || o.total || 0), 0);
   const avgTicket = completed.length > 0 ? Math.round(totalRev / completed.length) : 0;
-  const weekAgo   = Date.now() - 7 * 24 * 60 * 60 * 1000;
-  const weekRev   = completed
+  const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const weekRev = completed
     .filter(o => getOrderDate(o).getTime() > weekAgo)
     .reduce((s, o) => s + (o.totalWithDelivery || o.total || 0), 0);
 
@@ -121,7 +124,7 @@ function buildRevenueSection(orders) {
 // ─── Módulo PEDIDOS ───────────────────────────────────────────────────────────
 function buildOrdersSection(orders) {
   const pending = orders.filter(o => o.status === 'pending').slice(0, 5);
-  const recent  = orders.filter(o => isEffectiveOrder(o)).slice(0, 3);
+  const recent = orders.filter(o => isEffectiveOrder(o)).slice(0, 3);
 
   let section = '\n\n--- PEDIDOS ---';
 
@@ -148,8 +151,8 @@ function buildOrdersSection(orders) {
 // ─── Módulo STOCK ─────────────────────────────────────────────────────────────
 function buildStockSection(products) {
   const critical = products.filter(p => p.active && !p.soldOut && p.stock != null && p.stock <= 5 && p.stock > 0);
-  const soldOut  = products.filter(p => p.active && p.soldOut);
-  const healthy  = products.filter(p => p.active && !p.soldOut).length;
+  const soldOut = products.filter(p => p.active && p.soldOut);
+  const healthy = products.filter(p => p.active && !p.soldOut).length;
 
   let section = `\n\n--- INVENTARIO ---\n- Disponibles: ${healthy} | Agotados: ${soldOut.length}`;
 
@@ -196,12 +199,12 @@ function buildProjectionsSection(orders) {
   const completed = orders.filter(isEffectiveOrder);
   if (completed.length < 2) return '';
 
-  const now        = Date.now();
-  const weekAgo    = now - 7 * 24 * 60 * 60 * 1000;
+  const now = Date.now();
+  const weekAgo = now - 7 * 24 * 60 * 60 * 1000;
   const weekOrders = completed.filter(o => getOrderDate(o).getTime() > weekAgo);
-  const weekRev    = weekOrders.reduce((s, o) => s + (o.totalWithDelivery || o.total || 0), 0);
-  const dailyAvg   = weekRev / 7;
-  const projected  = Math.round(dailyAvg * 30);
+  const weekRev = weekOrders.reduce((s, o) => s + (o.totalWithDelivery || o.total || 0), 0);
+  const dailyAvg = weekRev / 7;
+  const projected = Math.round(dailyAvg * 30);
 
   return (
     `\n\n--- PROYECCIONES ---\n` +
@@ -242,11 +245,11 @@ export function buildBusinessSnapshot(orders, products, config, userMessage = ''
   let snapshot = buildBaseSnapshot(orders, products, config);
   snapshot += buildProactiveAlerts(orders, products);
 
-  if (needs.needsRevenue)     snapshot += buildRevenueSection(orders);
-  if (needs.needsOrders)      snapshot += buildOrdersSection(orders);
-  if (needs.needsStock)       snapshot += buildStockSection(products);
+  if (needs.needsRevenue) snapshot += buildRevenueSection(orders);
+  if (needs.needsOrders) snapshot += buildOrdersSection(orders);
+  if (needs.needsStock) snapshot += buildStockSection(products);
   if (needs.needsTopProducts) snapshot += buildTopProductsSection(orders);
-  if (needs.needsConfig)      snapshot += buildConfigSection(config);
+  if (needs.needsConfig) snapshot += buildConfigSection(config);
   if (needs.needsProjections) snapshot += buildProjectionsSection(orders);
 
   return snapshot;
@@ -259,19 +262,19 @@ export function buildBusinessSnapshot(orders, products, config, userMessage = ''
  */
 export function buildProactiveGreeting(orders, products) {
   try {
-    const hour      = new Date().getHours();
-    const saludo    = hour < 12 ? 'Buenos días' : hour < 18 ? 'Buenas tardes' : 'Buenas noches';
+    const hour = new Date().getHours();
+    const saludo = hour < 12 ? 'Buenos días' : hour < 18 ? 'Buenas tardes' : 'Buenas noches';
 
-    const today     = new Date().toISOString().split('T')[0];
+    const today = new Date().toISOString().split('T')[0];
     const completed = orders.filter(isEffectiveOrder);
-    const pending   = orders.filter(o => o.status === 'pending');
+    const pending = orders.filter(o => o.status === 'pending');
 
-    const todayRev  = completed
+    const todayRev = completed
       .filter(o => getOrderDate(o).toISOString().split('T')[0] === today)
       .reduce((s, o) => s + (o.totalWithDelivery || o.total || 0), 0);
 
-    const critical  = products.filter(p => p.active && !p.soldOut && p.stock != null && p.stock <= 3 && p.stock > 0);
-    const soldOut   = products.filter(p => p.active && p.soldOut);
+    const critical = products.filter(p => p.active && !p.soldOut && p.stock != null && p.stock <= 3 && p.stock > 0);
+    const soldOut = products.filter(p => p.active && p.soldOut);
     const available = products.filter(p => p.active && !p.soldOut).length;
 
     const lines = [`${saludo} 💎 Aquí tu resumen ejecutivo:\n`];
@@ -350,13 +353,13 @@ export async function sendMessageToAnalyst(
 ) {
   try {
     const businessSnapshot = buildBusinessSnapshot(orders || [], products || [], config, userMessage);
-    const systemPrompt     = buildAdminSystemPrompt(businessSnapshot, currentPage);
-    const shouldStream     = typeof onChunk === 'function';
+    const systemPrompt = buildAdminSystemPrompt(businessSnapshot, currentPage);
+    const shouldStream = typeof onChunk === 'function';
 
     const messages = [
       { role: 'system', content: String(systemPrompt || '') },
       ...(conversationHistory || []).slice(-6).map(msg => ({
-        role:    msg.role === 'user' ? 'user' : 'assistant',
+        role: msg.role === 'user' ? 'user' : 'assistant',
         content: String(msg.text || ''),
       })),
       { role: 'user', content: String(userMessage || '') },
@@ -365,34 +368,32 @@ export async function sendMessageToAnalyst(
     const requestOptions = {
       method: 'POST',
       headers: {
-        'Content-Type':  'application/json',
+        'Content-Type': 'application/json',
         'Authorization': `Bearer ${GROQ_API_KEY}`,
       },
       body: JSON.stringify({
-        model:       GROQ_MODEL,
+        model: GROQ_MODEL,
         messages,
         temperature: 0.3,
-        max_tokens:  600,
-        stream:      shouldStream,
+        max_tokens: 600,
+        stream: shouldStream,
       }),
     };
 
-    if (shouldStream) {
-      const response = await fetch(GROQ_API_URL, requestOptions);
-      if (response.status === 429) {
-        throw new Error('El Analista está procesando muchos datos 📈. Reintenta en unos segundos.');
-      }
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error(err?.error?.message || `Error de API: ${response.status}`);
-      }
-      return await consumeStream(response, onChunk);
-    }
-
-    // Sin streaming: fallback normal
-    const response = await fetchWithRetry(GROQ_API_URL, requestOptions);
+    let response = await fetchWithRetry(GROQ_API_URL, requestOptions);
 
     if (response.status === 429) {
+      const fallbackOptions = {
+        ...requestOptions,
+        body: JSON.stringify({
+          ...JSON.parse(requestOptions.body),
+          model: 'llama-3.1-8b-instant'
+        }),
+      };
+      response = await fetchWithRetry(GROQ_API_URL, fallbackOptions, 2);
+    }
+
+    if (response.status === 429 || response.status === 503) {
       throw new Error('El Analista está procesando muchos datos 📈. Reintenta en unos segundos.');
     }
     if (!response.ok) {
@@ -400,8 +401,12 @@ export async function sendMessageToAnalyst(
       throw new Error(errorData?.error?.message || `Error de API: ${response.status}`);
     }
 
+    if (shouldStream) {
+      return await consumeStream(response, onChunk);
+    }
+
     const data = await response.json();
-    const text  = data.choices?.[0]?.message?.content;
+    const text = data.choices?.[0]?.message?.content;
     if (!text) throw new Error('Respuesta vacía del servidor.');
     return String(text).trim();
 
