@@ -293,24 +293,26 @@ export default function MascotChat({ onClose }) {
         );
       } else {
         // Cliente: usa el Vendedor Élite con streaming
+        const safeOrders = orders || [];
+        const safeCart = cartItems || [];
         const userBehavior = {
           interests:    getProductInterests(),
-          recentOrders: orders.slice(0, 5),
+          recentOrders: safeOrders.slice(0, 5),
           currentPage:  location.pathname,
           cart: {
-            itemCount: cartItems.length,
-            items:     cartItems.map(i => ({ name: i.name, qty: i.quantity, price: i.price })),
-            total:     totalPrice,
-            isEmpty:   cartItems.length === 0,
+            itemCount: safeCart.length,
+            items:     safeCart.map(i => ({ name: i.name, qty: i.quantity, price: i.price })),
+            total:     totalPrice || 0,
+            isEmpty:   safeCart.length === 0,
           },
-          activeOrder: orders[0] ? {
-            id:           orders[0].id,
-            status:       orders[0].status,
-            total:        orders[0].total,
-            itemsSummary: (orders[0].items || []).map(i => i.name).join(', '),
+          activeOrder: safeOrders[0] ? {
+            id:           safeOrders[0].id,
+            status:       safeOrders[0].status,
+            total:        safeOrders[0].total,
+            itemsSummary: (safeOrders[0].items || []).map(i => i.name).join(', '),
           } : null,
           // MEJORA 1: Historial de productos comprados para upsell personalizado
-          purchaseHistory: orders
+          purchaseHistory: safeOrders
             .filter(o => ['delivered', 'completed', 'entregado'].includes((o.status || '').toLowerCase()))
             .slice(0, 5)
             .flatMap(o => (o.items || []).map(i => i.name))
@@ -584,7 +586,16 @@ export default function MascotChat({ onClose }) {
                   <div className={`chat-msg-bubble${isStreaming ? ' streaming' : ''}`}>
                     {cleanText
                       ? formatMessage(msg.text)
-                      : isStreaming && <span className="streaming-cursor">▋</span>
+                      : isStreaming && (
+                        <div className="typing-indicator-container">
+                          <span>{isAdmin ? 'Analizando' : 'Sávit AI está escribiendo'}</span>
+                          <div className="typing-indicator">
+                            <span className="typing-dot" />
+                            <span className="typing-dot" />
+                            <span className="typing-dot" />
+                          </div>
+                        </div>
+                      )
                     }
 
                     {/* Botones de acción */}

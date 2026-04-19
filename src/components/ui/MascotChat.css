@@ -365,6 +365,20 @@
 }
 
 /* Typing indicator */
+.typing-indicator-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-style: italic;
+  color: #5c7c68;
+}
+
+.typing-indicator-container .typing-indicator {
+  padding: 0;
+  gap: 3px;
+}
+
 .typing-indicator {
   display: flex;
   gap: 4px;
