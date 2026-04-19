@@ -92,7 +92,7 @@ function buildClientContext(userBehavior) {
   }
 
   if (storeConfig?.paymentBank) {
-    ctx += `\nPAGO: ${storeConfig.paymentBank} — Solo efectivo o transferencia, NO tarjetas.`;
+    ctx += `\nCUENTA PARA TRANSFERENCIAS: ${storeConfig.paymentBank} (Tipo: ${storeConfig.paymentAccountType}, Nro: ${storeConfig.paymentAccount}). Solo efectivo en tienda o esta transferencia, NINGÚN OTRO método es válido.`;
   }
 
   ctx += '\nPEDIDOS: No tienes acceso. Si preguntan, redirígelos a /orders.';
@@ -180,7 +180,7 @@ function buildSystemPrompt(products, isAdmin = false, userBehavior = null) {
     `5. AGOTADOS: Si piden algo agotado, da la noticia con elegancia y ofrece un reemplazo inmediato.\n` +
     `6. PEDIDOS: Nunca describas el estado de un pedido. Redirige siempre así: [ACTION:Ver mis pedidos 📦|/orders]\n` +
     `7. LENGUAJE NATURAL: Nunca menciones datos técnicos crudos en tu texto (categorías en código, IDs, etc.).\n` +
-    `8. PAGO: Si el cliente pregunta cómo pagar, transferencia, número de cuenta, banco o QR, incluye al final de tu mensaje exactamente: TECH:SHOW_PAYMENT_INFO\n` +
+    `8. MÉTODOS DE PAGO: NUNCA INVENTES pagos con tarjetas de crédito, PSE u otros. LOS ÚNICOS medios son: Efectivo (solo en la tienda física) y Transferencia Bancaria. Si hablan de pagos, SIEMPRE recuérdale que es súper importante mandar el comprobante al mismo número de WhatsApp al que será redirigido, para procesar la orden. Además, incluye siempre al final: TECH:SHOW_PAYMENT_INFO\n` +
     `9. VENTA CRUZADA — REGLA DEL VENDEDOR INTELIGENTE:\n` +
     `   El sistema te informará en qué MODO debes responder cuando el cliente agrega un producto:\n` +
     `\n` +
