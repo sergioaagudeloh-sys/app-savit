@@ -66,10 +66,29 @@ export default function AdminSubscriptions() {
     }
   };
 
-  const getNextPaymentLabel = (day) => {
+  const handleMarkAsPaid = async (sub) => {
+    const now = new Date();
+    const currentMonthKey = `${now.getFullYear()}-${now.getMonth() + 1}`;
+    try {
+      await updateSubscription(sub.id, { lastPaidMonth: currentMonthKey });
+      showToast('Pago registrado correctamente', 'success');
+    } catch (err) {
+      showToast('Error al registrar pago', 'error');
+    }
+  };
+
+  const getNextPaymentLabel = (sub) => {
+    const day = sub.dayOfMonth;
     if (!day) return 'Sin fecha';
+    
     const today = new Date();
     const currentDay = today.getDate();
+    const currentMonthKey = `${today.getFullYear()}-${today.getMonth() + 1}`;
+    
+    if (sub.lastPaidMonth === currentMonthKey) {
+      return '✅ Pagado';
+    }
+
     if (day === currentDay) return 'Hoy';
     if (day === currentDay + 1) return 'Mañana';
     if (day < currentDay) return 'Próximo mes';
@@ -106,8 +125,9 @@ export default function AdminSubscriptions() {
 
         <div className="admin-page-content">
 
-          {/* Centered Action Button */}
-          <div className="inv-toolbar-base centered-toolbar">
+          {/* Action Button */}
+          <div className="inv-toolbar-base">
+            <div style={{ flex: 1 }} />
             <button
               className={`inv-action-btn ${showForm ? 'secondary' : 'primary'} ripple`}
               onClick={showForm ? handleCancel : handleOpenNew}
@@ -227,7 +247,8 @@ export default function AdminSubscriptions() {
                   delay={idx * 0.05}
                   onToggle={() => toggleActive(sub)}
                   onDelete={() => handleDelete(sub.id)}
-                  label={getNextPaymentLabel(sub.dayOfMonth)}
+                  onMarkPaid={handleMarkAsPaid}
+                  label={getNextPaymentLabel(sub)}
                 />
               ))}
             </div>
@@ -237,7 +258,7 @@ export default function AdminSubscriptions() {
   );
 }
 
-function SubscriptionCard({ sub, delay, onToggle, onDelete, label }) {
+function SubscriptionCard({ sub, delay, onToggle, onDelete, onMarkPaid, label }) {
   const swipeHandlers = useSwipe({
     onSwipeLeft: onDelete,
     threshold: 80
@@ -307,6 +328,21 @@ function SubscriptionCard({ sub, delay, onToggle, onDelete, label }) {
         </div>
 
         <div className="sub-actions-elite">
+          {(!sub.lastPaidMonth || sub.lastPaidMonth !== `${new Date().getFullYear()}-${new Date().getMonth() + 1}`) ? (
+            <button
+              className="btn btn-primary btn-sm"
+              style={{ fontSize: '0.7rem', padding: '4px 12px', borderRadius: '20px' }}
+              onClick={(e) => { e.stopPropagation(); onMarkPaid(sub); }}
+              title="Marcar como Pagado este mes"
+            >
+              PAGAR ✓
+            </button>
+          ) : (
+            <span style={{ fontSize: '0.7rem', fontWeight: 'bold', color: 'var(--color-success)', marginRight: '8px' }}>
+              ✓ AL DÍA
+            </span>
+          )}
+
           <button
             className="sub-btn-icon"
             onClick={(e) => { e.stopPropagation(); onToggle(); }}

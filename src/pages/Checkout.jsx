@@ -108,7 +108,7 @@ export default function Checkout() {
       });
 
       // Notificar al admin
-      addNotification({
+      await addNotification({
         title: '¡Nuevo Pedido Recibido! 🛍️',
         message: `El cliente ${form.name} ha realizado un pedido #${orderId}.`,
         orderId: orderId,

@@ -207,16 +207,25 @@ export default function AdminDashboard() {
         {/* ── Content Area ── */}
         <div className="admin-page-content">
           
-          {/* Pending orders alert (Prominent) - NOW AT TOP */}
+          {/* Pending orders alert (Prominent Elite Design) */}
           {stats.pendingCount > 0 && (
-            <Link to="/admin/orders" className="dash-alert-banner" style={{ textDecoration: 'none', marginBottom: '6px' }}>
-              <span className="dash-alert-icon">🔔</span>
-              <div className="dash-alert-body">
-                <strong>Tienes {stats.pendingCount} pedido{stats.pendingCount > 1 ? 's' : ''} pendiente{stats.pendingCount > 1 ? 's' : ''}</strong>
-                <span>Toca aquí para gestionarlos</span>
-              </div>
-              <span className="dash-alert-arrow">❯</span>
-            </Link>
+            <div style={{ marginBottom: '16px', padding: '0 4px', position: 'relative', zIndex: 20 }}>
+              <Link to="/admin/orders" className="elite-alert-banner">
+                <div className="elite-alert-glow"></div>
+                <div className="elite-alert-icon-wrapper">
+                  <span className="elite-alert-icon">🔔</span>
+                  <span className="elite-alert-badge">{stats.pendingCount}</span>
+                </div>
+                <div className="elite-alert-body">
+                  <span className="elite-alert-title">Pedidos Pendientes</span>
+                  <span className="elite-alert-subtitle">Requieren tu atención inmediata</span>
+                </div>
+                <div className="elite-alert-action">
+                  <span>Gestionar</span>
+                  <span className="elite-alert-arrow">➔</span>
+                </div>
+              </Link>
+            </div>
           )}
 
           {/* Smart Promotions Grid (Responsive) */}

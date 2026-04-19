@@ -1,10 +1,12 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../../context/CartContext';
 import { useStoreConfig, useOrders } from '../../hooks/useOrders';
 import { useSwipeToDismiss } from '../../hooks/useSwipeToDismiss';
 import { useSwipeToDelete } from '../../hooks/useSwipeToDelete';
-import { vibrateSuccess, vibrateTap } from '../../utils/haptics';
+import { vibrateSuccess, vibrateTap, vibrateWarning } from '../../utils/haptics';
 import { formatCOP } from '../../utils/formatters';
 import EmptyState from '../common/EmptyState';
 import './CartDrawer.css';
@@ -49,13 +51,14 @@ function CartItem({ item, onUpdateQty, onRemove }) {
 }
 
 // CartDrawer – montado por App.jsx sólo cuando isCartOpen es true
-// Por eso NO necesita el guard `if (!isOpen) return null`
 export default function CartDrawer({ onClose }) {
   const navigate = useNavigate();
   const { items, totalPrice, totalItems, updateQty, removeItem, clearCart } = useCart();
   const { config } = useStoreConfig();
   const { activeOrders } = useOrders();
   const drawerRef = useRef(null);
+  
+  const [showConfirmClear, setShowConfirmClear] = useState(false);
 
   // 🎯 Swipe-to-dismiss: deslizar hacia abajo cierra el carrito
   useSwipeToDismiss(drawerRef, onClose, { threshold: 80, direction: 'down' });
@@ -71,21 +74,82 @@ export default function CartDrawer({ onClose }) {
     navigate('/checkout');
   };
 
+  const confirmClear = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    vibrateWarning();
+    setShowConfirmClear(true);
+  };
+
+  const handleClear = () => {
+    vibrateSuccess();
+    clearCart();
+    setShowConfirmClear(false);
+  };
+
   return (
     <>
-      {/* Overlay oscuro */}
-      <div className="overlay" onClick={onClose} />
+      {/* Modal de Confirmación de Vaciar (Prioridad de renderizado vía Portal) */}
+      {createPortal(
+        <AnimatePresence>
+          {showConfirmClear && (
+            <motion.div 
+              key="confirm-modal-overlay"
+              className="confirm-modal-overlay" 
+              style={{ zIndex: 999999 }} // Inline para sobreescribir cualquier conflicto
+              onClick={() => setShowConfirmClear(false)}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <motion.div 
+                key="confirm-modal-box"
+                className="confirm-modal"
+                onClick={e => e.stopPropagation()}
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="confirm-modal-icon">🗑️</div>
+                <h3 className="confirm-modal-title">¿Vaciar carrito?</h3>
+                <p className="confirm-modal-text">Se eliminarán todos los productos que has seleccionado.</p>
+                <div className="confirm-modal-actions">
+                  <button className="btn btn-ghost" onClick={() => setShowConfirmClear(false)}>Cancelar</button>
+                  <button className="btn btn-danger" onClick={handleClear}>Vaciar Todo</button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
+
+      {/* Overlay oscuro principal */}
+      <motion.div 
+        className="overlay" 
+        onClick={onClose}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      />
 
       {/* Panel deslizable */}
-      <div className="drawer cart-drawer" ref={drawerRef}>
+      <motion.div 
+        className="drawer cart-drawer" 
+        ref={drawerRef}
+        initial={{ y: "100%" }}
+        animate={{ y: 0 }}
+        exit={{ y: "100%" }}
+        transition={{ type: "spring", damping: 25, stiffness: 300 }}
+      >
         <div className="drawer-handle" />
 
         <div className="cart-drawer-header">
           <h2 className="cart-drawer-title">Mi Carrito 🛒</h2>
           <div className="cart-header-actions">
-            {items.length > 0 && (
-              <button className="cart-clear-btn" onClick={() => { vibrateTap(); clearCart(); }}>Vaciar</button>
-            )}
             <button className="cart-close-btn" onClick={() => { vibrateTap(); onClose(); }} aria-label="Cerrar carrito">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M18 6L6 18M6 6l12 12"/>
@@ -95,28 +159,35 @@ export default function CartDrawer({ onClose }) {
         </div>
 
         {/* Pedidos en curso */}
-        {activeOrders?.length > 0 && items.length > 0 && (
-          <div className="cart-orders-progress">
-            <div className="cart-orders-title">Pedidos en curso</div>
-            <div className="cart-orders-list">
-              {activeOrders.map(order => (
-                <div
-                  key={order.id}
-                  className="cart-order-item"
-                  onClick={() => { vibrateTap(); onClose(); navigate('/order-confirm', { state: { orderId: order.id } }); }}
-                >
-                  <div className="cart-order-info">
-                    <span className="cart-order-id">Pedido #{order.id}</span>
-                    <span className={`cart-order-status status-${order.status}`}>
-                      {order.status === 'pending' ? 'Pendiente ⏳' : order.status === 'approved' ? 'Aprobado ✅' : 'Pagado 💎'}
-                    </span>
+        <AnimatePresence>
+          {activeOrders?.length > 0 && items.length > 0 && (
+            <motion.div 
+              className="cart-orders-progress"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+            >
+              <div className="cart-orders-title">Pedidos en curso</div>
+              <div className="cart-orders-list">
+                {activeOrders.map(order => (
+                  <div
+                    key={order.id}
+                    className="cart-order-item"
+                    onClick={() => { vibrateTap(); onClose(); navigate('/order-confirm', { state: { orderId: order.id } }); }}
+                  >
+                    <div className="cart-order-info">
+                      <span className="cart-order-id">Pedido #{order.id}</span>
+                      <span className={`cart-order-status status-${order.status}`}>
+                        {order.status === 'pending' ? 'Pendiente ⏳' : order.status === 'approved' ? 'Aprobado ✅' : 'Pagado 💎'}
+                      </span>
+                    </div>
+                    <span className="cart-order-arrow">❯</span>
                   </div>
-                  <span className="cart-order-arrow">❯</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Lista de items */}
         <div className="cart-items">
@@ -159,6 +230,15 @@ export default function CartDrawer({ onClose }) {
             </div>
 
             <div className="cart-drawer-actions">
+              <button 
+                className="cart-clear-btn-footer" 
+                onClick={(e) => { vibrateTap(); confirmClear(e); }}
+                aria-label="Vaciar carrito"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6"/>
+                </svg>
+              </button>
               <button className="btn btn-primary btn-checkout" onClick={() => { vibrateTap(); handleCheckout(); }}>
                 Ir a Pedir 🛍️
               </button>
@@ -169,7 +249,7 @@ export default function CartDrawer({ onClose }) {
             </button>
           </div>
         )}
-      </div>
+      </motion.div>
     </>
   );
 }

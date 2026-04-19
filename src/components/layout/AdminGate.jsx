@@ -75,6 +75,9 @@ export default function AdminGate({ children }) {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         setCurrentUser(user);
+        // FIX: Sincronizar la bandera local para que NotificationContext pueda abrir el listener
+        localStorage.setItem('savit_admin_auth', 'true');
+        localStorage.setItem('savit_admin_auth_time', Date.now().toString());
       } else {
         setCurrentUser(null);
         localStorage.removeItem('savit_admin_auth');

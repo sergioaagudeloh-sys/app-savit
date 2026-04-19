@@ -11,20 +11,20 @@
 
 /* ── Elite Tabs Navigation ── */
 .ao-tabs-container {
-  margin-top: 0; /* Pegado a la toolbar superior */
-  margin-bottom: 4px; /* Pegado a la lista de pedidos */
+  margin-top: -6px; /* Succionar hacia arriba */
+  margin-bottom: 2px; 
   position: sticky;
   top: 60px;
-  z-index: 10;
+  z-index: 50;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   background: rgba(255, 255, 255, 0.6);
-  padding: 2px 0; /* Reducido al mínimo */
+  padding: 4px 0 12px 0; /* Padding superior mínimo, inferior amplio para el pulso */
   border-radius: var(--radius-lg);
   border: 1px solid rgba(255, 255, 255, 0.4);
 }
 
-/* Compactar la toolbar de archivar - Ultra Slim */
+/* Centrar toolbar de archivar */
 .inv-toolbar-base.centered-toolbar {
   padding: 0 !important;
   margin-bottom: 2px !important;
@@ -32,36 +32,21 @@
   min-height: auto !important;
   display: flex !important;
   flex-direction: row !important;
-  gap: 8px !important;
-  justify-content: center;
-  background: transparent !important; /* Eliminar el fondo tipo caja */
+  gap: 12px !important; /* Espacio más generoso para botones premium */
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  background: transparent !important;
   border: none !important;
   box-shadow: none !important;
-}
-
-.inv-toolbar-base.centered-toolbar .inv-action-btn {
-  flex: none; /* Que no crezcan si no es necesario */
-  width: auto;
-  padding: 4px 10px !important;
-  font-size: 0.65rem !important; /* Letra bien pequeña pero legible */
-  white-space: nowrap;
-  justify-content: center;
-  border-radius: 30px !important;
-  min-width: 0;
-  height: 26px !important; /* Altura fija muy baja */
-}
-
-.inv-toolbar-base.centered-toolbar .inv-action-icon {
-  font-size: 0.85rem !important; /* Icono más pequeño */
-  margin-right: 4px !important;
+  width: 100%;
 }
 
 .ao-tabs-list {
   display: flex;
   overflow-x: auto;
+  overflow-y: visible; /* Permitir que el brillo salga verticalmente */
   gap: var(--space-sm);
-  padding: 0 var(--space-md);
-  /* Esconder barra de scroll verticalmente */
+  padding: 12px var(--space-md); /* Padding vertical para no recortar */
   scrollbar-width: none; 
   -ms-overflow-style: none;
   width: 100%;
@@ -126,10 +111,70 @@
 }
 
 .ao-tab.active {
-  background: var(--color-primary);
+  background: var(--color-bg-card);
+  color: var(--color-text);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+  z-index: 2;
+}
+
+/* Colores Sólidos por Estado */
+.ao-tab {
+  color: white !important; /* Texto blanco para todos los botones rellenos */
+}
+
+.ao-tab.tab-pending { 
+  background: linear-gradient(135deg, #f39c12, #f1c40f); 
+  border-color: #d4ac0d;
+}
+.ao-tab.tab-pending.pulse-attention { --pulse-color: rgba(243, 156, 18, 0.5); }
+
+.ao-tab.tab-approved { 
+  background: linear-gradient(135deg, #2980b9, #3498db); 
+  border-color: #21618c;
+}
+.ao-tab.tab-approved.pulse-attention { --pulse-color: rgba(41, 128, 185, 0.5); }
+
+.ao-tab.tab-completed { 
+  background: linear-gradient(135deg, #8e44ad, #9b59b6); 
+  border-color: #5b2c6f;
+}
+.ao-tab.tab-completed.pulse-attention { --pulse-color: rgba(142, 68, 173, 0.5); }
+
+.ao-tab.tab-delivered { 
+  background: linear-gradient(135deg, #27ae60, #2ecc71); 
+  border-color: #1e8449;
+}
+
+.ao-tab.tab-cancelled { 
+  background: linear-gradient(135deg, #c0392b, #e74c3c); 
+  border-color: #922b21;
+}
+.ao-tab.tab-cancelled.pulse-attention { --pulse-color: rgba(192, 57, 43, 0.5); }
+
+/* Ajustar el contador para que sea legible sobre el color sólido */
+.ao-tab .ao-tab-count {
+  background: rgba(255, 255, 255, 0.25);
   color: white;
-  border-color: var(--color-primary);
-  box-shadow: 0 4px 12px rgba(66, 128, 59, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.ao-tab.active .ao-tab-count {
+  background: rgba(0, 0, 0, 0.1);
+  color: var(--color-text);
+}
+
+/* Animación de pulso mejorada */
+.ao-tab.pulse-attention {
+  animation: eliteTabPulse 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
+  position: relative;
+  z-index: 10;
+}
+
+@keyframes eliteTabPulse {
+  0% { transform: scale(1) translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+  50% { transform: scale(1.06) translateY(-4px); box-shadow: 0 0 0 8px var(--pulse-color), 0 10px 25px rgba(0,0,0,0.2); }
+  100% { transform: scale(1) translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
 }
 
 .ao-tab-count {

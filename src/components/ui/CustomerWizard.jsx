@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useCustomer } from '../../context/CustomerContext';
 import { useAuth } from '../../context/AuthContext';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
@@ -103,12 +104,12 @@ export default function CustomerWizard({ onClose }) {
       setIsReturning(true);
       await identifyCustomer({ name: existing.name, phone: digits });
       vibrateSuccess();
-      setStep(4);
+      changeStep(4, 1);
       setTimeout(onClose, 2200);
     } else {
       // Cliente nuevo → pedir nombre
       setIsReturning(false);
-      setStep(2);
+      changeStep(2, 1);
     }
   };
 
@@ -126,7 +127,7 @@ export default function CustomerWizard({ onClose }) {
       onClose();
     } else {
       // Ir a crear PIN (solo para nuevos clientes)
-      setStep(3);
+      changeStep(3, 1);
     }
   };
 
@@ -251,15 +252,79 @@ export default function CustomerWizard({ onClose }) {
     'change-pin': 'Actualiza tu código de seguridad',
   };
 
-  const dots = [1, 2, 3];
+  // ──────────────────────────────────────────────────────────────────────────
+  // ── Animaciones Framer Motion (Variantes)
+  // ──────────────────────────────────────────────────────────────────────────
+  const overlayVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1 },
+    exit: { opacity: 0 }
+  };
+
+  const cardVariants = {
+    hidden: { y: "100%", opacity: 0.5 },
+    visible: { 
+      y: 0, 
+      opacity: 1,
+      transition: { 
+        type: "spring", 
+        damping: 25, 
+        stiffness: 300,
+        mass: 0.8
+      }
+    },
+    exit: { 
+      y: "100%", 
+      opacity: 0.5,
+      transition: { duration: 0.3, ease: [0.32, 0, 0.67, 0] }
+    }
+  };
+
+  const stepVariants = {
+    initial: (custom) => ({ 
+      x: custom > 0 ? "50%" : "-50%", 
+      opacity: 0, 
+      filter: "blur(4px)" 
+    }),
+    animate: { 
+      x: 0, 
+      opacity: 1, 
+      filter: "blur(0px)",
+      transition: { type: "spring", damping: 30, stiffness: 400 }
+    },
+    exit: (custom) => ({ 
+      x: custom > 0 ? "-50%" : "50%", 
+      opacity: 0, 
+      filter: "blur(4px)",
+      transition: { duration: 0.2 }
+    })
+  };
+
+  // Para manejar la dirección del slide entre pasos
+  const [direction, setDirection] = useState(1);
+  const changeStep = (newStep, dir) => {
+    setDirection(dir);
+    setStep(newStep);
+  };
 
   // ══════════════════════════════════════════
   // ── Vista de Perfil (Retorno Temprano)
   // ══════════════════════════════════════════
   if (step === 'profile') {
     return createPortal(
-      <div className="cw-overlay" onClick={onClose}>
-        <div className="cw-card" onClick={e => e.stopPropagation()}>
+      <motion.div 
+        className="cw-overlay" 
+        onClick={onClose}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        variants={overlayVariants}
+      >
+        <motion.div 
+          className="cw-card" 
+          onClick={e => e.stopPropagation()}
+          variants={cardVariants}
+        >
           <button className="cw-close-btn" onClick={() => { vibrateTap(); onClose(); }} aria-label="Cerrar modal">✕</button>
 
           <div className="cw-header">
@@ -268,7 +333,23 @@ export default function CustomerWizard({ onClose }) {
             <p className="cw-header-sub">{subtitles[step]}</p>
           </div>
 
-          <div className="cw-body cw-step">
+          <motion.div 
+            className="cw-body"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            {/* Loyalty Points Badge */}
+            {customer?.points !== undefined && (
+              <div className="cw-points-badge">
+                <span className="cw-points-icon">⭐</span>
+                <div className="cw-points-info">
+                  <span className="cw-points-val">{Math.floor(customer.points)}</span>
+                  <span className="cw-points-label">Puntos Sávit</span>
+                </div>
+              </div>
+            )}
+
             {/* PIN warning banner */}
             {hasPin ? (
               <div className="cw-pin-warning cw-pin-active" onClick={() => { setPinError(''); setStep('change-pin'); }}>
@@ -308,7 +389,7 @@ export default function CustomerWizard({ onClose }) {
                 <input className="cw-input" type="tel" value={phone} disabled />
               </div>
             </div>
-          </div>
+          </motion.div>
 
           <div className="cw-actions">
             <button className="cw-btn-primary" onClick={handleNameSave} disabled={loading}>
@@ -329,83 +410,83 @@ export default function CustomerWizard({ onClose }) {
               Cerrar Sesión
             </button>
           </div>
-        </div>
-      </div>,
+        </motion.div>
+      </motion.div>,
       document.body
     );
   }
 
-  // ══════════════════════════════════════════
-  // ── Vista: Crear PIN desde el perfil
-  // ══════════════════════════════════════════
-  if (step === 'create-pin') {
+  if (step === 'create-pin' || step === 'change-pin') {
+    const isChange = step === 'change-pin';
     return createPortal(
-      <div className="cw-overlay" onClick={onClose}>
-        <div className="cw-card" onClick={e => e.stopPropagation()}>
+      <motion.div 
+        className="cw-overlay" 
+        onClick={onClose}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        variants={overlayVariants}
+      >
+        <motion.div 
+          className="cw-card" 
+          onClick={e => e.stopPropagation()}
+          variants={cardVariants}
+        >
           <button className="cw-close-btn" onClick={() => { vibrateTap(); onClose(); }} aria-label="Cerrar modal">✕</button>
 
           <div className="cw-header">
             <div className="cw-logo">🔐</div>
             <h1 className="cw-header-title">{headerTitle}</h1>
-            <p className="cw-header-sub">{subtitles['create-pin']}</p>
+            <p className="cw-header-sub">{subtitles[step]}</p>
           </div>
 
-          <div className="cw-body cw-step">
-            <PinInputs pin={pin} setPin={setPin} label="Crea tu PIN de 4 dígitos" error={null} />
-            <PinInputs pin={pinConfirm} setPin={setPinConfirm} label="Confirma tu PIN" error={pinError} />
-          </div>
+          <motion.div 
+            key={step}
+            className="cw-body"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+          >
+            {isChange ? (
+              <>
+                <PinInputs pin={oldPin} setPin={setOldPin} label="Ingresa tu PIN ACTUAL" error={null} />
+                <PinInputs pin={pin} setPin={setPin} label="Ingresa el NUEVO PIN" error={null} />
+                <PinInputs pin={pinConfirm} setPin={setPinConfirm} label="Confirma el NUEVO PIN" error={pinError} />
+              </>
+            ) : (
+              <>
+                <PinInputs pin={pin} setPin={setPin} label="Crea tu PIN de 4 dígitos" error={null} />
+                <PinInputs pin={pinConfirm} setPin={setPinConfirm} label="Confirma tu PIN" error={pinError} />
+              </>
+            )}
+          </motion.div>
 
           <div className="cw-actions">
-            <button className="cw-btn-primary" onClick={handleCreatePinFromProfile} disabled={savingPin}>
-              {savingPin ? 'Guardando...' : 'Guardar PIN 🔐'}
+            <button className="cw-btn-primary" onClick={isChange ? handleChangePin : handleCreatePinFromProfile} disabled={savingPin}>
+              {savingPin ? 'Guardando...' : (isChange ? 'Actualizar PIN 🔐' : 'Guardar PIN 🔐')}
             </button>
             <button className="cw-btn-back" onClick={() => { vibrateTap(); setStep('profile'); }}>← Volver</button>
           </div>
-        </div>
-      </div>,
+        </motion.div>
+      </motion.div>,
       document.body
     );
   }
 
-  // ══════════════════════════════════════════
-  // ── Vista: Cambiar PIN
-  // ══════════════════════════════════════════
-  if (step === 'change-pin') {
-    return createPortal(
-      <div className="cw-overlay" onClick={onClose}>
-        <div className="cw-card" onClick={e => e.stopPropagation()}>
-          <button className="cw-close-btn" onClick={() => { vibrateTap(); onClose(); }} aria-label="Cerrar modal">✕</button>
-
-          <div className="cw-header">
-            <div className="cw-logo">🔐</div>
-            <h1 className="cw-header-title">{headerTitle}</h1>
-            <p className="cw-header-sub">{subtitles['change-pin']}</p>
-          </div>
-
-          <div className="cw-body cw-step">
-            <PinInputs pin={oldPin} setPin={setOldPin} label="Ingresa tu PIN ACTUAL" error={null} />
-            <PinInputs pin={pin} setPin={setPin} label="Ingresa el NUEVO PIN" error={null} />
-            <PinInputs pin={pinConfirm} setPin={setPinConfirm} label="Confirma el NUEVO PIN" error={pinError} />
-          </div>
-
-          <div className="cw-actions">
-            <button className="cw-btn-primary" onClick={handleChangePin} disabled={savingPin}>
-              {savingPin ? 'Actualizando...' : 'Actualizar PIN 🔐'}
-            </button>
-            <button className="cw-btn-back" onClick={() => { vibrateTap(); setStep('profile'); }}>← Volver</button>
-          </div>
-        </div>
-      </div>,
-      document.body
-    );
-  }
-
-  // ══════════════════════════════════════════
-  // ── Vistas del Wizard (Identificación)
-  // ══════════════════════════════════════════
   return createPortal(
-    <div className="cw-overlay" onClick={onClose}>
-      <div className="cw-card" onClick={e => e.stopPropagation()}>
+    <motion.div 
+      className="cw-overlay" 
+      onClick={onClose}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+      variants={overlayVariants}
+    >
+      <motion.div 
+        className="cw-card" 
+        onClick={e => e.stopPropagation()}
+        variants={cardVariants}
+      >
 
         <button className="cw-close-btn" onClick={() => { vibrateTap(); onClose(); }} aria-label="Cerrar modal">✕</button>
 
@@ -417,13 +498,17 @@ export default function CustomerWizard({ onClose }) {
               <h1 className="cw-header-title">Modo Vista Previa</h1>
               <p className="cw-header-sub">Estás navegando como administrador</p>
             </div>
-            <div className="cw-body cw-step">
+            <motion.div 
+              className="cw-body"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
               <div className="cw-step-icon">⚠️</div>
               <h2 className="cw-step-title">Acción no permitida</h2>
               <p className="cw-step-desc">
                 La identificación de clientes está desactivada en el modo de vista previa para administradores. Esto protege los datos de tus clientes reales.
               </p>
-            </div>
+            </motion.div>
             <div className="cw-actions">
               <button className="cw-btn-primary" onClick={() => { vibrateTap(); onClose(); }}>
                 Entendido
@@ -438,136 +523,150 @@ export default function CustomerWizard({ onClose }) {
           </>
         ) : (
           <>
-        <div className="cw-header">
-          <div className="cw-logo">🌿</div>
-          <h1 className="cw-header-title">{headerTitle}</h1>
-          <p className="cw-header-sub">{subtitles[step]}</p>
-          {step < 4 && (
-            <div className="cw-progress">
-              {dots.map(n => (
-                <div
-                  key={n}
-                  className={`cw-dot${n === step ? ' active' : n < step ? ' done' : ''}`}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* ── Paso 1: Número */}
-        {step === 1 && (
-          <div className="cw-body cw-step">
-            <div className="cw-step-icon">📱</div>
-            <h2 className="cw-step-title">¿Cuál es tu WhatsApp?</h2>
-            <p className="cw-step-desc">Si ya compraste antes, te reconoceremos al instante</p>
-            <div className="cw-field">
-              <label className="cw-label">Número de WhatsApp</label>
-              <div className="cw-phone-row">
-                <div className="cw-prefix">🇨🇴 +57</div>
-                <input
-                  id="cw-phone"
-                  className={`cw-input${phoneError ? ' error' : ''}`}
-                  type="tel"
-                  placeholder="300 123 4567"
-                  value={phone}
-                  autoFocus
-                  autoComplete="tel"
-                  inputMode="numeric"
-                  onChange={e => { setPhone(e.target.value); setPhoneError(''); }}
-                  onKeyDown={e => e.key === 'Enter' && handlePhoneNext()}
-                />
-              </div>
-              {phoneError && <p className="cw-error">⚠ {phoneError}</p>}
+            <div className="cw-header">
+              <div className="cw-logo">🌿</div>
+              <h1 className="cw-header-title">{headerTitle}</h1>
+              <p className="cw-header-sub">{subtitles[step]}</p>
+              {step < 4 && (
+                <div className="cw-progress">
+                  {[1, 2, 3].map(n => (
+                    <motion.div
+                      key={n}
+                      layoutId={`dot-${n}`}
+                      className={`cw-dot${n === step ? ' active' : n < step ? ' done' : ''}`}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
 
-            <div className="cw-actions">
-              <button
-                className="cw-btn-primary"
-                onClick={handlePhoneNext}
-                disabled={checking || loading}
-              >
-                {checking ? 'Buscando…' : 'Continuar →'}
-              </button>
-              <div className="cw-divider"><span>o</span></div>
-              <button className="cw-btn-ghost" onClick={handleGuest}>
-                Continuar como invitado
-              </button>
-              <button
-                className="cw-btn-home"
-                onClick={() => { onClose(); navigate('/'); }}
-              >
-                🏠 Volver al Inicio
-              </button>
+            <div className="cw-body-container" style={{ position: 'relative', overflow: 'hidden' }}>
+              <AnimatePresence mode="wait" custom={direction}>
+                <motion.div 
+                  key={step}
+                  custom={direction}
+                  variants={stepVariants}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                  className="cw-body"
+                >
+                  {/* ── Paso 1: Número ── */}
+                  {step === 1 && (
+                    <>
+                      <div className="cw-step-icon">📱</div>
+                      <h2 className="cw-step-title">¿Cuál es tu WhatsApp?</h2>
+                      <p className="cw-step-desc">Si ya compraste antes, te reconoceremos al instante</p>
+                      <div className="cw-field">
+                        <label className="cw-label">Número de WhatsApp</label>
+                        <div className="cw-phone-row">
+                          <div className="cw-prefix">🇨🇴 +57</div>
+                          <input
+                            id="cw-phone"
+                            className={`cw-input${phoneError ? ' error' : ''}`}
+                            type="tel"
+                            placeholder="300 123 4567"
+                            value={phone}
+                            autoFocus
+                            autoComplete="tel"
+                            inputMode="numeric"
+                            onChange={e => { setPhone(e.target.value); setPhoneError(''); }}
+                            onKeyDown={e => e.key === 'Enter' && handlePhoneNext()}
+                          />
+                        </div>
+                        {phoneError && <p className="cw-error">⚠ {phoneError}</p>}
+                      </div>
+
+                      <div className="cw-actions" style={{ padding: 0 }}>
+                        <button
+                          className="cw-btn-primary"
+                          onClick={handlePhoneNext}
+                          disabled={checking || loading}
+                        >
+                          {checking ? 'Buscando…' : 'Continuar →'}
+                        </button>
+                        <div className="cw-divider"><span>o</span></div>
+                        <button className="cw-btn-ghost" onClick={handleGuest}>
+                          Continuar como invitado
+                        </button>
+                        <button
+                          className="cw-btn-home"
+                          onClick={() => { onClose(); navigate('/'); }}
+                        >
+                          🏠 Volver al Inicio
+                        </button>
+                      </div>
+                    </>
+                  )}
+
+                  {/* ── Paso 2: Nombre ── */}
+                  {step === 2 && (
+                    <>
+                      <div className="cw-step-icon">👋</div>
+                      <h2 className="cw-step-title">¿Cómo te llamas?</h2>
+                      <p className="cw-step-desc">Así te saludaremos cada vez que entres a Sávit</p>
+                      <div className="cw-field">
+                        <label className="cw-label">Tu nombre</label>
+                        <input
+                          id="cw-name"
+                          className={`cw-input${nameError ? ' error' : ''}`}
+                          type="text"
+                          placeholder="Ej: María García"
+                          value={name}
+                          autoFocus
+                          autoComplete="given-name"
+                          onChange={e => { setName(e.target.value); setNameError(''); }}
+                          onKeyDown={e => e.key === 'Enter' && handleNameSave()}
+                        />
+                        {nameError && <p className="cw-error">⚠ {nameError}</p>}
+                      </div>
+
+                      <div className="cw-actions" style={{ padding: 0 }}>
+                        <button className="cw-btn-primary" onClick={handleNameSave} disabled={loading}>
+                          {loading ? 'Guardando…' : 'Continuar →'}
+                        </button>
+                        <button className="cw-btn-back" onClick={() => changeStep(1, -1)}>← Volver</button>
+                      </div>
+                    </>
+                  )}
+
+                  {/* ── Paso 3: Crear PIN ── */}
+                  {step === 3 && (
+                    <>
+                      <div className="cw-step-icon">🔐</div>
+                      <h2 className="cw-step-title">Crea tu PIN</h2>
+                      <p className="cw-step-desc">
+                        Lo necesitarás para hacer pedidos. ¡Solo tú sabrás cuál es!
+                      </p>
+
+                      <PinInputs pin={pin} setPin={setPin} label="Elige un PIN de 4 dígitos" error={null} />
+                      <PinInputs pin={pinConfirm} setPin={setPinConfirm} label="Confirma tu PIN" error={pinError} />
+
+                      <div className="cw-actions" style={{ padding: 0 }}>
+                        <button className="cw-btn-primary" onClick={handlePinSave} disabled={savingPin}>
+                          {savingPin ? 'Guardando…' : '¡Listo! Crear PIN 🔐'}
+                        </button>
+                        <button className="cw-btn-back" onClick={() => { vibrateTap(); changeStep(2, -1); }}>← Volver</button>
+                      </div>
+                    </>
+                  )}
+
+                  {/* ── Paso 4: Éxito ── */}
+                  {step === 4 && (
+                    <>
+                      <div className="cw-step-icon">{isReturning ? '🌿' : '🎉'}</div>
+                      <h2 className="cw-step-title">Todo listo</h2>
+                      <p className="cw-step-desc">Espéranos un momento...</p>
+                    </>
+                  )}
+                </motion.div>
+              </AnimatePresence>
             </div>
-          </div>
-        )}
-
-        {/* ── Paso 2: Nombre */}
-        {step === 2 && (
-          <div className="cw-body cw-step">
-            <div className="cw-step-icon">👋</div>
-            <h2 className="cw-step-title">¿Cómo te llamas?</h2>
-            <p className="cw-step-desc">Así te saludaremos cada vez que entres a Sávit</p>
-            <div className="cw-field">
-              <label className="cw-label">Tu nombre</label>
-              <input
-                id="cw-name"
-                className={`cw-input${nameError ? ' error' : ''}`}
-                type="text"
-                placeholder="Ej: María García"
-                value={name}
-                autoFocus
-                autoComplete="given-name"
-                onChange={e => { setName(e.target.value); setNameError(''); }}
-                onKeyDown={e => e.key === 'Enter' && handleNameSave()}
-              />
-              {nameError && <p className="cw-error">⚠ {nameError}</p>}
-            </div>
-
-            <div className="cw-actions">
-              <button className="cw-btn-primary" onClick={handleNameSave} disabled={loading}>
-                {loading ? 'Guardando…' : 'Continuar →'}
-              </button>
-              <button className="cw-btn-back" onClick={() => setStep(1)}>← Volver</button>
-            </div>
-          </div>
-        )}
-
-        {/* ── Paso 3: Crear PIN */}
-        {step === 3 && (
-          <div className="cw-body cw-step">
-            <div className="cw-step-icon">🔐</div>
-            <h2 className="cw-step-title">Crea tu PIN</h2>
-            <p className="cw-step-desc">
-              Lo necesitarás para hacer pedidos. ¡Solo tú sabrás cuál es!
-            </p>
-
-            <PinInputs pin={pin} setPin={setPin} label="Elige un PIN de 4 dígitos" error={null} />
-            <PinInputs pin={pinConfirm} setPin={setPinConfirm} label="Confirma tu PIN" error={pinError} />
-
-            <div className="cw-actions">
-              <button className="cw-btn-primary" onClick={handlePinSave} disabled={savingPin}>
-                {savingPin ? 'Guardando…' : '¡Listo! Crear PIN 🔐'}
-              </button>
-              <button className="cw-btn-back" onClick={() => { vibrateTap(); setStep(2); }}>← Volver</button>
-            </div>
-          </div>
-        )}
-
-        {/* ── Paso 4: Éxito */}
-        {step === 4 && (
-          <div className="cw-body cw-step">
-            <div className="cw-step-icon">{isReturning ? '🌿' : '🎉'}</div>
-            <h2 className="cw-step-title">Todo listo</h2>
-            <p className="cw-step-desc">Espéranos un momento...</p>
-          </div>
-        )}
-
           </>
         )}
 
-      </div>
-    </div>,
+      </motion.div>
+    </motion.div>,
     document.body
   );
 }

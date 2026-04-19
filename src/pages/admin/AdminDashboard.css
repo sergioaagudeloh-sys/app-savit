@@ -77,12 +77,13 @@
 
 /* Rediseño Dashboard Estilo Ingredients (Cards Premium) */
 
-/* ── Hero Stats Row ── */
+/* ── Hero Stats Row (Diseño de Raíz) ── */
 .hero-stats-row {
   display: flex;
   justify-content: center;
-  gap: 12px;
-  margin: 12px 0 0;
+  align-items: center;
+  gap: 40px; /* Separación definitiva y notable */
+  margin: 24px 0 0;
   width: 100%;
 }
 
@@ -91,85 +92,97 @@
     width: auto !important;
     margin: 0 !important;
     justify-content: flex-end !important;
-    flex-wrap: nowrap !important;
+    gap: 48px; /* Aún más espacio en escritorio */
   }
 }
 
 .hero-stat-btn {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  padding: 14px 20px; /* Padding generoso */
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 16px;
   color: white;
   text-decoration: none;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  flex: 1;
-  max-width: 150px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  flex: 0 1 auto; /* Permite que el botón crezca con el precio */
+  min-width: 150px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25), inset 0 1px 1px rgba(255,255,255,0.1);
   cursor: pointer;
+  position: relative;
 }
 
 .hero-stat-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-4px);
-  border-color: rgba(255, 255, 255, 0.4);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-}
-
-.hero-stat-btn:active {
-  transform: scale(0.96) translateY(0);
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-6px);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.35);
 }
 
 .hero-stat-icon {
-  font-size: 1.1rem;
-  background: rgba(255, 255, 255, 0.15);
-  width: 32px;
-  height: 32px;
+  font-size: 1.4rem;
+  background: rgba(255, 255, 255, 0.12);
+  width: 48px;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
+  border-radius: 14px;
 }
 
 .hero-stat-info {
   display: flex;
   flex-direction: column;
-  overflow: hidden;
 }
 
 .hero-stat-val {
-  font-size: 1rem;
+  font-size: 1.2rem; /* Un poco más grande para visibilidad */
   font-weight: 900;
-  line-height: 1.1;
-  white-space: nowrap;
+  line-height: 1;
+  white-space: nowrap; /* NUNCA corta el precio */
   letter-spacing: -0.02em;
 }
 
 .hero-stat-lab {
   font-size: 0.65rem;
-  font-weight: 700;
-  opacity: 0.7;
+  font-weight: 800;
+  opacity: 0.6;
   text-transform: uppercase;
-  margin-top: 2px;
+  margin-top: 4px;
 }
 
+/* ── Botón Urgente (Pedidos Pendientes) con Animación Elite ── */
 .hero-stat-btn.urgent {
-  background: rgba(255, 110, 110, 0.15);
-  border-color: rgba(255, 110, 110, 0.3);
+  background: linear-gradient(135deg, rgba(255, 110, 110, 0.12) 0%, rgba(255, 255, 255, 0.05) 100%);
+  border-color: rgba(255, 110, 110, 0.4);
+  animation: heroHeartbeat 2s infinite cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .hero-stat-btn.urgent .hero-stat-val {
   color: #ff9e9e;
 }
 
+.hero-stat-btn.urgent .hero-stat-icon {
+  background: rgba(255, 110, 110, 0.2);
+}
+
+@keyframes heroHeartbeat {
+  0% { transform: scale(1); box-shadow: 0 8px 32px rgba(0,0,0,0.25); }
+  5% { transform: scale(1.05); border-color: rgba(255, 110, 110, 0.7); box-shadow: 0 0 25px rgba(214, 69, 69, 0.3); }
+  10% { transform: scale(1); box-shadow: 0 8px 32px rgba(0,0,0,0.25); }
+  15% { transform: scale(1.05); border-color: rgba(255, 110, 110, 0.7); box-shadow: 0 0 25px rgba(214, 69, 69, 0.3); }
+  20% { transform: scale(1); }
+  100% { transform: scale(1); }
+}
+
 .hero-stat-btn.urgent:hover {
-  background: rgba(255, 110, 110, 0.25);
-  border-color: rgba(255, 110, 110, 0.5);
+  animation-play-state: paused;
+  background: rgba(255, 110, 110, 0.2);
+  transform: translateY(-6px);
 }
 
 /* ── Botón Ver Tienda en Hero ── */
@@ -206,11 +219,15 @@
 
 @media (max-width: 480px) {
   .hero-stats-row {
-    gap: 8px;
+    gap: 32px; /* Separación real mantenida en móviles */
+    padding: 0 16px;
+    flex-wrap: wrap; /* Permite bajar si el precio es GIGANTE */
   }
   .hero-stat-btn {
-    padding: 10px 8px;
-    gap: 6px;
+    padding: 12px 16px;
+    gap: 12px;
+    min-width: 140px;
+    flex: 1 1 auto;
   }
   .hero-stat-icon {
     width: 32px;
@@ -279,10 +296,7 @@
   justify-content: center !important;
 }
 
-.admin-dashboard .hero-stats-row {
-  justify-content: center !important;
-  margin-top: 16px;
-}
+
 
 .dash-promo-rect-img {
   width: 100%;
@@ -545,54 +559,186 @@
   border-color: var(--color-primary);
 }
 
-/* Pending Orders Alert Banner */
-.dash-alert-banner {
+/* Pending Orders Alert Banner (Elite Redesign) */
+.elite-alert-banner {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: var(--space-md);
-  background: linear-gradient(135deg, #fff9c4 0%, #fffde7 100%);
-  border: 1px solid #fbc02d;
-  padding: 4px var(--space-lg);
-  border-radius: var(--radius-lg);
-  margin: 4px 0;
-  box-shadow: 0 4px 12px rgba(251, 192, 45, 0.15);
-  transition: transform 0.2s;
+  gap: 16px;
+  background: linear-gradient(135deg, rgba(30,30,30,0.9) 0%, rgba(15,15,15,0.95) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 171, 0, 0.3);
+  padding: 14px 16px;
+  border-radius: 20px;
+  text-decoration: none;
+  /* Removed overflow: hidden so shadows and badges can pop out */
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 171, 0, 0.1);
+  transform: translateZ(0);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  margin-bottom: 2px;
+  
+  /* Animación de latido a todo el contenedor */
+  animation: eliteBannerPulse 2.5s infinite cubic-bezier(0.25, 0.8, 0.25, 1);
+  transform-origin: center center;
 }
 
-.dash-alert-banner:active {
-  transform: scale(0.98);
+@keyframes eliteBannerPulse {
+  0% { transform: scale(1) translateZ(0); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 171, 0, 0.1); }
+  15% { transform: scale(1.015) translateZ(0); box-shadow: 0 14px 28px rgba(255, 171, 0, 0.15), 0 0 0 2px rgba(255, 171, 0, 0.3); }
+  30% { transform: scale(1) translateZ(0); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 171, 0, 0.1); }
+  45% { transform: scale(1.015) translateZ(0); box-shadow: 0 14px 28px rgba(255, 171, 0, 0.15), 0 0 0 2px rgba(255, 171, 0, 0.3); }
+  60% { transform: scale(1) translateZ(0); }
+  100% { transform: scale(1) translateZ(0); }
 }
 
-.dash-alert-icon {
-  font-size: 24px;
-  animation: bounce 2s infinite;
+.elite-alert-banner:hover {
+  animation: none; /* Detenemos el latido al enfocar */
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: 0 14px 32px rgba(255, 171, 0, 0.25), 0 0 0 1px rgba(255, 171, 0, 0.4);
+  border-color: rgba(255, 171, 0, 0.6);
 }
 
-.dash-alert-body {
+.elite-alert-banner:active {
+  animation: none;
+  transform: scale(0.97);
+}
+
+/* New exact inner bounding box for clipping effects but not content */
+.elite-alert-bg {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  border-radius: 20px;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.elite-alert-glow {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(ellipse at 10% 50%, rgba(255, 171, 0, 0.15) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.elite-alert-bg::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -150%; width: 50%; height: 100%;
+  background: linear-gradient(to right, transparent, rgba(255,255,255,0.08) 50%, transparent);
+  transform: skewX(-25deg);
+  animation: eliteShimmer 4s infinite linear;
+  z-index: 0;
+  pointer-events: none;
+}
+
+@keyframes eliteShimmer {
+  0% { left: -150%; }
+  20% { left: 200%; }
+  100% { left: 200%; }
+}
+
+.elite-alert-icon-wrapper {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #ffd54f, #ff8f00);
+  border-radius: 50%;
+  box-shadow: 0 4px 16px rgba(255, 143, 0, 0.6);
+  animation: elitePulse 2.5s infinite;
+  /* Option to pop it out slightly out of the box limit for an aggressive 3D finish */
+  transform: translateX(-4px); 
+}
+
+.elite-alert-icon {
+  font-size: 1.4rem;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+.elite-alert-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #ff3d00;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 900;
+  min-width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  border: 2px solid rgba(20,20,20,1);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+}
+
+.elite-alert-body {
+  position: relative;
+  z-index: 1;
   flex: 1;
   display: flex;
   flex-direction: column;
+  justify-content: center;
 }
 
-.dash-alert-body strong {
-  color: #f57f17;
-  font-size: 1rem;
+.elite-alert-title {
+  color: #ffffff;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+  margin-bottom: 2px;
 }
 
-.dash-alert-body span {
-  font-size: 0.8rem;
-  color: #af8619;
+.elite-alert-subtitle {
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.75rem;
   font-weight: 600;
 }
 
-.dash-alert-arrow {
-  color: #fbc02d;
-  font-weight: 900;
+.elite-alert-action {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 8px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffca28;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  transition: all 0.2s;
 }
 
-@keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
+.elite-alert-banner:hover .elite-alert-action {
+  background: rgba(255, 171, 0, 0.15);
+  border-color: rgba(255, 171, 0, 0.3);
+  color: #ffd54f;
+}
+
+.elite-alert-arrow {
+  font-size: 0.85rem;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.elite-alert-banner:hover .elite-alert-arrow {
+  transform: translateX(4px);
+}
+
+@keyframes elitePulse {
+  0% { box-shadow: 0 0 0 0 rgba(255, 143, 0, 0.5); }
+  15% { box-shadow: 0 0 0 12px rgba(255, 143, 0, 0); }
+  30% { box-shadow: 0 0 0 0 rgba(255, 143, 0, 0); }
+  45% { box-shadow: 0 0 0 12px rgba(255, 143, 0, 0); }
+  60% { box-shadow: 0 0 0 0 rgba(255, 143, 0, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 143, 0, 0); }
 }
 
 .stats-scroll-content {
@@ -1248,4 +1394,23 @@
   display: flex !important;
   align-items: center;
   gap: 8px;
+}
+
+/* ── ELITE FORCE: SEPARACIÓN DE BOTONES (20PX FINAL) ── */
+body .admin-dashboard .hero-stats-row {
+  display: flex !important;
+  justify-content: center !important;
+  gap: 20px !important; /* Ajustado a 20px según tu petición */
+  margin-top: 28px !important;
+}
+
+body .admin-dashboard .hero-stats-row > *:last-child {
+  margin-left: 0px !important;
+}
+
+@media (max-width: 480px) {
+  body .admin-dashboard .hero-stats-row {
+    gap: 20px !important; /* Mantenemos 20px constante en móvil también */
+    padding: 0 10px !important;
+  }
 }

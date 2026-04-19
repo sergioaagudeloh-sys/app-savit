@@ -92,7 +92,8 @@ export default function AdminIngredients() {
 
         <div className="admin-page-content">
           {/* Unified Tooling */}
-          <div className="inv-toolbar-base centered-toolbar">
+          <div className="inv-toolbar-base">
+            <div style={{ flex: 1 }} />
             <button
               className={`inv-action-btn ${showForm ? 'secondary' : 'primary'} ripple`}
               onClick={showForm ? handleCancel : handleOpenNew}

@@ -279,18 +279,18 @@ export default function AdminOrders() {
         </div>
 
 
-        <div className="admin-page-content" style={{ paddingTop: '5px' }}>
-          {/* Unified Tooling: Centered Actions */}
-          <div className="inv-toolbar-base centered-toolbar" style={{ gap: '6px' }}>
+        <div className="admin-page-content" style={{ paddingTop: '0' }}>
+          {/* Unified Tooling - Ultra Compact */}
+          <div className="inv-toolbar-base centered-toolbar" style={{ gap: '8px' }}>
             <button 
-              className="inv-action-btn secondary" 
+              className="inv-action-btn primary ripple" 
               onClick={() => handleArchiveStatus('delivered')}
             >
               <span className="inv-action-icon">📦</span>
               <span className="inv-action-text">Archivar Entregados</span>
             </button>
             <button 
-              className="inv-action-btn danger" 
+              className="inv-action-btn danger ripple" 
               onClick={() => handleArchiveStatus('cancelled')}
             >
               <span className="inv-action-icon">🗑️</span>
@@ -305,7 +305,7 @@ export default function AdminOrders() {
                 return (
                   <button 
                     key={status}
-                    className={`ao-tab ${activeTab === status ? 'active' : ''}`}
+                    className={`ao-tab tab-${status} ${activeTab === status ? 'active' : ''} ${count > 0 && status !== 'delivered' ? 'pulse-attention' : ''}`}
                     onClick={() => setActiveTab(status)}
                   >
                     <span>{STATUS_LABELS[status].split('(')[0].trim()}</span>

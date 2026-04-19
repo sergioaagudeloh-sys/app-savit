@@ -144,16 +144,20 @@ function formatProduct(p) {
 }
 
 // ─── Prompt Principal del Sistema ────────────────────────────────────────────
-function buildSystemPrompt(products, isAdmin = false, userBehavior = null) {
-  const available = products.filter(p => p.active && !p.soldOut);
-  const soldOut   = products.filter(p => p.active && p.soldOut);
+function buildSystemPrompt(relevantProducts, isAdmin = false, userBehavior = null, allProducts = []) {
+  // Solo los productos relevantes y disponibles para recomendar activamente
+  const available = relevantProducts.filter(p => p.active && !p.soldOut);
+  
+  // Todos los productos agotados del catálogo completo para que la IA sepa qué NO hay
+  const totalSoldOut = (allProducts.length > 0 ? allProducts : relevantProducts)
+    .filter(p => p.active && p.soldOut);
 
-  const catalogText  = available.length > 0
+  const catalogText = available.length > 0
     ? available.map(formatProduct).join('\n')
-    : 'Sin productos disponibles en este momento.';
+    : 'Sin productos disponibles coincidentes.';
 
-  const soldOutText  = soldOut.length > 0
-    ? soldOut.map(p => p.name).join(', ')
+  const soldOutText = totalSoldOut.length > 0
+    ? totalSoldOut.map(p => p.name).join(', ')
     : 'Ninguno';
 
   if (isAdmin) {
@@ -230,14 +234,15 @@ function buildSystemPrompt(products, isAdmin = false, userBehavior = null) {
 // ─── RAG Local: Filtrado por Relevancia ─────────────────────────────────────
 function getRelevantProducts(allProducts, userMessage, userBehavior) {
   if (!Array.isArray(allProducts)) return [];
-  const active = allProducts.filter(p => p.active && !p.soldOut);
-  // Si hay 20 o menos, no necesita filtrar
-  if (active.length <= 20) return active;
+  // FILTRO CRÍTICO: Para recomendaciones directas, solo productos activos y CON STOCK
+  const availableOnly = allProducts.filter(p => p.active && !p.soldOut);
+  
+  if (availableOnly.length <= 20) return availableOnly;
 
   const query     = (userMessage || '').toLowerCase();
   const interests = (userBehavior?.interests || []).map(id => String(id).toLowerCase());
 
-  const scored = active.map(p => {
+  const scored = availableOnly.map(p => {
     let score    = 0;
     const name   = p.name.toLowerCase();
     const desc   = (p.description || '').toLowerCase();
@@ -324,11 +329,12 @@ export async function sendMessageToAI(
   onChunk    = null
 ) {
   try {
+    const allItems = products || [];
     const relevantProducts = isAdmin
-      ? (products || [])
-      : getRelevantProducts(products || [], userMessage, userBehavior);
+      ? allItems
+      : getRelevantProducts(allItems, userMessage, userBehavior);
 
-    const systemPrompt = buildSystemPrompt(relevantProducts, isAdmin, userBehavior);
+    const systemPrompt = buildSystemPrompt(relevantProducts, isAdmin, userBehavior, allItems);
     const model        = isAdmin ? GROQ_MODEL_ADMIN : GROQ_MODEL_CLIENT;
     const shouldStream = typeof onChunk === 'function' && !isAdmin;
 

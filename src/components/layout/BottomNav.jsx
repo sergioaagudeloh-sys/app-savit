@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../firebase';
 import { useCart } from '../../context/CartContext';
@@ -50,7 +51,9 @@ export default function BottomNav() {
   useBodyScrollLock(showAdminMenu || showProfile);
   return (
     <>
-      {showProfile && <CustomerWizard onClose={() => setShowProfile(false)} />}
+      <AnimatePresence>
+        {showProfile && <CustomerWizard onClose={() => setShowProfile(false)} />}
+      </AnimatePresence>
       
       {/* Admin Mobile Menu Drawer */}
       {showAdminMenu && (
