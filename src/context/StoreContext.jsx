@@ -11,6 +11,9 @@ const DEFAULT_CONFIG = {
   storeName: 'Savit - Mercado Saludable',
   googleDriveLink: '',
   paymentAccount: '', // Número Nequi/Bancolombia para instrucciones de pago
+  paymentBank: '', // Nombre del banco (Nequi, Bancolombia, etc.)
+  paymentAccountType: 'Ahorros', // Tipo de cuenta (Ahorros o Corriente)
+  paymentQRCodeUrl: '', // URL de la imagen del código QR para transferencias
   scheduleEnabled: false,
   openTime: '09:00',
   closeTime: '18:00',

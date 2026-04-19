@@ -4,8 +4,8 @@
 
 /* ── Base shimmer animation ── */
 @keyframes skeleton-shimmer {
-  0%   { background-position: -400px 0; }
-  100% { background-position: 400px 0; }
+  0%   { background-position: -800px 0; }
+  100% { background-position: 800px 0; }
 }
 
 .skeleton {
@@ -18,7 +18,7 @@
     var(--sk-base, #e8f0e0) 75%
   );
   background-size: 800px 100%;
-  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+  animation: skeleton-shimmer 2s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
 }
 
 /* ── Dark Mode skeleton ── */

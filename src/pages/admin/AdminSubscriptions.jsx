@@ -1,7 +1,5 @@
 // src/pages/admin/AdminSubscriptions.jsx
 import { useState } from 'react';
-import Header from '../../components/layout/Header';
-import AdminSidebar from '../../components/layout/AdminSidebar';
 import { useNotifications } from '../../context/NotificationContext';
 import { useSubscriptions } from '../../hooks/useSubscriptions';
 import { useSwipe } from '../../hooks/useSwipe';
@@ -81,10 +79,7 @@ export default function AdminSubscriptions() {
   const activeCount = activeSubscriptions.length;
 
   return (
-    <div className="app-container admin-subscriptions admin-page">
-      <Header />
-      <AdminSidebar />
-      <main className="page-content admin-main-content">
+    <div className="admin-subscriptions-container animate-fade-in">
 
         {/* Elite Hero */}
         <div className="inv-hero">
@@ -238,7 +233,6 @@ export default function AdminSubscriptions() {
             </div>
           )}
         </div>
-      </main>
     </div>
   );
 }

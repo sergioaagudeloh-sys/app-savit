@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../components/layout/Header';
 import { useCart } from '../context/CartContext';
 import { useCustomer } from '../context/CustomerContext';
 import { useCategoryManager } from '../hooks/useProducts';
@@ -12,6 +11,7 @@ import StoreStatusBanner from '../components/ui/StoreStatusBanner';
 import { formatCOP } from '../utils/formatters';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 import '../components/ui/CategoryPills.css';
+import SEO from '../components/common/SEO';
 import './ClientHome.css';
 
 import { playPromoSound } from '../utils/audio';
@@ -70,7 +70,10 @@ export default function ClientHome() {
 
   return (
     <div className="app-container client-home-page">
-      <Header onCartOpen={() => setCartOpen(true)} />
+      <SEO 
+        title={`Sávit - ${greetingName === 'visitante' ? 'Mercado Saludable' : 'Hola ' + greetingName}`}
+        description="Explora las mejores ofertas en productos saludables, naturales y nutritivos. Tu bienestar es nuestra prioridad."
+      />
 
       <main className="page-content">
         {/* ── Promotional Carousel ── Full-bleed, top of page */}

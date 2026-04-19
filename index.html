@@ -5,16 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#244c26" />
     
-    <title>Savit - Mercado Saludable</title>
-    <meta name="description" content="Productos naturales, keto, sin gluten y saludables. Pide por WhatsApp." />
-    
-    <!-- Smart Sharing (OpenGraph) -->
-    <meta property="og:title" content="Sávit - Mercado Saludable 🌿" />
-    <meta property="og:description" content="Productos naturales, keto y saludables directamente a tu WhatsApp. ¡Vive Sávit!" />
-    <meta property="og:image" content="/logo-pwa.png" />
-    <meta property="og:url" content="https://app-savit.web.app/" />
-    <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary_large_image" />
+    <title>Sávit - Mercado Saludable</title>
+    <meta name="description" content="Productos naturales, keto, sin gluten y saludables directamente a tu WhatsApp. ¡Vive Sávit!" />
     
     <link rel="icon" type="image/png" href="/logo.png" />
     <link rel="apple-touch-icon" href="/logo-pwa.png" />
@@ -31,12 +23,5 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW ref failed', err));
-        });
-      }
-    </script>
   </body>
 </html>

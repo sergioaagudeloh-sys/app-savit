@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useCustomer } from '../../context/CustomerContext';
+import { useAuth } from '../../context/AuthContext';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 import { db, isFirebaseConfigured } from '../../firebase';
 import { doc } from 'firebase/firestore';
@@ -62,6 +63,7 @@ function PinInputs({ pin, setPin, label, error }) {
 
 export default function CustomerWizard({ onClose }) {
   const navigate = useNavigate();
+  const { isAdmin: isAuthAdmin } = useAuth();
   const { customer, checkCustomer, identifyCustomer, logoutCustomer, loading, hasPin, savePin, changePin } = useCustomer();
   const [step, setStep] = useState(customer ? 'profile' : 1);
   const [phone, setPhone] = useState(customer?.phone || '');
@@ -407,6 +409,35 @@ export default function CustomerWizard({ onClose }) {
 
         <button className="cw-close-btn" onClick={() => { vibrateTap(); onClose(); }} aria-label="Cerrar modal">✕</button>
 
+        {/* ── Bloqueo Admin ── */}
+        {isAuthAdmin ? (
+          <>
+            <div className="cw-header">
+              <div className="cw-logo">🛡️</div>
+              <h1 className="cw-header-title">Modo Vista Previa</h1>
+              <p className="cw-header-sub">Estás navegando como administrador</p>
+            </div>
+            <div className="cw-body cw-step">
+              <div className="cw-step-icon">⚠️</div>
+              <h2 className="cw-step-title">Acción no permitida</h2>
+              <p className="cw-step-desc">
+                La identificación de clientes está desactivada en el modo de vista previa para administradores. Esto protege los datos de tus clientes reales.
+              </p>
+            </div>
+            <div className="cw-actions">
+              <button className="cw-btn-primary" onClick={() => { vibrateTap(); onClose(); }}>
+                Entendido
+              </button>
+              <button
+                className="cw-btn-back"
+                onClick={() => { vibrateTap(); onClose(); navigate('/admin'); }}
+              >
+                Ir al Panel Admin
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
         <div className="cw-header">
           <div className="cw-logo">🌿</div>
           <h1 className="cw-header-title">{headerTitle}</h1>
@@ -530,6 +561,9 @@ export default function CustomerWizard({ onClose }) {
             <h2 className="cw-step-title">Todo listo</h2>
             <p className="cw-step-desc">Espéranos un momento...</p>
           </div>
+        )}
+
+          </>
         )}
 
       </div>

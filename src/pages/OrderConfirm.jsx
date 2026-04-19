@@ -1,8 +1,5 @@
-// src/pages/OrderConfirm.jsx
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, Navigate } from 'react-router-dom';
-import { useState } from 'react';
-import Header from '../components/layout/Header';
 import LottiePlayer from '../components/common/LottiePlayer';
 import { openWhatsApp } from '../utils/whatsapp';
 import './OrderConfirm.css';
@@ -31,7 +28,6 @@ export default function OrderConfirm() {
 
   return (
     <div className="app-container">
-      <Header />
       <main className="page-content order-confirm-redesign">
         
         {/* Success Header Section */}

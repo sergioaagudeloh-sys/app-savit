@@ -1,7 +1,9 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useCart } from '../../context/CartContext';
 import Mascot from '../ui/Mascot';
 import BottomNav from './BottomNav';
+import Header from './Header';
 
 /**
  * ClientLayout
@@ -10,6 +12,7 @@ import BottomNav from './BottomNav';
  */
 export default function ClientLayout({ children }) {
   const location = useLocation();
+  const { setCartOpen } = useCart();
 
   // Mapeo dinámico de rutas a contextos de conversación para la IA
   const pageType = useMemo(() => {
@@ -25,6 +28,9 @@ export default function ClientLayout({ children }) {
 
   return (
     <>
+      {/* Header Global Sávit - Uno solo para toda la app */}
+      <Header onCartOpen={() => setCartOpen(true)} />
+
       {/* Renderizado de la página actual */}
       {children}
 

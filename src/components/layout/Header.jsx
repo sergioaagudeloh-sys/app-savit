@@ -39,10 +39,37 @@ export default function Header({ showBack, title, onCartOpen, heroRgb = '26, 58,
   const isClientHome = location.pathname === '/' || location.pathname === '/home' || location.pathname === '/client';
   const hasHistory = window.history.state && window.history.state.idx > 0;
 
+  // Mapa de títulos automáticos segun la ruta
+  const getAutoTitle = () => {
+    if (title) return title; // Si se pasa por prop explícitamente, gana la prop
+    
+    const path = location.pathname;
+    if (path === '/catalog') return 'Catálogo';
+    if (path === '/categories') return 'Categorías';
+    if (path === '/orders') return 'Mis Pedidos';
+    if (path === '/favorites') return 'Mis Favoritos';
+    if (path === '/checkout') return 'Confirmar Pedido';
+    if (path === '/order-confirm') return '¡Pedido Recibido!';
+    
+    // Rutas de Admin
+    if (path === '/admin') return 'Panel de Control';
+    if (path === '/admin/products') return 'Inventario';
+    if (path === '/admin/orders') return 'Gestión de Pedidos';
+    if (path === '/admin/ingredients') return 'Ingredientes Extra';
+    if (path === '/admin/config') return 'Configuración';
+    
+    return ''; // Home o desconocido (usa logo)
+  };
+
+  const currentTitle = getAutoTitle();
+
   // Mostrar botón atrás en:
   // 1. Admin (todas las páginas excepto el Dashboard principal)
-  // 2. Cliente: sólo cuando hay historial y NO está en el Home
-  const shouldShowBack = showBack || (isAdminRoute && !isDashboard) || (!isAdminRoute && hasHistory && !isClientHome);
+  // 2. Cliente: cuando no es el Home y hay historial o es una página profunda
+  const deepClientPaths = ['/catalog', '/categories', '/orders', '/favorites', '/checkout', '/order-confirm'];
+  const isDeepPath = deepClientPaths.includes(location.pathname);
+  
+  const shouldShowBack = showBack || (isAdminRoute && !isDashboard) || (!isAdminRoute && isDeepPath && (hasHistory || !isClientHome));
 
   const [isScrolled, setIsScrolled] = useState(false);
   const [scrollOpacity, setScrollOpacity] = useState(0);
@@ -117,7 +144,7 @@ export default function Header({ showBack, title, onCartOpen, heroRgb = '26, 58,
         )}
       </div>
 
-      {title && <h1 className="header-title">{title}</h1>}
+      {currentTitle && <h1 className="header-title">{currentTitle}</h1>}
 
       <div className="header-right">
         {isAdminAuth && isClientView && (

@@ -1,7 +1,5 @@
 // src/pages/admin/AdminOrders.jsx
 import { useMemo, useState } from 'react';
-import Header from '../../components/layout/Header';
-import AdminSidebar from '../../components/layout/AdminSidebar';
 import { useOrders, useStoreConfig } from '../../hooks/useOrders';
 import SearchBar from '../../components/ui/SearchBar';
 import { buildAdminToClientMessage, openWhatsAppToClient } from '../../utils/whatsapp';
@@ -247,20 +245,13 @@ export default function AdminOrders() {
   };
 
   if (loading) return (
-    <div className="app-container admin-orders admin-page">
-      <Header />
-      <AdminSidebar />
-      <div className="flex-center w-full" style={{ height: '80vh' }}>
-        <span className="spinner spinner-dark" />
-      </div>
+    <div className="flex-center w-full" style={{ height: '80vh' }}>
+      <span className="spinner spinner-dark" />
     </div>
   );
 
   return (
-    <div className="app-container admin-orders admin-page">
-      <Header />
-      <AdminSidebar />
-      <main className="page-content admin-main-content">
+    <div className="admin-orders animate-fade-in">
         <div className="inv-hero">
           <div className="inv-hero-inner">
             <div className="inv-hero-top">
@@ -632,7 +623,7 @@ export default function AdminOrders() {
           </>
         )}
 
-      </main>
+
       
       {/* Ocultar navegación si el drawer está abierto para evitar solapamientos en iOS */}
       {!selectedOrder && null}

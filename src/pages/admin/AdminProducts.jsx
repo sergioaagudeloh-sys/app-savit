@@ -2,7 +2,7 @@
 import { useState, useMemo, useEffect, useRef, forwardRef } from 'react';
 import { Virtuoso } from 'react-virtuoso';
 import { useNavigate, useLocation } from 'react-router-dom';
-import Header from '../../components/layout/Header';
+
 import AdminSidebar from '../../components/layout/AdminSidebar';
 import SearchBar from '../../components/ui/SearchBar';
 import { useProducts, useCategories, useCategoryManager } from '../../hooks/useProducts';
@@ -282,11 +282,11 @@ export default function AdminProducts() {
   };
 
   return (
-    <div className="app-container admin-products admin-page">
-      <Header />
-      <AdminSidebar />
+    <div className="admin-products animate-fade-in">
 
-      <main className="page-content admin-main-content">
+
+
+
 
         {/* ── Hero ── */}
         <div className="inv-hero">
@@ -421,7 +421,7 @@ export default function AdminProducts() {
         )}
 
         </div>
-      </main>
+
 
       {/* ── Modal: Añadir/Editar Producto ── */}
       {isModalOpen && (

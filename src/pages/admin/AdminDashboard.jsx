@@ -2,8 +2,6 @@
 import { useMemo, useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
-import Header from '../../components/layout/Header';
-import AdminSidebar from '../../components/layout/AdminSidebar';
 import { useOrders, useStoreConfig } from '../../hooks/useOrders';
 import { useSubscriptions } from '../../hooks/useSubscriptions';
 import { useProducts } from '../../hooks/useProducts';
@@ -158,22 +156,16 @@ export default function AdminDashboard() {
   };
 
   if (loading) return (
-    <div className="app-container admin-dashboard admin-page">
-      <Header />
-      <AdminSidebar />
-      <main className="page-content admin-main-content">
-        <SkeletonDashboard />
-      </main>
+    <div className="flex-center w-full" style={{ height: '80vh' }}>
+      <SkeletonDashboard />
     </div>
   );
 
   const periodLabel = period === 'day' ? selectedDate.split('-').reverse().join('/') : period === 'week' ? 'Últimos 7 días' : 'Este mes';
 
   return (
-    <div className="app-container admin-dashboard admin-page">
-      <Header />
-      <AdminSidebar />
-      <main className="page-content admin-main-content">
+    <div className="admin-dashboard animate-fade-in">
+      {/* ── Dashboard Hero ── */}
 
         {/* ── Dashboard Hero ── */}
         <div className="inv-hero">
@@ -373,7 +365,6 @@ export default function AdminDashboard() {
             );
           })()}
         </div>
-      </main>
 
       {/* ── MODAL: Recaudado (Financiero) ── */}
       {showRevenueModal && (

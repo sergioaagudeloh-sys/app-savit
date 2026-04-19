@@ -3,6 +3,8 @@ import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../firebase';
 import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
+import { useNotifications } from '../../context/NotificationContext';
 import CustomerWizard from '../ui/CustomerWizard';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 import './BottomNav.css';
@@ -19,6 +21,8 @@ const IconRewards = <svg width="22" height="22" viewBox="0 0 24 24" fill="none" 
 
 export default function BottomNav() {
   const { setCartOpen } = useCart();
+  const { isAdmin: isAuthAdmin } = useAuth();
+  const { showToast } = useNotifications();
   const [showProfile, setShowProfile] = useState(false);
   const [showAdminMenu, setShowAdminMenu] = useState(false);
   const navigate = useNavigate();
@@ -133,7 +137,13 @@ export default function BottomNav() {
               <div 
                 key="profile" 
                 className={`bottom-nav-item ${showProfile ? 'active' : ''}`} 
-                onClick={() => setShowProfile(!showProfile)}
+                onClick={() => {
+                  if (isAuthAdmin) {
+                    showToast('Modo de prueba: El perfil de cliente está deshabilitado para tu cuenta admin.', 'info');
+                  } else {
+                    setShowProfile(!showProfile);
+                  }
+                }}
                 style={{ cursor: 'pointer' }}
               >
                 <div className="bottom-nav-icon">{item.icon}</div>

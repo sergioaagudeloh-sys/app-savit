@@ -7,6 +7,9 @@ import CartDrawer from './components/cart/CartDrawer';
 import { useNotifications } from './context/NotificationContext';
 import ToastContainer from './components/ui/ToastContainer';
 import ErrorBoundary from './components/common/ErrorBoundary';
+import AdminBackFAB from './components/ui/AdminBackFAB';
+import OfflineBanner from './components/ui/OfflineBanner';
+import ForceUpdateOverlay from './components/ui/ForceUpdateOverlay';
 
 // Premium Savit Loader para el Suspense / Router Transitions
 const FullPageLoader = () => {
@@ -120,6 +123,9 @@ export default function App() {
       </Suspense>
 
       {isCartOpen && <CartDrawer onClose={() => setCartOpen(false)} />}
+      <AdminBackFAB />
+      <OfflineBanner />
+      <ForceUpdateOverlay />
       <ToastContainer />
     </ErrorBoundary>
   );

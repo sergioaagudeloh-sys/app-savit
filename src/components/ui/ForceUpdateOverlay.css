@@ -1,0 +1,180 @@
+/* src/components/ui/ForceUpdateOverlay.css */
+
+/* Overlay bloqueante — cubre toda la pantalla, no se puede cerrar */
+.force-update-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: rgba(18, 18, 18, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+/* Card central */
+.force-update-card {
+  background: var(--color-surface);
+  border-radius: 28px;
+  padding: 32px 24px;
+  max-width: 340px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Icono animado */
+.force-update-icon-wrap {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 24px;
+  background: linear-gradient(135deg, rgba(163, 217, 100, 0.15), rgba(163, 217, 100, 0.05));
+  border: 2px solid rgba(163, 217, 100, 0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: force-update-pulse 2.5s ease-in-out infinite;
+}
+
+@keyframes force-update-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(163, 217, 100, 0.3); }
+  50%       { box-shadow: 0 0 0 16px rgba(163, 217, 100, 0); }
+}
+
+.force-update-icon-wrap svg {
+  width: 38px;
+  height: 38px;
+}
+
+/* Logo */
+.force-update-logo {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  margin: 0 auto 20px;
+  display: block;
+  filter: drop-shadow(0 4px 12px rgba(163, 217, 100, 0.3));
+}
+
+/* Textos */
+.force-update-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 10px;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.force-update-desc {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.65);
+  line-height: 1.6;
+  margin: 0 0 32px;
+}
+
+.force-update-desc strong {
+  color: rgba(163, 217, 100, 0.9);
+}
+
+/* Barra de progreso animada (mientras espera) */
+.force-update-progress-bar {
+  height: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 28px;
+}
+
+.force-update-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #a3d964, #4CAF50);
+  border-radius: 4px;
+  animation: force-update-shimmer 1.8s ease-in-out infinite;
+  width: 60%;
+}
+
+@keyframes force-update-shimmer {
+  0%   { width: 10%; opacity: 0.8; }
+  50%  { width: 80%; opacity: 1; }
+  100% { width: 10%; opacity: 0.8; }
+}
+
+/* Botón principal */
+.force-update-btn {
+  width: 100%;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #a3d964, #6dbf3a);
+  color: #1a3a1c;
+  border: none;
+  border-radius: 16px;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+  box-shadow: 0 8px 24px rgba(107, 191, 58, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.force-update-btn:hover {
+  filter: brightness(1.08);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(107, 191, 58, 0.5);
+}
+
+.force-update-btn:active {
+  transform: translateY(0);
+  filter: brightness(0.96);
+}
+
+.force-update-btn:disabled {
+  opacity: 0.7;
+  cursor: wait;
+  transform: none;
+}
+
+/* Estado "actualizando..." */
+.update-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid rgba(26, 58, 28, 0.3);
+  border-top-color: #1a3a1c;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Nota informativa */
+.force-update-note {
+  margin-top: 16px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.3);
+  letter-spacing: 0.01em;
+}
+
+/* Tablet / Desktop */
+@media (min-width: 768px) {
+  .force-update-card {
+    padding: 48px 40px;
+    max-width: 420px;
+  }
+
+  .force-update-title {
+    font-size: 26px;
+  }
+}

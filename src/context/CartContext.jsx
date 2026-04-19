@@ -130,7 +130,13 @@ export function CartProvider({ children }) {
   }, []);
 
   const totalItems = state.items?.reduce((sum, i) => sum + (i.quantity || 0), 0) || 0;
-  const totalPrice = state.items?.reduce((sum, i) => sum + (i.price || 0) * (i.quantity || 0), 0) || 0;
+  
+  const totalPrice = state.items?.reduce((sum, i) => {
+    // Si el item ya trae un precio calculado (como en ProductCard), lo usamos.
+    // De lo contrario, intentamos calcularlo de forma segura.
+    const itemPrice = i.price || 0; 
+    return sum + (itemPrice * (i.quantity || 0));
+  }, 0) || 0;
 
   return (
     <CartContext.Provider value={{

@@ -61,6 +61,39 @@
   will-change: transform;
 }
 
+.mascot-chat-btn.ai-pulse {
+  animation: aiPulse 2s infinite;
+  border-color: rgba(var(--primary-rgb), 0.8);
+}
+
+.ai-btn-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 12px;
+  height: 12px;
+  background: #ff4757;
+  border: 2px solid white;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  z-index: 5;
+}
+
+@keyframes aiPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0.4);
+    transform: scale(1);
+  }
+  70% {
+    box-shadow: 0 0 0 20px rgba(var(--primary-rgb), 0);
+    transform: scale(1.05);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0);
+    transform: scale(1);
+  }
+}
+
 @keyframes ai-star-rotate {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }

@@ -1,8 +1,6 @@
 // src/pages/admin/AdminOffers.jsx
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../../components/layout/Header';
-import AdminSidebar from '../../components/layout/AdminSidebar';
 import { useStoreConfig } from '../../hooks/useOrders';
 import { useProducts } from '../../hooks/useProducts';
 import { useNotifications } from '../../context/NotificationContext';
@@ -41,9 +39,7 @@ export default function AdminOffers() {
   }, [config]);
 
   if (loading && !config) return (
-    <div className="app-container admin-offers admin-page">
-      <Header title="Anuncios" />
-      <AdminSidebar />
+    <div className="admin-offers-container animate-fade-in">
       <div className="flex-center w-full" style={{ height: '70vh' }}>
         <span className="spinner spinner-dark" />
       </div>
@@ -141,11 +137,7 @@ export default function AdminOffers() {
   const isAtLimit = editingIndex === null && promos.length >= 5;
 
   return (
-    <div className="app-container admin-offers admin-page">
-      <Header />
-      <AdminSidebar />
-
-      <main className="page-content admin-main-content">
+    <div className="admin-offers-container animate-fade-in">
 
         <div className="inv-hero">
           <div className="inv-hero-inner">
@@ -343,7 +335,7 @@ export default function AdminOffers() {
           </div>
 
         </div>
-      </main>
+
 
       {/* ── Modal: Confirmar Eliminación ── */}
       {showDeleteModal && (

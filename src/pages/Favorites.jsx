@@ -1,11 +1,11 @@
 // src/pages/Favorites.jsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../components/layout/Header';
 import ProductCard from '../components/product/ProductCard';
 import { useCart } from '../context/CartContext';
 import { useFavorites } from '../context/FavoritesContext';
 import { useNotifications } from '../context/NotificationContext';
+import SEO from '../components/common/SEO';
 import './Favorites.css';
 
 export default function Favorites() {
@@ -17,8 +17,10 @@ export default function Favorites() {
 
   return (
     <div className="app-container favorites-page">
-      {/* 46, 83, 57 equivale al verde oscuro #2e5339 (fav-hero-label), para que resalte y haga contraste en el scroll */}
-      <Header onCartOpen={() => setCartOpen(true)} heroRgb="46, 83, 57" />
+      <SEO 
+        title="Mis Favoritos - Sávit"
+        description="Tu lista personal de productos saludables favoritos. Guarda lo que más te gusta y pídelo en segundos."
+      />
 
       {/* ── Hero ── */}
       <div className="fav-hero">

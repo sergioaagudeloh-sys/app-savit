@@ -1,7 +1,5 @@
 // src/pages/admin/AdminIngredients.jsx
 import React, { useState } from 'react';
-import Header from '../../components/layout/Header';
-import AdminSidebar from '../../components/layout/AdminSidebar';
 import { useIngredients } from '../../hooks/useIngredients';
 import { formatCOP } from '../../utils/formatters';
 import { useNotifications } from '../../context/NotificationContext';
@@ -67,11 +65,7 @@ export default function AdminIngredients() {
   const activeCount = ingredients.filter(i => i.active).length;
 
   return (
-    <div className="app-container admin-ingredients admin-page">
-      <Header />
-      <AdminSidebar />
-
-      <main className="page-content admin-main-content">
+    <div className="admin-ingredients animate-fade-in">
 
         {/* ── Hero ── */}
         <div className="inv-hero">
@@ -250,7 +244,6 @@ export default function AdminIngredients() {
           </>
         )}
 
-      </main>
     </div>
   );
 }

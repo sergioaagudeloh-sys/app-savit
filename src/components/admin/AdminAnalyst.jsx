@@ -1,5 +1,6 @@
 // src/components/admin/AdminAnalyst.jsx
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { sendMessageToAnalyst } from '../../services/adminAiService';
 import { vibrateTap } from '../../utils/haptics';
 import './AdminAnalyst.css';
@@ -12,18 +13,49 @@ const SUGGESTIONS = [
 ];
 
 export default function AdminAnalyst({ orders, products, config, onClose }) {
-  const [messages, setMessages] = useState([]);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const currentPage = location.pathname;
+
+  const [messages, setMessages] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('savit_admin_analyst_messages');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [viewportHeight, setViewportHeight] = useState(window.visualViewport?.height || window.innerHeight);
+
   const historyRef = useRef([]);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
+  // Cargar historial de la API al montar
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem('savit_admin_analyst_api');
+      if (saved) historyRef.current = JSON.parse(saved);
+    } catch (e) { console.warn('Error cargando historial analista:', e); }
+  }, []);
+
+  // Persistir mensajes y contexto de API en cada cambio
+  useEffect(() => {
+    try {
+      sessionStorage.setItem('savit_admin_analyst_messages', JSON.stringify(messages));
+      sessionStorage.setItem('savit_admin_analyst_api', JSON.stringify(historyRef.current));
+    } catch (e) {
+      console.warn('Error persistiendo analista:', e);
+    }
+  }, [messages]);
+
+  // FIX BUG 12: lines calculado una sola vez fuera del map
   const formatMessage = (text) => {
     if (!text) return '';
-    return text.split('\n').map((line, i) => (
+    const lines = text.split('\n');
+    return lines.map((line, i) => (
       <span key={i}>
         {line.split(/(\*\*.*?\*\*)/g).map((part, j) => {
           if (part.startsWith('**') && part.endsWith('**')) {
@@ -31,9 +63,46 @@ export default function AdminAnalyst({ orders, products, config, onClose }) {
           }
           return part;
         })}
-        {i < text.split('\n').length - 1 && <br />}
+        {i < lines.length - 1 && <br />}
       </span>
     ));
+  };
+
+  // Extrae botones [ACTION:Texto|Comando]
+  const getDetectedActions = (text) => {
+    if (!text) return [];
+    const regex = /\[\s*ACTION:\s*(.*?)\s*\|\s*(.*?)\s*\]/g;
+    const actions = [];
+    let match;
+    while ((match = regex.exec(text)) !== null) {
+      actions.push({ label: match[1].trim(), cmd: match[2].trim() });
+    }
+    return actions;
+  };
+
+  const handleActionClick = (action) => {
+    const { cmd } = action;
+
+    // Mapa de rutas administrativas
+    const adminNavMap = {
+      'pedidos':       '/admin/orders',
+      'inventario':    '/admin/products',
+      'stock':         '/admin/products',
+      'configuracion': '/admin/config',
+      'ofertas':       '/admin/offers',
+      'dashboard':     '/admin'
+    };
+
+    const targetRoute = adminNavMap[cmd.toLowerCase()] || (cmd.startsWith('/') ? cmd : null);
+
+    if (targetRoute) {
+      vibrateTap();
+      onClose();
+      navigate(targetRoute);
+    } else {
+      // Si no es ruta, se envía como mensaje de texto
+      sendMessage(cmd);
+    }
   };
 
   // 📱 Keyboard height sensor
@@ -44,14 +113,28 @@ export default function AdminAnalyst({ orders, products, config, onClose }) {
     return () => window.visualViewport.removeEventListener('resize', handleResize);
   }, []);
 
-  // Auto-scroll to bottom
+  // Auto-scroll to bottom on messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading]);
 
-  // Focus input on open
+  // FIX: Force scroll to bottom on mount (Elite persistence fix)
   useEffect(() => {
-    setTimeout(() => inputRef.current?.focus(), 400);
+    if (messages.length > 0) {
+      // Instant scroll
+      messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+      // Extra check for layout stability
+      const timer = setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  // FIX BUG 7: setTimeout con cleanup para evitar memory leak
+  useEffect(() => {
+    const timer = setTimeout(() => inputRef.current?.focus(), 400);
+    return () => clearTimeout(timer);
   }, []);
 
   // Scroll Lock
@@ -75,13 +158,14 @@ export default function AdminAnalyst({ orders, products, config, onClose }) {
 
     try {
       const historyForAPI = historyRef.current;
-      const aiText = await sendMessageToAnalyst(userText, orders, products, config, historyForAPI);
+      // Pasa currentPage para que la IA sepa en qué sección está el admin
+      const aiText = await sendMessageToAnalyst(userText, orders, products, config, historyForAPI, currentPage);
 
-      // Update history
+      // FIX BUG 4: role 'model' → 'ai' (consistente con el resto de la app)
       historyRef.current = [
         ...historyRef.current,
         { role: 'user', text: userText },
-        { role: 'model', text: aiText },
+        { role: 'ai',   text: aiText },
       ];
 
       setMessages(prev => [...prev, { role: 'ai', text: aiText, id: Date.now() + 1 }]);
@@ -91,29 +175,31 @@ export default function AdminAnalyst({ orders, products, config, onClose }) {
     } finally {
       setIsLoading(false);
     }
-  }, [input, isLoading, orders, products, config]);
+  }, [input, isLoading, orders, products, config, currentPage]);
 
-  const generateDailyInsight = async () => {
+  // FIX BUG 11: useCallback con dependencias correctas para evitar historial desactualizado
+  const generateDailyInsight = useCallback(async () => {
     if (isLoading) return;
     setIsLoading(true);
     setError('');
-    
-    // Add visual feedback of user request
-    const userMsg = { role: 'user', text: "✨ Dame el resumen y consejo del día.", id: Date.now() };
-    setMessages(prev => [...prev, userMsg]);
-    
+
+    const displayText = '✨ Dame el resumen y consejo del día.';
+    setMessages(prev => [...prev, { role: 'user', text: displayText, id: Date.now() }]);
+
     try {
-      const prompt = `Actúa como Sávit AI, mi asistente de negocio.
-Genera un consejo rápido del día (1 párrafo corto).
-Resume cómo van las ventas hoy y sugiéreme una alerta o acción relacionada con productos poco vendidos u ofertas. Sé directo, motivador y usa emojis.`;
-      
-      const historyForAPI = historyRef.current;
-      const aiText = await sendMessageToAnalyst(prompt, orders, products, config, historyForAPI);
-      
+      const prompt = `Dame el resumen ejecutivo del día en Sávit. 
+Revisa el rendimiento de hoy vs. el histórico, identifica oportunidades de mejora, 
+y dame 1 acción concreta que puedo hacer ahora mismo para aumentar las ventas. 
+Sé directo, estratégico y motivador.`;
+
+      // Usa historyRef.current para tener siempre el historial más actualizado
+      const aiText = await sendMessageToAnalyst(prompt, orders, products, config, historyRef.current, currentPage);
+
+      // FIX BUG 4: role 'model' → 'ai'
       historyRef.current = [
         ...historyRef.current,
-        { role: 'user', text: "✨ Dame el resumen y consejo del día." },
-        { role: 'model', text: aiText },
+        { role: 'user', text: displayText },
+        { role: 'ai',   text: aiText },
       ];
 
       setMessages(prev => [...prev, { role: 'ai', text: aiText, id: Date.now() + 1 }]);
@@ -123,7 +209,7 @@ Resume cómo van las ventas hoy y sugiéreme una alerta o acción relacionada co
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [isLoading, orders, products, config, currentPage]);
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -143,7 +229,8 @@ Resume cómo van las ventas hoy y sugiéreme una alerta o acción relacionada co
           height: viewportHeight < window.innerHeight * 0.8 ? `${viewportHeight}px` : '85vh',
           maxHeight: '85vh',
           paddingBottom: viewportHeight < window.innerHeight * 0.8 ? '25px' : '0px',
-          borderRadius: viewportHeight < window.innerHeight * 0.8 ? '0' : '24px'
+          // FIX BUG 10: '24px 24px 0 0' mantiene esquinas superiores al abrir teclado
+          borderRadius: viewportHeight < window.innerHeight * 0.8 ? '24px 24px 0 0' : '24px',
         }}
       >
         
@@ -191,11 +278,35 @@ Resume cómo van las ventas hoy y sugiéreme una alerta o acción relacionada co
             </div>
           )}
 
-          {messages.map(msg => (
-            <div key={msg.id} className={`analyst-message ${msg.role === 'user' ? 'user' : 'ai'}`}>
-               {formatMessage(msg.text)}
-            </div>
-          ))}
+          {messages.map(msg => {
+            const cleanTextFragment = msg.text
+              .replace(/\[\s*.*?\s*\]/gi, '')
+              .trim();
+
+            const actions = (typeof getDetectedActions === 'function') ? getDetectedActions(msg.text) : [];
+
+            return (
+              <div key={msg.id} className={`analyst-message ${msg.role === 'user' ? 'user' : 'ai'}`}>
+                 <div className="analyst-bubble-content">
+                    {formatMessage(cleanTextFragment)}
+                 </div>
+                 
+                 {msg.role === 'ai' && actions.length > 0 && (
+                   <div className="analyst-action-buttons">
+                     {actions.map((action, idx) => (
+                       <button
+                         key={idx}
+                         className="analyst-action-btn ripple"
+                         onClick={e => handleActionClick(action, e)}
+                       >
+                         {action.label}
+                       </button>
+                     ))}
+                   </div>
+                 )}
+              </div>
+            );
+          })}
 
           {isLoading && (
             <div className="analyst-message ai">

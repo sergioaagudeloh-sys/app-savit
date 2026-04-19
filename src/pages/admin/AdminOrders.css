@@ -5,9 +5,7 @@
   min-height: 100dvh;
 }
 
-body.is-admin-route .admin-orders .admin-main-content {
-  padding-top: 0;
-}
+
 
 /* src/pages/admin/AdminOrders.css is now cleaner */
 

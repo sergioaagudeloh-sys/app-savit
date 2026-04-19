@@ -1,7 +1,6 @@
 // src/pages/Orders.jsx
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../components/layout/Header';
 import { useOrders } from '../hooks/useOrders';
 import { useCart } from '../context/CartContext';
 import { useNotifications } from '../context/NotificationContext';
@@ -9,6 +8,7 @@ import { formatCOP, formatDateShort } from '../utils/formatters';
 import { OrderSkeleton } from '../components/ui/Skeleton';
 import OrderTimeline from '../components/ui/OrderTimeline';
 import { openWhatsApp } from '../utils/whatsapp';
+import SEO from '../components/common/SEO';
 import './Orders.css';
 
 const STATUS_INFO = {
@@ -64,7 +64,10 @@ export default function Orders() {
 
   return (
     <div className="app-container orders-page">
-      <Header onCartOpen={() => setCartOpen(true)} />
+      <SEO 
+        title="Mis Pedidos - Sávit"
+        description="Revisa el estado de tus compras saludables y haz seguimiento a tus pedidos de Sávit en tiempo real."
+      />
       <main className="page-content">
         <div className="orders-hero">
            <div className="orders-hero-content">

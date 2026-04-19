@@ -1,12 +1,100 @@
 // src/pages/admin/AdminConfig.jsx
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../../components/layout/Header';
-import AdminSidebar from '../../components/layout/AdminSidebar';
 import { useStoreConfig } from '../../hooks/useOrders';
+import { useImageUpload } from '../../hooks/useImageUpload';
 import { useNotifications } from '../../context/NotificationContext';
 import { SkeletonHero, SkeletonCard } from '../../components/ui/Skeleton';
+import { useRef } from 'react';
 import './AdminConfig.css';
+
+// ── Inline Image Uploader Component (Copied from AdminProducts for consistency) ──
+function ImageUploader({ value, onChange }) {
+  const { uploading, progress, error, uploadImage, reset } = useImageUpload();
+  const fileInputRef = useRef(null);
+  const [preview, setPreview] = useState(value || '');
+
+  useEffect(() => {
+    setPreview(value || '');
+  }, [value]);
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const localPreview = URL.createObjectURL(file);
+    setPreview(localPreview);
+
+    try {
+      const url = await uploadImage(file);
+      URL.revokeObjectURL(localPreview);
+      setPreview(url);
+      onChange(url);
+    } catch {
+      setPreview(value || '');
+    }
+    e.target.value = '';
+  };
+
+  const handleRemove = () => {
+    setPreview('');
+    onChange('');
+    reset();
+  };
+
+  return (
+    <div className="img-uploader">
+      {preview ? (
+        <div className="img-uploader-preview">
+          <img src={preview} alt="Vista previa QR" />
+          {uploading && (
+            <div className="img-uploader-progress-overlay">
+              <div className="img-uploader-progress-bar" style={{ width: `${progress}%` }} />
+              <span className="img-uploader-progress-label">{progress}%</span>
+            </div>
+          )}
+          {!uploading && (
+            <button
+              type="button"
+              className="img-uploader-remove"
+              onClick={handleRemove}
+              aria-label="Eliminar imagen"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 6L6 18M6 6l12 12"/>
+              </svg>
+            </button>
+          )}
+        </div>
+      ) : (
+        <button
+          type="button"
+          className="img-uploader-zone"
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <div className="img-uploader-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="4"/>
+              <circle cx="8.5" cy="8.5" r="1.5"/>
+              <polyline points="21 15 16 10 5 21"/>
+            </svg>
+          </div>
+          <span className="img-uploader-text">Toca para subir QR de pago</span>
+        </button>
+      )}
+
+      {error && <p className="img-uploader-error">{error}</p>}
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        style={{ display: 'none' }}
+        onChange={handleFileChange}
+      />
+    </div>
+  );
+}
 
 export default function AdminConfig() {
   const { config, updateConfig, loading } = useStoreConfig();
@@ -18,7 +106,8 @@ export default function AdminConfig() {
     isOpen: true,
     whatsappNumber: '',
     storeName: '',
-    paymentAccount: '', // Número Nequi/Bancolombia para cobros
+    paymentAccount: '', // N??mero Nequi/Bancolombia para cobros
+    paymentQRCodeUrl: '', // URL del QR para transferencias
     scheduleEnabled: false,
     openTime: '09:00',
     closeTime: '18:00',
@@ -56,15 +145,13 @@ export default function AdminConfig() {
   }, [config]);
 
   if (loading && !config) return (
-    <div className="app-container admin-config admin-page">
-      <Header title="Configuración" />
-      <AdminSidebar />
-      <main className="page-content admin-main-content" style={{ padding: '0 16px 80px' }}>
+    <div className="admin-config animate-fade-in">
+      <div style={{ padding: '0 16px 80px' }}>
         <SkeletonHero stats={0} />
         <SkeletonCard lines={3} />
         <SkeletonCard lines={2} />
         <SkeletonCard lines={2} showAvatar={false} />
-      </main>
+      </div>
     </div>
   );
 
@@ -177,10 +264,7 @@ export default function AdminConfig() {
   };
 
   return (
-    <div className="app-container admin-config admin-page">
-      <Header />
-      <AdminSidebar />
-      <main className="page-content admin-main-content">
+    <div className="admin-config animate-fade-in">
         <div className="inv-hero">
           <div className="inv-hero-inner">
             <div className="inv-hero-top">
@@ -335,20 +419,61 @@ export default function AdminConfig() {
                   </div>
                 </div>
                 <div className="cfg-body">
-                  <div className="cfg-input-group">
-                    <label className="cfg-label">Número Nequi / Bancolombia</label>
-                    <input
-                      className="cfg-input"
-                      name="paymentAccount"
-                      value={form.paymentAccount || ''}
+                  <div className="cfg-grid-2">
+                    <div className="cfg-input-group">
+                      <label className="cfg-label">Número de Cuenta</label>
+                      <input
+                        className="cfg-input"
+                        name="paymentAccount"
+                        value={form.paymentAccount || ''}
+                        onChange={handleChange}
+                        placeholder="Ej: 3001234567"
+                      />
+                    </div>
+                    <div className="cfg-input-group">
+                      <label className="cfg-label">Banco</label>
+                      <input
+                        className="cfg-input"
+                        name="paymentBank"
+                        value={form.paymentBank || ''}
+                        onChange={handleChange}
+                        placeholder="Ej: Nequi, Bancolombia"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="cfg-input-group mt-md">
+                    <label className="cfg-label">Tipo de Cuenta</label>
+                    <select 
+                      className="cfg-input" 
+                      name="paymentAccountType" 
+                      value={form.paymentAccountType || 'Ahorros'} 
                       onChange={handleChange}
-                      placeholder="Ej: 3001234567"
+                    >
+                      <option value="Ahorros">Ahorros</option>
+                      <option value="Corriente">Corriente</option>
+                    </select>
+                  </div>
+                  <div className="cfg-input-group mt-md">
+                    <label className="cfg-label">Código QR de Pago (Transferencias)</label>
+                    <ImageUploader 
+                      value={form.paymentQRCodeUrl || ''} 
+                      onChange={(url) => setForm(prev => ({ ...prev, paymentQRCodeUrl: url }))} 
                     />
-                    <span className="cfg-hint">Aparece en el WhatsApp de cobro que se envía al cliente</span>
+                    <div style={{ marginTop: '8px' }}>
+                      <input 
+                        className="cfg-input" 
+                        name="paymentQRCodeUrl"
+                        value={form.paymentQRCodeUrl || ''} 
+                        onChange={handleChange} 
+                        placeholder="O pega aquí la URL de la imagen del QR..."
+                      />
+                    </div>
+                    <span className="cfg-hint">Puedes subir una imagen o pegar un enlace directo. La IA usará esto para cobrar.</span>
                   </div>
                   <div className="cfg-footer">
                     <button type="button" className="btn btn-primary btn-sm" onClick={handleSubmit} disabled={saving}>
-                      {saving ? <span className="spinner" /> : 'Guardar'}
+                      {saving ? <span className="spinner" /> : 'Guardar Datos de Pago'}
                     </button>
                   </div>
                 </div>
@@ -441,7 +566,6 @@ export default function AdminConfig() {
           )}
 
         </div>
-      </main>
     </div>
   );
 }

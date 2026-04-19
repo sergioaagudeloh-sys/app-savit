@@ -171,6 +171,9 @@
   background: #3b82f6;
   color: white;
   border-bottom-right-radius: 4px;
+  width: fit-content; /* Asegurar que se ajuste al texto */
+  word-break: normal;
+  overflow-wrap: break-word;
 }
 
 .analyst-message.ai {
@@ -459,4 +462,42 @@
     padding: 6px 12px;
     font-size: 0.8rem;
   }
+}
+
+/* ── Action Buttons ── */
+.analyst-action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.analyst-action-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #e0e0e0;
+  padding: 8px 14px;
+  border-radius: 12px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  backdrop-filter: blur(4px);
+}
+
+.analyst-action-btn:hover {
+  background: white;
+  color: #1a1c1e;
+  transform: translateY(-2px);
+  border-color: white;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.analyst-action-btn:active {
+  transform: scale(0.96);
 }

@@ -3,12 +3,14 @@ import { useState } from 'react';
 import { useOrders, useStoreConfig } from '../../hooks/useOrders';
 import { useProducts } from '../../hooks/useProducts';
 import AdminAnalyst from '../admin/AdminAnalyst';
+import AdminSidebar from './AdminSidebar';
 import BottomNav from './BottomNav';
+import Header from './Header';
 
 /**
  * AdminLayout
  * Envoltorio global para todas las páginas administrativas.
- * Gestiona el Asistente IA Savit de forma persistente.
+ * Gestiona el Sidebar (Desktop), el Header y el BottomNav (Mobile) con adaptabilidad.
  */
 export default function AdminLayout({ children }) {
   const { orders } = useOrders();
@@ -18,11 +20,19 @@ export default function AdminLayout({ children }) {
   const [showAnalyst, setShowAnalyst] = useState(false);
 
   return (
-    <>
-      {/* Contenido de la página (Dashboard, Pedidos, etc.) */}
-      {children}
+    <div className="admin-layout-container">
+      {/* Header global para Admin */}
+      <Header />
 
-      {/* Botón flotante global del Asistente IA */}
+      {/* Sidebar persistente en PC (oculto en móvil vía CSS) */}
+      <AdminSidebar />
+
+      {/* El contenido principal se desplaza automáticamente vía CSS padding-left en PC */}
+      <div className="admin-main-content">
+        {children}
+      </div>
+
+      {/* Botón flotante del Asistente IA (Savit Analyst) */}
       <button 
         className={`ai-floating-btn ${showAnalyst ? 'active' : ''}`}
         onClick={() => setShowAnalyst(true)}
@@ -33,7 +43,7 @@ export default function AdminLayout({ children }) {
         </svg>
       </button>
 
-      {/* Componente del Analista con acceso a todos los datos */}
+      {/* Componente del Analista */}
       {showAnalyst && (
         <AdminAnalyst 
           onClose={() => setShowAnalyst(false)} 
@@ -42,7 +52,9 @@ export default function AdminLayout({ children }) {
           config={config}
         />
       )}
+
+      {/* Navegación inferior (visible solo en móvil vía CSS) */}
       <BottomNav />
-    </>
+    </div>
   );
 }

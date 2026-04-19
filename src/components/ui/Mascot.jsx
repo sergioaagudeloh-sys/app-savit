@@ -117,6 +117,9 @@ export default function Mascot({ page = 'default' }) {
   // States
   const [msg, setMsg] = useState(activeMessages[0]);
   const [showBubble, setShowBubble] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+  const [aiNotification, setAiNotification] = useState(false);
+  const [showPromoBubbles, setShowPromoBubbles] = useState(false);
   const [isWiggling, setIsWiggling] = useState(false);
   const [showPromoGlow, setShowPromoGlow] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -124,11 +127,9 @@ export default function Mascot({ page = 'default' }) {
   const [isDragging, setIsDragging] = useState(false);
 
   // Bubble system
-  const [showPromoBubbles, setShowPromoBubbles] = useState(false);
   const [selectedPromo, setSelectedPromo] = useState(null);
   const [selectedTip, setSelectedTip] = useState(null);
   const [mascotScreenPos, setMascotScreenPos] = useState({ x: 0, y: 0 });
-  const [showChat, setShowChat] = useState(false);
   const bubbleTimeoutRef = useRef(null);
 
   // Refs
@@ -149,6 +150,26 @@ export default function Mascot({ page = 'default' }) {
   useEffect(() => {
     activeMessagesRef.current = activeMessages;
   }, [activeMessages]);
+
+  // 🧠 AI Proactive Hook
+  useEffect(() => {
+    const handleAIUpdate = () => {
+      // Solo notificar si el chat NO está abierto
+      if (!showChat) {
+        setAiNotification(true);
+      }
+    };
+    window.addEventListener('savit_ai_update', handleAIUpdate);
+    return () => window.removeEventListener('savit_ai_update', handleAIUpdate);
+  }, [showChat]);
+
+  const handleOpenChat = useCallback((e) => {
+    e?.stopPropagation();
+    setAiNotification(false);
+    setShowPromoBubbles(false);
+    if (bubbleTimeoutRef.current) clearTimeout(bubbleTimeoutRef.current);
+    setShowChat(prev => !prev);
+  }, []);
 
   const scheduleNextRotation = useCallback(() => {
     if (rotationTimeoutRef.current) clearTimeout(rotationTimeoutRef.current);
@@ -416,21 +437,16 @@ export default function Mascot({ page = 'default' }) {
         </div>
       </div>
 
-      {/* ✨ Floating AI Button (Left Synchronized) */}
       <button
-        className="mascot-chat-btn"
-        onClick={(e) => {
-          e.stopPropagation();
-          setShowPromoBubbles(false);
-          if (bubbleTimeoutRef.current) clearTimeout(bubbleTimeoutRef.current);
-          setShowChat(prev => !prev);
-        }}
+        className={`mascot-chat-btn ${aiNotification ? 'ai-pulse' : ''}`}
+        onClick={handleOpenChat}
         aria-label="Asistente de IA"
         title="Asistente de Inteligencia Artificial"
       >
         <svg className="mascot-btn-sparkle" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
           <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" />
         </svg>
+        {aiNotification && <span className="ai-btn-badge" />}
       </button>
     </>
   );

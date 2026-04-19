@@ -3,7 +3,6 @@ import { useState, useMemo, useEffect, forwardRef, useCallback } from 'react';
 import { VirtuosoGrid } from 'react-virtuoso';
 import Fuse from 'fuse.js';
 import { useLocation } from 'react-router-dom';
-import Header from '../components/layout/Header';
 import Banner from '../components/ui/Banner';
 import SearchBar from '../components/ui/SearchBar';
 import CategoryPills from '../components/ui/CategoryPills';
@@ -15,6 +14,8 @@ import { useStoreConfig } from '../hooks/useOrders';
 import { useNotifications } from '../context/NotificationContext';
 import { useSwipe } from '../hooks/useSwipe';
 import EmptyState from '../components/common/EmptyState';
+import SEO from '../components/common/SEO';
+import { getProductInterests } from '../utils/aiTriggers';
 import './Home.css';
 
 import { ProductSkeleton } from '../components/ui/Skeleton';
@@ -99,13 +100,27 @@ export default function Home() {
       return matchesCat && p.active !== false;
     });
 
-    const searchStr = search?.trim();
-    if (!searchStr || !fuseInstance) return baseProducts;
+    const result = search.trim() ? fuseInstance.search(search).map(r => r.item).filter(p => selectedCat === 'Todos' || p.category === selectedCat) : baseProducts;
 
-    const results = fuseInstance.search(searchStr);
-    return results
-      .map(res => res.item)
-      .filter(p => selectedCat === 'Todos' || p.category === selectedCat);
+    // 🚀 Aplicar reordenamiento inteligente basado en intereses
+    const interests = getProductInterests();
+    if (interests.length > 0) {
+      return [...result].sort((a, b) => {
+        const indexA = interests.indexOf(a.id);
+        const indexB = interests.indexOf(b.id);
+        
+        // Si ambos están en intereses, mantener el orden de importancia (recientes/puntos)
+        if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+        // Si solo A está en interés, va primero
+        if (indexA !== -1) return -1;
+        // Si solo B está en interés, va primero
+        if (indexB !== -1) return 1;
+        
+        return 0; // Mantener orden original si ninguno es de interés
+      });
+    }
+
+    return result;
   }, [products, search, selectedCat, fuseInstance]);
 
   const handleToast = useCallback((msg, type) => {
@@ -114,7 +129,10 @@ export default function Home() {
 
   return (
     <div className="app-container catalog-page" {...swipeHandlers}>
-      <Header onCartOpen={() => setCartOpen(true)} />
+      <SEO 
+        title={search ? `Sávit - Buscando "${search}"` : selectedCat === 'Todos' ? 'Sávit - Catálogo Saludable' : `Sávit - Categoría ${selectedCat}`}
+        description={`Explora nuestro catálogo de productos ${selectedCat === 'Todos' ? 'saludables' : selectedCat.toLowerCase()}. Pide tus favoritos por WhatsApp de forma fácil y rápida.`}
+      />
 
       <div className="catalog-hero-wrapper">
         <Banner />

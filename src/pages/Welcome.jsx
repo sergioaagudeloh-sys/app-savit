@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCustomer } from '../context/CustomerContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import CustomerWizard from '../components/ui/CustomerWizard';
+import SEO from '../components/common/SEO';
 import './Welcome.css';
 
 export default function Welcome() {
@@ -46,6 +47,10 @@ export default function Welcome() {
 
   return (
     <div className={`welcome-container ${isEntering ? 'entering-flow' : ''}`}>
+      <SEO 
+        title="Bienvenidos a Sávit - Mercado Saludable"
+        description="Vive saludable con Sávit. Productos naturales, keto y sin gluten. ¡Entra y descubre una forma más sana de alimentarte!"
+      />
       {/* ⚙️ Secret Admin Control */}
       {!isEntering && (
         <motion.button
@@ -102,9 +107,11 @@ export default function Welcome() {
             drag="y"
             dragConstraints={{ top: -100, bottom: 0 }}
             dragElastic={0.2}
+            dragMomentum={false}
             onDrag={onDrag}
             onDragEnd={onDragEnd}
             whileDrag={{ scale: 1.15 }}
+            onClick={() => setIsEntering(true)} // Desktop fallback
             className="welcome-brand-badge interactive-badge"
           >
             <div className="badge-pulse-ring"></div>
@@ -114,17 +121,18 @@ export default function Welcome() {
                 src="/logo.png" 
                 alt="Sávit Logo" 
                 className="welcome-logo-img"
+                draggable={false} // Prevent browser image drag interference
               />
             </div>
           </motion.div>
         </div>
 
-        <div className="welcome-content-wrap">
+        <main className="welcome-content-wrap">
           <h1 className="welcome-title-split">Cuidamos Tu Bienestar</h1>
           <p className="welcome-subtitle-split">
             Alimentamos tu vida con lo mejor de la naturaleza, fresco y directo a tu hogar.
           </p>
-        </div>
+        </main>
 
         <footer className="welcome-footer-tag">
           Sávit — Mercado Saludable

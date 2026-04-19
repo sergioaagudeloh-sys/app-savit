@@ -52,11 +52,21 @@
 }
 
 .category-pill.active {
-  background: var(--color-primary);
   color: #fff; /* Texto blanco para mejor contraste sobre fondo principal */
-  border-color: var(--color-primary);
+  border-color: transparent;
   box-shadow: 0 6px 15px rgba(36, 76, 38, 0.25);
   transform: translateY(-2px);
+}
+
+.category-pill-active-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--color-primary);
+  border-radius: 12px;
+  z-index: 0; /* Por detrás del texto */
 }
 
 .category-pill.active .pill-icon {

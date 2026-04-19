@@ -4,9 +4,7 @@
   min-height: 100dvh;
 }
 
-body.is-admin-route .admin-dashboard .admin-main-content {
-  padding-top: 0;
-}
+
 
 /* ── Dashboard Hero Status Pill ── */
 .dash-store-status {

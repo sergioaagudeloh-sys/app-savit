@@ -1,4 +1,3 @@
-import Header from '../components/layout/Header';
 import { useProducts, useCategories } from '../hooks/useProducts';
 import { useCart } from '../context/CartContext';
 
@@ -9,7 +8,6 @@ export default function Categories() {
 
   return (
     <div className="app-container">
-      <Header title="Categorías" onCartOpen={() => setCartOpen(true)} />
       <main className="page-content">
         <div style={{ padding: 'var(--space-md)' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-sm)' }}>

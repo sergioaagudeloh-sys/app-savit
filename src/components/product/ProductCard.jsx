@@ -2,11 +2,13 @@
 import React, { useState, useCallback, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useCart } from '../../context/CartContext';
 import { useFavorites } from '../../context/FavoritesContext';
 import LottiePlayer from '../common/LottiePlayer';
 import ProgressiveImage from '../ui/ProgressiveImage';
 import { vibrateSuccess, vibrateTap } from '../../utils/haptics';
+import { trackProductInterest } from '../../utils/aiTriggers';
 import { formatCOP } from '../../utils/formatters';
 import { useIngredients } from '../../hooks/useIngredients';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
@@ -61,6 +63,7 @@ export default function ProductCard({ product, onToast }) {
       setSelectedAdditions([]);
       setModalQty(1);
       setShowDetail(true);
+      trackProductInterest(product.id, 'detail');
       return;
     }
 
@@ -72,6 +75,7 @@ export default function ProductCard({ product, onToast }) {
       };
       
       addItem(productToAdd, qty);
+      trackProductInterest(product.id, 'cart');
       vibrateSuccess();
       setShowAdded(true);
 
@@ -130,13 +134,18 @@ export default function ProductCard({ product, onToast }) {
     setSelectedAdditions([]);
     setModalQty(1);
     setShowDetail(true);
+    trackProductInterest(product.id, 'detail');
   };
 
   return (
     <>
-      <div 
+      <motion.div 
         className={`product-card ${isSoldOut ? 'product-card--soldout' : ''}`}
         onClick={handleOpenDetail}
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "0px 0px -40px 0px" }}
+        transition={{ type: "spring", stiffness: 300, damping: 25 }}
       >
         {/* ── Favorite Button ── */}
         <button 
@@ -235,7 +244,7 @@ export default function ProductCard({ product, onToast }) {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* ── Product Detail Modal (Float Menu) ── */}
       {showDetail && createPortal(

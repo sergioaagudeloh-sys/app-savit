@@ -1,7 +1,6 @@
 // src/pages/Checkout.jsx
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../components/layout/Header';
 import { useCart } from '../context/CartContext';
 import { useCustomer } from '../context/CustomerContext';
 import StoreStatusBanner from '../components/ui/StoreStatusBanner';
@@ -11,6 +10,7 @@ import { buildWhatsAppMessage, openWhatsApp } from '../utils/whatsapp';
 import { formatCOP, generateOrderId } from '../utils/formatters';
 import SwipeButton from '../components/ui/SwipeButton';
 import PinModal from '../components/ui/PinModal';
+import { useAuth } from '../context/AuthContext';
 import './Checkout.css';
 
 export default function Checkout() {
@@ -19,7 +19,8 @@ export default function Checkout() {
   const { createOrder } = useOrders();
   const { config } = useStoreConfig();
   const { customer, isIdentified, hasPin } = useCustomer();
-  const { addNotification } = useNotifications();
+  const { addNotification, showToast } = useNotifications();
+  const { isAdmin } = useAuth();
 
   const [deliveryMethod, setDeliveryMethod] = useState('domicilio');
   const [form, setForm] = useState({
@@ -129,6 +130,13 @@ export default function Checkout() {
   // Entry point — validate form then show PIN if needed
   const handleSubmit = async () => {
     if (items.length === 0) return;
+    
+    // Prevent admin from ordering
+    if (isAdmin) {
+      showToast('Estás en modo Vista Previa. No puedes realizar pedidos reales.', 'error');
+      return;
+    }
+
     const errs = validate();
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
     // Identified customers must verify (or create) their PIN
@@ -142,7 +150,6 @@ export default function Checkout() {
   if (items.length === 0) {
     return (
       <div className="app-container">
-        <Header showBack title="Mi Pedido" />
         <main className="page-content page-content--no-nav checkout-empty">
           <div className="empty-state">
             <div className="empty-state-icon">🛒</div>
@@ -159,7 +166,6 @@ export default function Checkout() {
 
   return (
     <div className="app-container">
-      <Header showBack title="Confirmar Pedido" />
       <main className="page-content page-content--no-nav checkout-page">
         <div className="checkout-hero">
            <div className="checkout-hero-content">
@@ -167,6 +173,29 @@ export default function Checkout() {
              <h1 className="checkout-hero-title">Finalizar Pedido</h1>
            </div>
         </div>
+
+        {isAdmin && (
+          <div className="admin-checkout-notice" style={{
+            margin: '0 var(--space-md) var(--space-md)',
+            padding: '16px',
+            background: 'linear-gradient(135deg, #1b5e20, #2e7d32)',
+            borderRadius: '16px',
+            color: 'white',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            boxShadow: '0 8px 20px rgba(0,0,0,0.1)',
+            border: '1px solid rgba(255,255,255,0.2)'
+          }}>
+            <div style={{ fontSize: '24px' }}>🛡️</div>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: '0.9rem' }}>MODO ADMINISTRADOR</div>
+              <div style={{ fontSize: '0.75rem', opacity: 0.9 }}>
+                Puedes simular el carrito, pero el envío de pedidos está desactivado para tu cuenta.
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Order Summary */}
         <section className="checkout-section">
@@ -345,8 +374,8 @@ export default function Checkout() {
               </p>
               <SwipeButton
                 onConfirm={handleSubmit}
-                label={!isFormValid ? "Completa tus datos" : "Desliza para Confirmar"}
-                disabled={loading || items.length === 0 || !isFormValid}
+                label={isAdmin ? "Pedidos Desactivados" : !isFormValid ? "Completa tus datos" : "Desliza para Confirmar"}
+                disabled={loading || items.length === 0 || !isFormValid || isAdmin}
               />
               <p className="checkout-disclaimer" style={{ marginTop: '10px' }}>
                 Te redirigiremos a WhatsApp para finalizar tu pedido
@@ -357,7 +386,7 @@ export default function Checkout() {
               <button
                 className="btn btn-whatsapp btn-lg"
                 onClick={handleSubmit}
-                disabled={loading || !isFormValid}
+                disabled={loading || !isFormValid || isAdmin}
                 id="btn-confirm-order"
               >
                 {loading ? (

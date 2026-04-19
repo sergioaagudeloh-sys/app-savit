@@ -2,6 +2,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import App from './App';
 import { CartProvider } from './context/CartContext';
 import { NotificationProvider } from './context/NotificationContext';
@@ -10,6 +11,10 @@ import { StoreProvider } from './context/StoreContext';
 import { CustomerProvider } from './context/CustomerContext';
 import { FavoritesProvider } from './context/FavoritesContext';
 import './styles/index.css';
+import { registerServiceWorker } from './utils/registerSW';
+
+// Registrar Service Worker para modo offline
+registerServiceWorker();
 
 // One-time cleanup of demo/test data
 if (!localStorage.getItem('savit_data_v1_cleaned')) {
@@ -19,20 +24,22 @@ if (!localStorage.getItem('savit_data_v1_cleaned')) {
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <StoreProvider>
-        <CustomerProvider>
-          <NotificationProvider>
-            <AuthProvider>
-              <CartProvider>
-                <FavoritesProvider>
-                  <App />
-                </FavoritesProvider>
-              </CartProvider>
-            </AuthProvider>
-          </NotificationProvider>
-        </CustomerProvider>
-      </StoreProvider>
-    </BrowserRouter>
+    <HelmetProvider>
+      <BrowserRouter>
+        <StoreProvider>
+          <CustomerProvider>
+            <NotificationProvider>
+              <AuthProvider>
+                <CartProvider>
+                  <FavoritesProvider>
+                    <App />
+                  </FavoritesProvider>
+                </CartProvider>
+              </AuthProvider>
+            </NotificationProvider>
+          </CustomerProvider>
+        </StoreProvider>
+      </BrowserRouter>
+    </HelmetProvider>
   </React.StrictMode>
 );
