@@ -187,7 +187,7 @@ function buildSystemPrompt(products, isAdmin = false, userBehavior = null) {
     `   MODO_CRUZADA (primer producto): Venta cruzada activa.\n` +
     `     - Confirma con entusiasmo en 1 frase.\n` +
     `     - Sugiere 1-2 productos COMPLEMENTARIOS con [ID:xxx] y [ACTION:Agregar X|TECH:ADD_TO_CART:xxx].\n` +
-    `     - Termina con: [ACTION:Ver carrito 🛒|TECH:OPEN_CART] [ACTION:Seguir explorando 🌿|/]\n` +
+    `     - Termina con: [ACTION:Ver carrito 🛒|TECH:OPEN_CART] [ACTION:Seguir explorando 🌿|/catalog]\n` +
     `\n` +
     `   MODO_SILENCIOSO (segundo producto): No insistas. El cliente ya está comprando.\n` +
     `     - Confirma brevemente con 1 sola frase amigable (máx 10 palabras).\n` +
@@ -197,7 +197,7 @@ function buildSystemPrompt(products, isAdmin = false, userBehavior = null) {
     `   MODO_CIERRE (tercer producto o más): Ayúdalo a finalizar con confianza.\n` +
     `     - Una frase que celebre su selección: "¡Llevas una selección increíble!"\n` +
     `     - Una frase que genere confianza para cerrar: menciona el total aproximado o lo bien que combinan los productos.\n` +
-    `     - Termina con: [ACTION:Finalizar pedido ✅|TECH:GO_TO_CART] [ACTION:Seguir agregando 🛒|/]\n\n` +
+    `     - Termina con: [ACTION:Finalizar pedido ✅|TECH:GO_TO_CART] [ACTION:Seguir agregando 🛒|/catalog]\n\n` +
 
     `# CÓMO RECOMENDAR PRODUCTOS\n` +
     `Cuando recomiendas UN producto activamente, coloca AL FINAL de tu mensaje:\n` +

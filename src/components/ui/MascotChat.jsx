@@ -193,7 +193,7 @@ export default function MascotChat({ onClose }) {
         `(SISTEMA: El cliente acaba de agregar "${productName}" como su PRIMER producto. ` +
         `Usa el MODO_CRUZADA de la Regla 9: confirma con entusiasmo, sugiere 1-2 complementos ` +
         `con [ID:xxx] y [ACTION:Agregar X|TECH:ADD_TO_CART:xxx], termina con ` +
-        `[ACTION:Ver carrito 🛒|TECH:OPEN_CART] y [ACTION:Seguir explorando 🌿|/].)`
+        `[ACTION:Ver carrito 🛒|TECH:OPEN_CART] y [ACTION:Seguir explorando 🌿|/catalog].)`
       );
     }
 
@@ -212,7 +212,7 @@ export default function MascotChat({ onClose }) {
       `(SISTEMA: El cliente acaba de agregar "${productName}" — lleva ${totalItems} productos en el carrito. ` +
       `${cartSummary} Usa el MODO_CIERRE de la Regla 9: celebra su selección mencionando ` +
       `cómo combinan los productos, genera confianza para finalizar y termina con ` +
-      `[ACTION:Finalizar pedido ✅|TECH:GO_TO_CART] y [ACTION:Seguir agregando 🛒|/].)`
+      `[ACTION:Finalizar pedido ✅|TECH:GO_TO_CART] y [ACTION:Seguir agregando 🛒|/catalog].)`
     );
   };
 
