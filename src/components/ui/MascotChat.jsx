@@ -430,53 +430,84 @@ export default function MascotChat({ onClose }) {
   };
 
   // ─── Tarjeta de Datos de Pago ──────────────────────────────────────────────────
-  const PaymentDetails = ({ account, bank, type, qrUrl }) => (
-    <div className="chat-payment-card pulse-in">
-      <div className="payment-card-header">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-          <rect x="2" y="5" width="20" height="14" rx="2" />
-          <line x1="2" y1="10" x2="22" y2="10" />
-        </svg>
-        <span>Datos de Transferencia</span>
-      </div>
-      <div className="payment-card-body">
-        <div className="payment-main-info">
-          <div className="payment-field">
-            <label>Banco:</label>
-            <span>{bank || 'No especificado'}</span>
-          </div>
-          <div className="payment-field">
-            <label>Tipo:</label>
-            <span>{type || 'Ahorros'}</span>
-          </div>
+  const PaymentDetails = ({ account, bank, type, qrUrl }) => {
+    const handleDownloadQR = async () => {
+      try {
+        const response = await fetch(qrUrl);
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = 'QR_Pago_Savit.png';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(blobUrl);
+        vibrateSuccess();
+      } catch (err) {
+        window.open(qrUrl, '_blank');
+      }
+    };
+
+    return (
+      <div className="chat-payment-card pulse-in">
+        <div className="payment-card-header">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <rect x="2" y="5" width="20" height="14" rx="2" />
+            <line x1="2" y1="10" x2="22" y2="10" />
+          </svg>
+          <span>Datos de Transferencia</span>
         </div>
-        {account && (
-          <div className="payment-field">
-            <label>Número de Cuenta:</label>
-            <div className="payment-value">
-              <strong>{account}</strong>
-              <button
-                className="copy-btn"
-                onClick={() => { navigator.clipboard.writeText(account); vibrateSuccess(); }}
-                title="Copiar número"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                </svg>
-              </button>
+        <div className="payment-card-body">
+          <div className="payment-main-info">
+            <div className="payment-field">
+              <label>Banco:</label>
+              <span>{bank || 'No especificado'}</span>
+            </div>
+            <div className="payment-field">
+              <label>Tipo:</label>
+              <span>{type || 'Ahorros'}</span>
             </div>
           </div>
-        )}
-        {qrUrl && (
-          <div className="payment-qr-wrapper">
-            <img src={qrUrl} alt="QR de Pago" className="payment-qr-img" />
-            <p>Escanea este código para pagar</p>
-          </div>
-        )}
+          {account && (
+            <div className="payment-field">
+              <label>Número de Cuenta:</label>
+              <div className="payment-value">
+                <strong>{account}</strong>
+                <button
+                  className="copy-btn"
+                  onClick={() => { navigator.clipboard.writeText(account); vibrateSuccess(); }}
+                  title="Copiar número"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          )}
+          {qrUrl && (
+            <div className="payment-qr-wrapper">
+              <img src={qrUrl} alt="QR de Pago" className="payment-qr-img" />
+              <button 
+                className="chat-action-btn" 
+                onClick={handleDownloadQR}
+                style={{ margin: '8px auto 0', width: '100%', justifyContent: 'center' }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                Descargar QR a la galería
+              </button>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const isEmpty = messages.filter(m => !m.hidden).length === 0;
 
