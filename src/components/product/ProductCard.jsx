@@ -130,7 +130,11 @@ export default function ProductCard({ product, onToast }) {
     toggleFavorite(product);
   };
 
-  const handleOpenDetail = () => {
+  const handleOpenDetail = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     setSelectedAdditions([]);
     setModalQty(1);
     setShowDetail(true);
@@ -141,7 +145,7 @@ export default function ProductCard({ product, onToast }) {
     <>
       <motion.div 
         className={`product-card ${isSoldOut ? 'product-card--soldout' : ''}`}
-        onClick={handleOpenDetail}
+        onClick={(e) => handleOpenDetail(e)}
         initial={{ opacity: 0, y: 40 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "0px 0px -40px 0px" }}
@@ -235,7 +239,10 @@ export default function ProductCard({ product, onToast }) {
               ) : (
                 <button 
                   className={`product-add-btn ${showAdded ? 'success' : ''}`}
-                  onClick={(e) => product.type === 'prepared' ? setShowDetail(true) : handleAdd(e)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    product.type === 'prepared' ? handleOpenDetail(e) : handleAdd(e);
+                  }}
                   disabled={isSoldOut}
                 >
                   {showAdded ? '¡Listo!' : product.type === 'prepared' ? 'Personalizar' : 'Añadir'}

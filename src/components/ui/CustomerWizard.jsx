@@ -99,15 +99,21 @@ export default function CustomerWizard({ onClose }) {
     setChecking(false);
 
     if (existing?.name) {
-      // Cliente recurrente → identificarlo directamente y mostrar bienvenida
+      // Cliente recurrente → Identificarlo
       setName(existing.name);
       setIsReturning(true);
       await identifyCustomer({ name: existing.name, phone: digits });
-      vibrateSuccess();
-      changeStep(4, 1);
-      setTimeout(onClose, 2200);
+
+      // IMPORTANTE: Si ya tiene nombre pero NO tiene PIN, mandarlo a crear PIN (Paso 3)
+      if (!existing.securityPin) {
+        changeStep(3, 1);
+      } else {
+        // Si ya tiene todo completo, mostrar bienvenida y dejar que el usuario pulse el botón
+        vibrateSuccess();
+        changeStep(4, 1);
+      }
     } else {
-      // Cliente nuevo → pedir nombre
+      // Cliente totalmente nuevo → pedir nombre
       setIsReturning(false);
       changeStep(2, 1);
     }
@@ -152,16 +158,9 @@ export default function CustomerWizard({ onClose }) {
     setSavingPin(false);
 
     if (ok) {
-      // Enviar mensaje de bienvenida a WhatsApp (cliente nuevo)
-      const digits = phone.replace(/\D/g, '');
-      try {
-        const msg = buildWelcomeMessage(name.trim(), digits);
-        openWhatsAppToClient(digits, msg);
-      } catch (e) {
-        console.warn('Could not send welcome WhatsApp:', e);
-      }
+      vibrateSuccess();
       setStep(4);
-      setTimeout(onClose, 2200);
+      // Ya no cerramos automáticamente tan rápido para que el usuario lea la confirmación
     } else {
       setPinError('Error al guardar el PIN. Inténtalo de nuevo.');
     }
@@ -654,9 +653,38 @@ export default function CustomerWizard({ onClose }) {
                   {/* ── Paso 4: Éxito ── */}
                   {step === 4 && (
                     <>
-                      <div className="cw-step-icon">{isReturning ? '🌿' : '🎉'}</div>
-                      <h2 className="cw-step-title">Todo listo</h2>
-                      <p className="cw-step-desc">Espéranos un momento...</p>
+                      <div className="cw-step-icon">✅</div>
+                      <h2 className="cw-step-title">¡Perfil Activado!</h2>
+                      <p className="cw-step-desc">
+                        Bienvenido a la comunidad Sávit, <strong>{name.split(' ')[0]}</strong>.
+                      </p>
+                      
+                      <div className="cw-success-info" style={{ 
+                        margin: '20px 0', 
+                        padding: '16px', 
+                        background: 'rgba(var(--color-primary-rgb, 46, 125, 50), 0.08)',
+                        borderRadius: '12px',
+                        textAlign: 'left'
+                      }}>
+                        <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
+                          <span style={{ fontSize: '1.2rem' }}>🔐</span>
+                          <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>
+                            Tu PIN de seguridad ha sido guardado con éxito.
+                          </p>
+                        </div>
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                          <span style={{ fontSize: '1.2rem' }}>⚙️</span>
+                          <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>
+                            Recuerda que puedes cambiar tu código de seguridad en cualquier momento desde los ajustes de tu perfil.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="cw-actions" style={{ padding: 0, marginTop: '10px' }}>
+                        <button className="cw-btn-primary" onClick={onClose}>
+                          Comenzar a Comprar →
+                        </button>
+                      </div>
                     </>
                   )}
                 </motion.div>

@@ -9,15 +9,16 @@ import './Welcome.css';
 
 export default function Welcome() {
   const navigate = useNavigate();
-  const { isIdentified } = useCustomer();
+  const { isIdentified, hasPin } = useCustomer();
   const [showWizard, setShowWizard] = useState(false);
   const [isEntering, setIsEntering] = useState(false);
 
   // Experience redirection sync - IMMERSIVE TIMING
   useEffect(() => {
-    if (isEntering) {
+    // Experiencia de Redirección: Solo si NO estamos en el Wizard
+    if (isEntering && !showWizard) {
       const timer = setTimeout(() => {
-        if (isIdentified) {
+        if (isIdentified && hasPin) {
           navigate('/home');
         } else {
           setShowWizard(true);
@@ -25,7 +26,7 @@ export default function Welcome() {
       }, 950); 
       return () => clearTimeout(timer);
     }
-  }, [isEntering, isIdentified, navigate]);
+  }, [isEntering, isIdentified, hasPin, navigate, showWizard]);
 
   const onDrag = (event, info) => {
     if (isEntering) return;

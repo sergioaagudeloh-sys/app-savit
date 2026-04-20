@@ -418,13 +418,13 @@ body {
 html.no-scroll,
 body.no-scroll {
   overflow: hidden !important;
-  height: 100% !important;
-  width: 100% !important;
-  position: fixed !important;
-  left: 0 !important;
-  top: 0 !important;
+  /* height: 100% !important; */
+  /* width: 100% !important; */
+  /* position: fixed !important; */
+  /* left: 0 !important; */
+  /* top: 0 !important; */
   /* Use touch-action only where safe */
-  touch-action: none;
+  /* touch-action: none; */
 }
 
 img {
@@ -539,7 +539,7 @@ body.admin-page {
 body.admin-page .app-container,
 body.admin-page .admin-page-container {
   max-width: none !important;
-  width: 100% !important;
+  /* width: 100% !important; */
   margin: 0 !important;
   box-shadow: none !important;
   background: var(--color-bg) !important;
@@ -547,17 +547,17 @@ body.admin-page .admin-page-container {
 }
 
 body.admin-page #root {
-  max-width: 100% !important;
-  width: 100% !important;
+  /* max-width: 100% !important; */
+  /* width: 100% !important; */
   margin: 0 !important;
   display: block;
 }
 
 body.admin-page .app-container {
-  max-width: 100% !important;
+  /* max-width: 100% !important; */
   margin: 0 !important;
   box-shadow: none !important;
-  width: 100% !important;
+  /* width: 100% !important; */
   background: transparent !important;
   height: 100dvh !important; /* Dynamic viewport height to prevent BottomNav cutoff on mobile */
   overflow: hidden !important; /* Prevent global scroll */
@@ -567,16 +567,16 @@ body.admin-page .app-container {
 
 /* Hardened Header for Admin */
 body.admin-page .header {
-  left: 0 !important;
+  /* left: 0 !important; */
   transform: none !important;
-  max-width: 100% !important;
-  width: 100% !important;
+  /* max-width: 100% !important; */
+  /* width: 100% !important; */
 }
 
 /* ?????? Admin Header Scaling ?????? */
 body.admin-page .header {
-  width: 100% !important;
-  left: 0 !important;
+  /* width: 100% !important; */
+  /* left: 0 !important; */
   transform: none !important;
   transition: all 0.3s ease;
 }
@@ -591,21 +591,21 @@ body.admin-page .header {
 }
 
 body.admin-page .app-loader-overlay {
-  max-width: 100% !important;
+  /* max-width: 100% !important; */
   margin: 0 !important;
-  width: 100% !important;
+  /* width: 100% !important; */
   background: var(--color-bg) !important;
 }
 
 
 /* Admin Specific Overrides ??? Fluid Layout */
 body.admin-page .admin-main-content {
-  padding-top: 0 !important;
+  /* padding-top: 0 !important; */
   padding-left: 0;
   padding-right: 0;
   margin: 0 !important;
   max-width: none !important;
-  width: 100% !important;
+  /* width: 100% !important; */
   box-sizing: border-box;
   background: var(--color-bg);
   height: 100dvh !important; /* Matches parent dvh */
@@ -730,7 +730,7 @@ body.admin-page .admin-main-content {
   z-index: 10;
   padding: 20px 20px 100px !important; /* Standardized compact padding */
   box-shadow: 0 -15px 45px rgba(0, 0, 0, 0.15);
-  width: 100% !important;
+  /* width: 100% !important; */
   box-sizing: border-box !important;
   display: flex;
   flex-direction: column;
@@ -1645,7 +1645,7 @@ h4 {
 }
 
 .app-loader-overlay.admin-page {
-  max-width: 100% !important;
+  /* max-width: 100% !important; */
   background: white !important;
 }
 
@@ -2502,7 +2502,7 @@ body:has(.drawer) .bottom-nav, body:has(.product-detail-dialog) .bottom-nav, bod
   z-index: 99998;
   animation: fadeIn 0.2s ease both;
   -webkit-tap-highlight-color: transparent;
-  touch-action: none;
+  /* touch-action: none; */
 }
 
 .modal-responsive {
@@ -2942,7 +2942,7 @@ body:has(.drawer) .bottom-nav, body:has(.product-detail-dialog) .bottom-nav, bod
   }
 
   .admin-page .overlay {
-    left: 0 !important;
+    /* left: 0 !important; */
     right: 0 !important;
   }
 
@@ -3102,7 +3102,7 @@ header {
 /* Administrative Layout Utilities */
 body.admin-page .admin-main-content {
   padding-left: 240px;
-  width: 100% !important;
+  /* width: 100% !important; */
   min-height: 100dvh;
   display: block !important;
   transition: padding var(--transition-base);
@@ -3110,7 +3110,7 @@ body.admin-page .admin-main-content {
 
 @media (max-width: 959px) {
   body.admin-page .admin-main-content {
-    padding-left: 0 !important;
+    /* padding-left: 0 !important; */
   }
 }
 
@@ -3152,7 +3152,7 @@ body.admin-page .admin-main-content {
   }
 
   .admin-page .overlay {
-    left: 0 !important;
+    /* left: 0 !important; */
     right: 0 !important;
   }
 

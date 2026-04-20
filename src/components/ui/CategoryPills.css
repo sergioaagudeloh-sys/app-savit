@@ -1,6 +1,15 @@
 /* src/components/ui/CategoryPills.css */
 .category-pills {
-  padding: 12px var(--space-md) 8px; /* Reducido para ahorrar espacio */
+  position: sticky;
+  top: calc(var(--header-height) + env(safe-area-inset-top, 0px) - 1px);
+  z-index: 990;
+  padding: 12px var(--space-md) 12px;
+  background: var(--color-bg);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  border-bottom: 1px solid var(--color-border);
+  transition: all 0.3s ease;
+  margin-top: -4px;
 }
 
 .category-pills-inner {
@@ -12,27 +21,27 @@
 
 .category-pill {
   display: flex;
-  flex-direction: row; /* Cambio a fila para ahorrar altura */
+  flex-direction: row;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  height: 40px; /* Mucho más bajo y profesional */
+  height: 40px;
   padding: 0 16px;
-  border-radius: 12px; /* Radio más sutil y moderno */
+  border-radius: 12px;
   font-size: 13px;
   font-weight: 600;
   background: #fff;
   color: var(--color-text-secondary);
   border: 1px solid var(--color-border);
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   white-space: nowrap;
   flex-shrink: 0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  /* Dejamos que Framer Motion maneje las transformaciones */
 }
 
 .pill-icon {
-  font-size: 18px; /* Icono más integrado */
+  font-size: 18px;
   line-height: 1;
 }
 
@@ -44,18 +53,12 @@
 .category-pill:hover {
   background: var(--color-bg-soft);
   border-color: var(--color-primary-light);
-  transform: translateY(-2px);
-}
-
-.category-pill:active {
-  transform: scale(0.95);
 }
 
 .category-pill.active {
-  color: #fff; /* Texto blanco para mejor contraste sobre fondo principal */
+  color: #fff;
   border-color: transparent;
   box-shadow: 0 6px 15px rgba(36, 76, 38, 0.25);
-  transform: translateY(-2px);
 }
 
 .category-pill-active-bg {
