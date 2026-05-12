@@ -39,9 +39,10 @@ export default function Header({ showBack, title, onCartOpen, heroRgb = '26, 58,
   const isClientHome = location.pathname === '/' || location.pathname === '/home' || location.pathname === '/client';
   const hasHistory = window.history.state && window.history.state.idx > 0;
 
-  // Mapa de títulos automáticos segun la ruta
+  // Mapa de títulos automáticos segun la ruta (Desactivado para Admin ya que usan Hero)
   const getAutoTitle = () => {
-    if (title) return title; // Si se pasa por prop explícitamente, gana la prop
+    if (isAdminRoute) return ''; // No mostrar títulos en Admin para evitar duplicidad con el Hero
+    if (title) return title; 
     
     const path = location.pathname;
     if (path === '/catalog') return 'Catálogo';
@@ -76,15 +77,20 @@ export default function Header({ showBack, title, onCartOpen, heroRgb = '26, 58,
 
   useEffect(() => {
     const handleScroll = (e) => {
-      // Intentamos detectar el scroll de window
       let scrollPos = window.scrollY || document.documentElement.scrollTop || 0;
       
-      // Detectamos scroll de contenedores internos (PWA / div con overflow)
-      if (e && e.target) {
+      // En administración PC el scroll ocurre en .admin-main-content
+      if (isAdminRoute) {
+        const adminContent = document.querySelector('.admin-main-content');
+        if (adminContent) {
+          scrollPos = adminContent.scrollTop;
+        }
+      }
+
+      // Si no es admin o si el evento viene de un contenedor con scroll explícito
+      if (e && e.target && e.target !== document) {
         if (typeof e.target.scrollTop === 'number') {
           scrollPos = Math.max(scrollPos, e.target.scrollTop);
-        } else if (e.target.scrollingElement && typeof e.target.scrollingElement.scrollTop === 'number') {
-          scrollPos = Math.max(scrollPos, e.target.scrollingElement.scrollTop);
         }
       }
       
@@ -116,8 +122,10 @@ export default function Header({ showBack, title, onCartOpen, heroRgb = '26, 58,
   // Usamos el heroRgb para adaptarse dinámicamente al color del banner subyacente
   const headerOpacityStyle = {
     backgroundColor: `rgba(${heroRgb}, ${scrollOpacity})`,
-    boxShadow: scrollOpacity > 0 ? `0 4px 12px rgba(0, 0, 0, ${0.2 * Math.min(scrollOpacity, 1)})` : 'none',
-    borderBottom: scrollOpacity > 0 ? `1px solid rgba(255, 255, 255, ${0.05 * Math.min(scrollOpacity, 1)})` : 'none'
+    boxShadow: scrollOpacity > 0 ? `0 4px 12px rgba(0, 0, 0, ${0.15 * (scrollOpacity / 0.92)})` : 'none',
+    borderBottom: scrollOpacity > 0 ? `1px solid rgba(255, 255, 255, ${0.1 * (scrollOpacity / 0.92)})` : 'none',
+    backdropFilter: scrollOpacity > 0 ? `blur(${12 * (scrollOpacity / 0.92)}px) saturate(180%)` : 'none',
+    WebkitBackdropFilter: scrollOpacity > 0 ? `blur(${12 * (scrollOpacity / 0.92)}px) saturate(180%)` : 'none'
   };
 
   return (

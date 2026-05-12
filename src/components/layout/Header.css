@@ -1,21 +1,42 @@
 /* src/components/layout/Header.css */
 .header {
   position: fixed;
-  top: -1px; /* Prevenir bugs de 1px de gap en algunos móviles */
+  top: -1px; 
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
-  max-width: var(--max-width);
+  max-width: var(--max-width); /* En móvil es 480px */
   height: calc(var(--header-height) + env(safe-area-inset-top, 0px) + 1px) !important;
-  /* El backgroundSólido, box-shadow y border ahora se inyectan vía inline style en Header.jsx */
-  backdrop-filter: blur(12px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(12px) saturate(180%) !important;
   display: flex;
   align-items: center;
   padding: calc(env(safe-area-inset-top, 0px) + 1px) var(--space-md) 0 var(--space-md);
   z-index: 1000;
   gap: var(--space-sm);
-  transition: padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Admin Page Specifics ── */
+
+/* PC: Header alinea con el Sidebar y no tiene max-width de 480px */
+@media (min-width: 960px) {
+  body.admin-page .header {
+    left: 240px !important;
+    transform: none !important;
+    width: calc(100% - 240px) !important;
+    max-width: none !important;
+    padding-left: var(--space-lg);
+    border-radius: 0 !important;
+  }
+}
+
+/* Móvil: Forzamos que se mantenga centrado en el viewport, no en el body expandido */
+@media (max-width: 959px) {
+  body.admin-page .header {
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 100% !important;
+    max-width: 480px !important; /* Mantenemos el look de PWA en móvil */
+  }
 }
 
 .header.header-scrolled,
@@ -43,6 +64,15 @@ body.admin-page .header {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
+}
+
+@media (min-width: 960px) {
+  body.admin-page .header-left .header-brand {
+    display: none !important;
+  }
+  body.admin-page .header-title {
+    display: none !important;
+  }
 }
 
 .header-logo {

@@ -15,7 +15,7 @@ import { useNotifications } from '../context/NotificationContext';
 import { useSwipe } from '../hooks/useSwipe';
 import EmptyState from '../components/common/EmptyState';
 import SEO from '../components/common/SEO';
-import { getProductInterests } from '../utils/aiTriggers';
+
 import './Home.css';
 
 import { ProductSkeleton } from '../components/ui/Skeleton';
@@ -100,27 +100,7 @@ export default function Home() {
       return matchesCat && p.active !== false;
     });
 
-    const result = search.trim() ? fuseInstance.search(search).map(r => r.item).filter(p => selectedCat === 'Todos' || p.category === selectedCat) : baseProducts;
-
-    // 🚀 Aplicar reordenamiento inteligente basado en intereses
-    const interests = getProductInterests();
-    if (interests.length > 0) {
-      return [...result].sort((a, b) => {
-        const indexA = interests.indexOf(a.id);
-        const indexB = interests.indexOf(b.id);
-        
-        // Si ambos están en intereses, mantener el orden de importancia (recientes/puntos)
-        if (indexA !== -1 && indexB !== -1) return indexA - indexB;
-        // Si solo A está en interés, va primero
-        if (indexA !== -1) return -1;
-        // Si solo B está en interés, va primero
-        if (indexB !== -1) return 1;
-        
-        return 0; // Mantener orden original si ninguno es de interés
-      });
-    }
-
-    return result;
+    return search.trim() ? fuseInstance.search(search).map(r => r.item).filter(p => selectedCat === 'Todos' || p.category === selectedCat) : baseProducts;
   }, [products, search, selectedCat, fuseInstance]);
 
   const handleToast = useCallback((msg, type) => {

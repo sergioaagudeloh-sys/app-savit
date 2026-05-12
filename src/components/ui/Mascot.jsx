@@ -1,10 +1,8 @@
 // src/components/ui/Mascot.jsx
-import { useState, useEffect, useRef, useMemo, useCallback, lazy, Suspense } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useStoreConfig } from '../../hooks/useOrders';
 import './Mascot.css';
 import { playPromoSound, playMascotSound } from '../../utils/audio';
-
-const MascotChat = lazy(() => import('./MascotChat'));
 
 const PAGE_MESSAGES = {
   home: [
@@ -117,8 +115,6 @@ export default function Mascot({ page = 'default' }) {
   // States
   const [msg, setMsg] = useState(activeMessages[0]);
   const [showBubble, setShowBubble] = useState(false);
-  const [showChat, setShowChat] = useState(false);
-  const [aiNotification, setAiNotification] = useState(false);
   const [showPromoBubbles, setShowPromoBubbles] = useState(false);
   const [isWiggling, setIsWiggling] = useState(false);
   const [showPromoGlow, setShowPromoGlow] = useState(false);
@@ -151,25 +147,7 @@ export default function Mascot({ page = 'default' }) {
     activeMessagesRef.current = activeMessages;
   }, [activeMessages]);
 
-  // 🧠 AI Proactive Hook
-  useEffect(() => {
-    const handleAIUpdate = () => {
-      // Solo notificar si el chat NO está abierto
-      if (!showChat) {
-        setAiNotification(true);
-      }
-    };
-    window.addEventListener('savit_ai_update', handleAIUpdate);
-    return () => window.removeEventListener('savit_ai_update', handleAIUpdate);
-  }, [showChat]);
 
-  const handleOpenChat = useCallback((e) => {
-    e?.stopPropagation();
-    setAiNotification(false);
-    setShowPromoBubbles(false);
-    if (bubbleTimeoutRef.current) clearTimeout(bubbleTimeoutRef.current);
-    setShowChat(prev => !prev);
-  }, []);
 
   const scheduleNextRotation = useCallback(() => {
     if (rotationTimeoutRef.current) clearTimeout(rotationTimeoutRef.current);
@@ -289,8 +267,6 @@ export default function Mascot({ page = 'default' }) {
   // ── Bubble Logic ─────────────────────────────────────────────────────────
 
   const launchPromoBubbles = useCallback(() => {
-    // Close chat if open before launching bubbles
-    setShowChat(false);
 
     // Determine screen position of the mascot before creating bubbles
     const mascotEl = document.querySelector('.mascot-character');
@@ -397,13 +373,6 @@ export default function Mascot({ page = 'default' }) {
         <TipModal tip={selectedTip} onClose={() => setSelectedTip(null)} />
       )}
 
-      {/* 🤖 Chat Modal */}
-      {showChat && (
-        <Suspense fallback={null}>
-          <MascotChat onClose={() => setShowChat(false)} />
-        </Suspense>
-      )}
-
       {/* Mascot Container */}
       <div
         className="mascot-container"
@@ -436,18 +405,6 @@ export default function Mascot({ page = 'default' }) {
           />
         </div>
       </div>
-
-      <button
-        className={`mascot-chat-btn ${aiNotification ? 'ai-pulse' : ''}`}
-        onClick={handleOpenChat}
-        aria-label="Asistente de IA"
-        title="Asistente de Inteligencia Artificial"
-      >
-        <svg className="mascot-btn-sparkle" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" />
-        </svg>
-        {aiNotification && <span className="ai-btn-badge" />}
-      </button>
     </>
   );
 }

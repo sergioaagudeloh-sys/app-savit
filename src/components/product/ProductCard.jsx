@@ -8,7 +8,7 @@ import { useFavorites } from '../../context/FavoritesContext';
 import LottiePlayer from '../common/LottiePlayer';
 import ProgressiveImage from '../ui/ProgressiveImage';
 import { vibrateSuccess, vibrateTap } from '../../utils/haptics';
-import { trackProductInterest } from '../../utils/aiTriggers';
+
 import { formatCOP } from '../../utils/formatters';
 import { useIngredients } from '../../hooks/useIngredients';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
@@ -63,7 +63,6 @@ export default function ProductCard({ product, onToast }) {
       setSelectedAdditions([]);
       setModalQty(1);
       setShowDetail(true);
-      trackProductInterest(product.id, 'detail');
       return;
     }
 
@@ -75,14 +74,12 @@ export default function ProductCard({ product, onToast }) {
       };
       
       addItem(productToAdd, qty);
-      trackProductInterest(product.id, 'cart');
       vibrateSuccess();
       setShowAdded(true);
 
       // 🚀 Animación de vuelo hacia el botón del carrito
       triggerFlyAnimation(addBtnRef.current, product.imageUrl || product.image);
-      
-      
+
       if (typeof onToast === 'function') {
         onToast(`¡${product.name} agregado! 🛍`, 'success');
       }

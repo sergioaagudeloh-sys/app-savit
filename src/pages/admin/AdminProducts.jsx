@@ -1,6 +1,5 @@
 // src/pages/admin/AdminProducts.jsx
-import { useState, useMemo, useEffect, useRef, forwardRef } from 'react';
-import { Virtuoso } from 'react-virtuoso';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 import AdminSidebar from '../../components/layout/AdminSidebar';
@@ -13,13 +12,6 @@ import { AdminProductSkeleton } from '../../components/ui/Skeleton';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 import { useNotifications } from '../../context/NotificationContext';
 import './AdminProducts.css';
-
-// ── Virtualization Components ────────────────────────────────────────────────
-const AdminListContainer = forwardRef(({ children, ...props }, ref) => (
-  <div {...props} ref={ref} className="product-admin-list">
-    {children}
-  </div>
-));
 
 // ── Inline Image Uploader Component ────────────────────────────────────────
 function ImageUploader({ value, onChange }) {
@@ -159,6 +151,8 @@ export default function AdminProducts() {
     isPromo: false, promoPrice: ''
   });
 
+  const [visibleCount, setVisibleCount] = useState(50);
+
   useBodyScrollLock(isModalOpen || !!productToDelete);
 
   // Auto-edit from Store navigation
@@ -178,6 +172,11 @@ export default function AdminProducts() {
         p.category?.toLowerCase().includes(q);
     });
   }, [products, searchTerm]);
+
+  // Reset pagination on search
+  useEffect(() => {
+    setVisibleCount(50);
+  }, [searchTerm]);
 
   // Live stats
   const activeCount   = products.filter(p => p.active).length;
@@ -284,10 +283,6 @@ export default function AdminProducts() {
   return (
     <div className="admin-products animate-fade-in">
 
-
-
-
-
         {/* ── Hero ── */}
         <div className="inv-hero">
           <div className="inv-hero-inner">
@@ -352,72 +347,96 @@ export default function AdminProducts() {
             </p>
           </div>
         ) : (
-          <Virtuoso
-            useWindowScroll
-            data={filteredProducts}
-            components={{
-              List: AdminListContainer
-            }}
-            itemContent={(index, p) => (
-              <div key={p.id} className={`product-admin-item ${!p.active ? 'inactive' : ''}`}>
+          <>
+            <div className="product-admin-list" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {filteredProducts.slice(0, visibleCount).map((p) => (
+                <div key={p.id} className={`product-admin-item ${!p.active ? 'inactive' : ''}`}>
 
-                {/* Image */}
-                <div className="product-admin-img">
-                  {p.imageUrl
-                    ? <img src={p.imageUrl} alt={p.name} loading="lazy" />
-                    : <div className="product-admin-img-fallback">📦</div>
-                  }
-                </div>
+                  {/* Image */}
+                  <div className="product-admin-img">
+                    {p.imageUrl
+                      ? <img src={p.imageUrl} alt={p.name} loading="lazy" />
+                      : <div className="product-admin-img-fallback">📦</div>
+                    }
+                  </div>
 
-                {/* Info */}
-                <div className="product-admin-info">
-                  <div className="product-admin-header">
-                    <span className="product-admin-name">{p.name}</span>
-                    <div className="product-admin-toggles">
-                      {/* Visible / Oculto */}
-                      <div
-                        className="toggle-wrapper"
-                        onClick={() => handleToggle(p.id, p.active)}
-                        title={p.active ? 'Ocultar producto' : 'Activar producto'}
-                      >
-                        <div className={`toggle ${p.active ? 'active' : ''}`} />
-                      </div>
-                      {/* Agotado */}
-                      {p.active && (
-                        <button
-                          className={`admin-soldout-btn ${p.soldOut ? 'is-soldout' : ''}`}
-                          onClick={() => handleSoldOut(p.id, p.soldOut)}
-                          title={p.soldOut ? 'Restaurar stock' : 'Marcar como agotado'}
+                  {/* Info */}
+                  <div className="product-admin-info">
+                    <div className="product-admin-header">
+                      <span className="product-admin-name">{p.name}</span>
+                      <div className="product-admin-toggles">
+                        {/* Visible / Oculto */}
+                        <div
+                          className="toggle-wrapper"
+                          onClick={() => handleToggle(p.id, p.active)}
+                          title={p.active ? 'Ocultar producto' : 'Activar producto'}
                         >
-                          {p.soldOut ? '🚫' : '📦'}
-                        </button>
+                          <div className={`toggle ${p.active ? 'active' : ''}`} />
+                        </div>
+                        {/* Agotado */}
+                        {p.active && (
+                          <button
+                            className={`admin-soldout-btn ${p.soldOut ? 'is-soldout' : ''}`}
+                            onClick={() => handleSoldOut(p.id, p.soldOut)}
+                            title={p.soldOut ? 'Restaurar stock' : 'Marcar como agotado'}
+                          >
+                            {p.soldOut ? '🚫' : '📦'}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="product-admin-meta">
+                      <span className="product-admin-price">{formatCOP(p.price)}</span>
+                      {p.category && (
+                        <span className="product-admin-cat">{p.category}</span>
                       )}
+                      <span className={`product-admin-status ${p.active ? (p.soldOut ? 'soldout' : 'active') : 'inactive'}`}>
+                        {p.active ? (p.soldOut ? '● Agotado' : '● Visible') : '● Oculto'}
+                      </span>
+                    </div>
+
+                    <div className="product-admin-actions">
+                      <button className="admin-btn-edit" onClick={() => openEdit(p)}>
+                        ✏️ Editar
+                      </button>
+                      <button className="admin-btn-delete" onClick={() => handleDelete(p)}>
+                        🗑️ Borrar
+                      </button>
                     </div>
                   </div>
 
-                  <div className="product-admin-meta">
-                    <span className="product-admin-price">{formatCOP(p.price)}</span>
-                    {p.category && (
-                      <span className="product-admin-cat">{p.category}</span>
-                    )}
-                    <span className={`product-admin-status ${p.active ? (p.soldOut ? 'soldout' : 'active') : 'inactive'}`}>
-                      {p.active ? (p.soldOut ? '● Agotado' : '● Visible') : '● Oculto'}
-                    </span>
-                  </div>
-
-                  <div className="product-admin-actions">
-                    <button className="admin-btn-edit" onClick={() => openEdit(p)}>
-                      ✏️ Editar
-                    </button>
-                    <button className="admin-btn-delete" onClick={() => handleDelete(p)}>
-                      🗑️ Borrar
-                    </button>
-                  </div>
                 </div>
-
+              ))}
+            </div>
+            
+            {visibleCount < filteredProducts.length && (
+              <div style={{ textAlign: 'center', margin: '3rem 0', paddingBottom: '2rem' }}>
+                <button
+                  className="btn btn-secondary ripple"
+                  onClick={() => setVisibleCount(v => v + 50)}
+                  style={{
+                    borderRadius: '50px',
+                    fontWeight: 700,
+                    padding: '12px 32px',
+                    fontSize: '0.9rem',
+                    background: 'rgba(255,255,255,0.05)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid var(--color-border)',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                    color: 'var(--color-text)',
+                    transition: 'all 0.3s ease',
+                    cursor: 'pointer'
+                  }}
+                >
+                  ▼ Cargar más
+                  <span style={{ marginLeft: '10px', opacity: 0.55, fontSize: '0.8rem', fontWeight: 500 }}>
+                    ({filteredProducts.length - visibleCount} restantes)
+                  </span>
+                </button>
               </div>
             )}
-          />
+          </>
         )}
 
         </div>

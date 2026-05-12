@@ -1,1 +1,0 @@
-UI: Botones de sidebar anclados al fondo para acceso inmediato
