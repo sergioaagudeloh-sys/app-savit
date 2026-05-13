@@ -1,5 +1,6 @@
 // src/components/layout/AdminGate.jsx
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword,
@@ -34,6 +35,7 @@ export default function AdminGate({ children }) {
   // Estado fundamental de autenticación (Fuente de verdad: Firebase Auth)
   const [currentUser, setCurrentUser] = useState(null);
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const navigate = useNavigate();
   
   // Estados del formulario y registro
   const [isRegisterMode, setIsRegisterMode] = useState(false);
@@ -270,7 +272,7 @@ export default function AdminGate({ children }) {
         {!isRegisterMode && (
           <button
             className="admin-btn-text minimal mt-auto"
-            onClick={() => (window.location.href = '/')}
+            onClick={() => navigate('/')}
           >
             Regresar a la tienda
           </button>

@@ -1,5 +1,6 @@
 // src/components/product/ProductCard.jsx
 import React, { useState, useCallback, useMemo, useRef } from 'react';
+import PropTypes from 'prop-types';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -456,3 +457,18 @@ export default function ProductCard({ product, onToast }) {
   );
 }
 
+ProductCard.propTypes = {
+  product: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
+    price: PropTypes.number.isRequired,
+    image: PropTypes.string,
+    category: PropTypes.string,
+    description: PropTypes.string,
+    hasIngredients: PropTypes.bool,
+    isCombo: PropTypes.bool,
+    isPopular: PropTypes.bool
+  }).isRequired,
+  layout: PropTypes.oneOf(['grid', 'list']),
+  onAddToCart: PropTypes.func
+};

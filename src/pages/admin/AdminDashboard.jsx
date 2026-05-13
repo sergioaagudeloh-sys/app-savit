@@ -1,6 +1,6 @@
 // src/pages/admin/AdminDashboard.jsx
 import { useMemo, useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { useOrders, useStoreConfig } from '../../hooks/useOrders';
 import { useSubscriptions } from '../../hooks/useSubscriptions';
@@ -16,9 +16,20 @@ export default function AdminDashboard() {
   const { orders, loading } = useOrders();
   const { products } = useProducts();
   const { config } = useStoreConfig();
+  const { subscriptions, activeSubscriptions, totalMonthly, updateSubscription } = useSubscriptions();
   const { showToast } = useNotifications();
-  // Hook centralizado — elimina el listener duplicado que existía aquí
-  const { subscriptions, activeSubscriptions, totalMonthly } = useSubscriptions();
+  const navigate = useNavigate();
+
+  const handleMarkAsPaid = async (sub) => {
+    const now = new Date();
+    const currentMonthKey = `${now.getFullYear()}-${now.getMonth() + 1}`;
+    try {
+      await updateSubscription(sub.id, { lastPaidMonth: currentMonthKey });
+      showToast('Pago registrado correctamente', 'success');
+    } catch (err) {
+      showToast('Error al registrar pago', 'error');
+    }
+  };
 
   const [showRevenueModal, setShowRevenueModal] = useState(false);
   const [showTopProductsModal, setShowTopProductsModal] = useState(false);
@@ -327,10 +338,13 @@ export default function AdminDashboard() {
 
           {/* Upcoming Payments Alert - MOVED DOWN */}
           {(() => {
-            const today = new Date().getDate();
+            const now = new Date();
+            const today = now.getDate();
+            const currentMonthKey = `${now.getFullYear()}-${now.getMonth() + 1}`;
+            
             const upcoming = subscriptions.filter(s => {
               const diff = s.dayOfMonth - today;
-              return s.active && diff >= 0 && diff <= 3;
+              return s.active && diff <= 3 && s.lastPaidMonth !== currentMonthKey;
             }).sort((a,b) => a.dayOfMonth - b.dayOfMonth);
 
             if (upcoming.length === 0) return null;
@@ -342,12 +356,7 @@ export default function AdminDashboard() {
                   <Link to="/admin/subscriptions" className="dash-section-action">Gestionar ❯</Link>
                 </div>
                 <div className="dash-upcoming-list">
-                  {subscriptions
-                    .filter(s => {
-                      const diff = s.dayOfMonth - new Date().getDate();
-                      return s.active && (diff <= 3); 
-                    })
-                    .sort((a, b) => (a.dayOfMonth - new Date().getDate()) - (b.dayOfMonth - new Date().getDate()))
+                  {upcoming
                     .map(sub => {
                       const diff = sub.dayOfMonth - new Date().getDate();
                       const isOverdue = diff < 0;
@@ -357,7 +366,7 @@ export default function AdminDashboard() {
                         <div 
                           key={sub.id} 
                           className={`dash-sub-item ${isOverdue ? 'overdue' : isToday ? 'today' : ''}`}
-                          onClick={() => window.location.href = '/admin/subscriptions'}
+                          onClick={() => navigate('/admin/subscriptions')}
                         >
                           <div className="sub-item-info">
                             <span className="sub-item-name">{sub.name}</span>
@@ -365,7 +374,18 @@ export default function AdminDashboard() {
                               {isOverdue ? `¡VENCIDO el día ${sub.dayOfMonth}! 🛑` : isToday ? 'VENCE HOY ⚠️' : `Vence el día ${sub.dayOfMonth}`}
                             </span>
                           </div>
-                          <div className="sub-item-amount">{formatCOP(sub.amount)}</div>
+                          <div className="sub-item-right-area">
+                            <div className="sub-item-amount">{formatCOP(sub.amount)}</div>
+                            <button 
+                              className="dash-pay-btn"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleMarkAsPaid(sub);
+                              }}
+                            >
+                              PAGAR ✓
+                            </button>
+                          </div>
                         </div>
                       );
                     })}

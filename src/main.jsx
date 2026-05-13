@@ -10,6 +10,7 @@ import { AuthProvider } from './context/AuthContext';
 import { StoreProvider } from './context/StoreContext';
 import { CustomerProvider } from './context/CustomerContext';
 import { FavoritesProvider } from './context/FavoritesContext';
+import { ProductsProvider } from './context/ProductsContext';
 import './styles/index.css';
 import { registerServiceWorker } from './utils/registerSW';
 
@@ -27,17 +28,19 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <HelmetProvider>
       <BrowserRouter>
         <StoreProvider>
-          <CustomerProvider>
-            <NotificationProvider>
-              <AuthProvider>
-                <CartProvider>
-                  <FavoritesProvider>
-                    <App />
-                  </FavoritesProvider>
-                </CartProvider>
-              </AuthProvider>
-            </NotificationProvider>
-          </CustomerProvider>
+          <ProductsProvider>
+            <CustomerProvider>
+              <NotificationProvider>
+                <AuthProvider>
+                  <CartProvider>
+                    <FavoritesProvider>
+                      <App />
+                    </FavoritesProvider>
+                  </CartProvider>
+                </AuthProvider>
+              </NotificationProvider>
+            </CustomerProvider>
+          </ProductsProvider>
         </StoreProvider>
       </BrowserRouter>
     </HelmetProvider>

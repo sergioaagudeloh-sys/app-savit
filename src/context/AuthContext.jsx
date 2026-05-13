@@ -73,7 +73,7 @@ export function AuthProvider({ children }) {
             email: firebaseUser.email, 
             displayName: firebaseUser.displayName, 
             name: firebaseUser.displayName || 'Healthy Friend',
-            isNewUser: true 
+            isNewUser: false // Asumir que no es nuevo en caso de error de red
           });
         }
       } else {

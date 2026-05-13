@@ -16,6 +16,10 @@ class ErrorBoundary extends React.Component {
     console.error("ErrorBoundary caught an error", error, errorInfo);
   }
 
+  resetError = () => {
+    this.setState({ hasError: false });
+  }
+
   render() {
     if (this.state.hasError) {
       // Puedes renderizar cualquier interfaz de repuesto personalizada
@@ -36,9 +40,9 @@ class ErrorBoundary extends React.Component {
             <div className="error-boundary-actions">
               <button 
                 className="error-boundary-btn-primary" 
-                onClick={() => window.location.reload()}
+                onClick={this.resetError}
               >
-                Recargar Aplicación
+                Intentar de nuevo
               </button>
               <button 
                 className="error-boundary-btn-secondary" 

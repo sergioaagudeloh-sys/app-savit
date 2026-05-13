@@ -20,6 +20,22 @@ export function registerServiceWorker() {
       });
 
       console.info('[SW] Registrado correctamente:', registration.scope);
+      
+      // --- MEJORAS DE PERFECCIÓN: CHEQUEO ACTIVO ---
+      
+      // 1. Chequeo periódico (cada 60 minutos) mientras la app está abierta
+      setInterval(() => {
+        registration.update();
+        console.debug('[SW] Verificando actualizaciones de forma periódica...');
+      }, 1000 * 60 * 60);
+
+      // 2. Chequeo inmediato cuando el usuario vuelve a la app (cambio de pestaña o desbloqueo)
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          registration.update();
+          console.debug('[SW] Verificando actualizaciones por cambio de visibilidad...');
+        }
+      });
 
       // Detectar actualizaciones disponibles
       registration.addEventListener('updatefound', () => {

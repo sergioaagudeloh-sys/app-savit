@@ -122,7 +122,11 @@ export default function App() {
         </Routes>
       </Suspense>
 
-      {isCartOpen && <CartDrawer onClose={() => setCartOpen(false)} />}
+      {isCartOpen && (
+        <ErrorBoundary>
+          <CartDrawer onClose={() => setCartOpen(false)} />
+        </ErrorBoundary>
+      )}
       <AdminBackFAB />
       <OfflineBanner />
       <ForceUpdateOverlay />

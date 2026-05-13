@@ -116,6 +116,69 @@
   position: relative;
 }
 
+.dash-upcoming-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  gap: 1rem;
+}
+
+.dash-upcoming-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dash-upcoming-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+}
+
+.dash-pay-btn {
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 12px rgba(46, 204, 113, 0.2);
+  white-space: nowrap;
+  z-index: 2;
+}
+
+.dash-pay-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 15px rgba(46, 204, 113, 0.3);
+  filter: brightness(1.1);
+}
+
+.dash-pay-btn:active {
+  transform: scale(0.95);
+}
+
+.dash-pay-btn:disabled {
+  background: #555;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 .hero-stat-btn:hover {
   background: rgba(255, 255, 255, 0.15);
   transform: translateY(-6px);

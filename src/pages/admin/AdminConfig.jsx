@@ -556,7 +556,7 @@ export default function AdminConfig() {
                 <div className="cfg-body">
                   <button
                     className="btn btn-danger btn-sm w-full"
-                    onClick={() => { localStorage.removeItem('savit_admin_auth'); window.location.href = '/'; }}
+                    onClick={() => { localStorage.removeItem('savit_admin_auth'); navigate('/'); }}
                   >
                     Cerrar Sesión
                   </button>

@@ -1,5 +1,5 @@
 // src/context/CartContext.jsx
-import { createContext, useContext, useEffect, useReducer, useState, useCallback } from 'react';
+import { createContext, useContext, useEffect, useReducer, useState, useCallback, useRef } from 'react';
 
 const CartContext = createContext(null);
 const STORAGE_KEY = 'savit_cart';
@@ -108,10 +108,15 @@ export function CartProvider({ children }) {
     }
   }, []);
 
+  const stateRef = useRef(state);
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
+
   const updateQty = useCallback((cartId, qty, id) => {
     try {
       // Calculamos si estamos incrementando o decrementando para reproducir el tono correcto
-      const item = state.items.find(i => i.cartId === cartId || i.id === id);
+      const item = stateRef.current.items.find(i => i.cartId === cartId || i.id === id);
       const isIncrease = !item || qty > item.quantity;
       playPopSound(isIncrease);
       
@@ -119,7 +124,7 @@ export function CartProvider({ children }) {
     } catch (e) {
       console.error('Error updating cart quantity:', e);
     }
-  }, [state.items]);
+  }, []);
 
   const clearCart = useCallback(() => {
     try {

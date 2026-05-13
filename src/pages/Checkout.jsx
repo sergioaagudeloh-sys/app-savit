@@ -124,6 +124,7 @@ export default function Checkout() {
     } catch (error) {
       console.error('Error creando pedido:', error);
       setLoading(false);
+      showToast('Error al crear el pedido. Intenta nuevamente.', 'error');
     }
   };
 

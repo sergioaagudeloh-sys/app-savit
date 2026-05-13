@@ -5,6 +5,8 @@ import ProductCard from '../components/product/ProductCard';
 import { useCart } from '../context/CartContext';
 import { useFavorites } from '../context/FavoritesContext';
 import { useNotifications } from '../context/NotificationContext';
+import { useProducts } from '../hooks/useProducts';
+import { ProductSkeleton } from '../components/ui/Skeleton';
 import SEO from '../components/common/SEO';
 import './Favorites.css';
 
@@ -12,6 +14,7 @@ export default function Favorites() {
   const navigate = useNavigate();
   const { setCartOpen } = useCart();
   const { favorites, clearFavorites } = useFavorites();
+  const { loading } = useProducts();
   const { showToast } = useNotifications();
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
@@ -40,8 +43,11 @@ export default function Favorites() {
       </div>
 
       <main className="page-content favorites-content">
-
-        {favorites.length === 0 ? (
+        {loading && favorites.length === 0 ? (
+          <div className="fav-grid">
+            {[...Array(4)].map((_, i) => <ProductSkeleton key={i} />)}
+          </div>
+        ) : favorites.length === 0 ? (
           /* ── Empty state ── */
           <div className="fav-empty">
             <div className="fav-empty-illustration">🤍</div>

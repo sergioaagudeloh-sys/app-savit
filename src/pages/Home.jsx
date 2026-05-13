@@ -138,7 +138,7 @@ export default function Home() {
           )}
         </div>
 
-        {loading ? (
+        {(loading && products.length === 0) ? (
           <div className="product-grid">
             {[...Array(6)].map((_, i) => <ProductSkeleton key={i} />)}
           </div>

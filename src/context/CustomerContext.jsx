@@ -30,32 +30,42 @@ function loadFromStorage() {
 export function CustomerProvider({ children }) {
   const [customer, setCustomer] = useState(() => loadFromStorage());
   const [loading, setLoading]   = useState(false);
+  const [isSyncing, setIsSyncing] = useState(!!customer?.phone);
 
   const isIdentified = !!customer?.phone && !!customer?.name;
   // true when the customer has already set a security PIN
   const hasPin = !!customer?.securityPin;
 
-  // Sync lastSeen with Firestore on mount if already identified
+  // Sync customer data with Firestore whenever the phone changes
   useEffect(() => {
     if (!customer?.phone) return;
-    const syncLastSeen = async () => {
+    
+    const syncCustomerData = async () => {
       try {
         const ref  = doc(db, 'customers', customer.phone);
         const snap = await getDoc(ref);
         if (snap.exists()) {
+          const data = snap.data();
+          // Update lastSeen and sync local state with Firestore
           await updateDoc(ref, { lastSeen: new Date().toISOString() });
-          const data   = snap.data();
-          const merged = { ...customer, ...data };
-          setCustomer(merged);
-          localStorage.setItem(KEYS.name, merged.name || customer.name);
+          
+          setCustomer(prev => {
+            const merged = { ...prev, ...data, lastSeen: new Date().toISOString() };
+            // Ensure local storage name is up to date
+            if (data.name) localStorage.setItem(KEYS.name, data.name);
+            return merged;
+          });
+          console.log('CustomerContext: Perfil sincronizado desde Firestore (hasPin:', !!data.securityPin, ')');
         }
       } catch (e) {
         console.warn('CustomerContext: Firestore sync error', e);
+      } finally {
+        setIsSyncing(false);
       }
     };
-    syncLastSeen();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+
+    syncCustomerData();
+  }, [customer?.phone]);
 
   /**
    * Look up a phone number in Firestore.
@@ -182,6 +192,7 @@ export function CustomerProvider({ children }) {
       customer,
       isIdentified,
       hasPin,
+      isSyncing,
       loading,
       checkCustomer,
       identifyCustomer,

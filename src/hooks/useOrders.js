@@ -39,9 +39,7 @@ function saveDemoOrders(ordersList) {
 }
 
 export function useOrders() {
-  const { user } = useAuth();
-  const location = useLocation();
-  const isAdmin = location.pathname.startsWith('/admin');
+  const { user, isAdmin } = useAuth();
   const myWhatsapp = localStorage.getItem('savit_customer_phone') || user?.whatsapp || '';
 
   const [orders, setOrders]   = useState([]);

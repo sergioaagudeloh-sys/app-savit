@@ -1,5 +1,6 @@
 // src/components/ui/Mascot.jsx
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import PropTypes from 'prop-types';
 import { useStoreConfig } from '../../hooks/useOrders';
 import './Mascot.css';
 import { playPromoSound, playMascotSound } from '../../utils/audio';
@@ -501,3 +502,28 @@ function TipModal({ tip, onClose }) {
     </div>
   );
 }
+
+Mascot.propTypes = {
+  page: PropTypes.string
+};
+
+PromoModal.propTypes = {
+  promo: PropTypes.shape({
+    title: PropTypes.string,
+    description: PropTypes.string,
+    discount: PropTypes.string,
+    imageUrl: PropTypes.string,
+    thumbnail: PropTypes.string,
+    image: PropTypes.string
+  }),
+  onClose: PropTypes.func.isRequired
+};
+
+TipModal.propTypes = {
+  tip: PropTypes.shape({
+    icon: PropTypes.string,
+    title: PropTypes.string,
+    text: PropTypes.string
+  }),
+  onClose: PropTypes.func.isRequired
+};

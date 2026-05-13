@@ -9,24 +9,25 @@ import './Welcome.css';
 
 export default function Welcome() {
   const navigate = useNavigate();
-  const { isIdentified, hasPin } = useCustomer();
+  const { isIdentified, hasPin, isSyncing } = useCustomer();
   const [showWizard, setShowWizard] = useState(false);
   const [isEntering, setIsEntering] = useState(false);
 
   // Experience redirection sync - IMMERSIVE TIMING
   useEffect(() => {
-    // Experiencia de Redirección: Solo si NO estamos en el Wizard
-    if (isEntering && !showWizard) {
+    // Experiencia de Redirección: Solo si NO estamos en el Wizard y NO estamos sincronizando
+    if (isEntering && !showWizard && !isSyncing) {
       const timer = setTimeout(() => {
         if (isIdentified && hasPin) {
           navigate('/home');
         } else {
+          // Si estamos identificados pero no hay PIN tras la sincronización, abrir Wizard
           setShowWizard(true);
         }
-      }, 950); 
+      }, 600); // Reducido un poco el delay ya que isSyncing ya nos da seguridad
       return () => clearTimeout(timer);
     }
-  }, [isEntering, isIdentified, hasPin, navigate, showWizard]);
+  }, [isEntering, isIdentified, hasPin, isSyncing, navigate, showWizard]);
 
   const onDrag = (event, info) => {
     if (isEntering) return;

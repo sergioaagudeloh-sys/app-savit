@@ -65,8 +65,13 @@ function PinInputs({ pin, setPin, label, error }) {
 export default function CustomerWizard({ onClose }) {
   const navigate = useNavigate();
   const { isAdmin: isAuthAdmin } = useAuth();
-  const { customer, checkCustomer, identifyCustomer, logoutCustomer, loading, hasPin, savePin, changePin } = useCustomer();
-  const [step, setStep] = useState(customer ? 'profile' : 1);
+  const { customer, checkCustomer, identifyCustomer, logoutCustomer, loading, hasPin, isSyncing, savePin, changePin } = useCustomer();
+  const [step, setStep] = useState(() => {
+    if (!customer) return 1;
+    // Si ya está identificado pero no tiene PIN, mandarlo directo a crear PIN
+    if (!customer.securityPin) return 3;
+    return 'profile';
+  });
   const [phone, setPhone] = useState(customer?.phone || '');
   const [name, setName] = useState(customer?.name || '');
   const [phoneError, setPhoneError] = useState('');
