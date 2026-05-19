@@ -29,15 +29,12 @@ export function FavoritesProvider({ children }) {
   );
 
   const toggleFavorite = useCallback((product) => {
-    const exists = favorites.some((f) => f.id === product.id);
-    
-    if (!exists) {
-      playFavoriteSound();
-    }
-
     setFavorites((prev) => {
+      const exists = prev.some((f) => f.id === product.id);
+      if (!exists) {
+        playFavoriteSound();
+      }
       if (exists) return prev.filter((f) => f.id !== product.id);
-      
       // Store minimal product info
       return [
         ...prev,
@@ -51,7 +48,7 @@ export function FavoritesProvider({ children }) {
         },
       ];
     });
-  }, [favorites]);
+  }, []); // Sin dependencias: usa el updater funcional de setFavorites
 
   const clearFavorites = useCallback(() => setFavorites([]), []);
 

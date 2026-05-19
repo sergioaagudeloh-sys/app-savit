@@ -45,9 +45,8 @@ export function StoreProvider({ children }) {
 
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    localStorage.setItem('savit_store_config', JSON.stringify(config));
-  }, [config]);
+  // Nota: localStorage se actualiza explícitamente dentro de updateStoreConfig.
+  // El useEffect automático fue eliminado para evitar un loop: Firebase → setConfig → useEffect → localStorage → evento storage → setConfig
 
   useEffect(() => {
     const handleStorage = (e) => {

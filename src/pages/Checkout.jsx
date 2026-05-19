@@ -1,5 +1,5 @@
 // src/pages/Checkout.jsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useCustomer } from '../context/CustomerContext';
@@ -31,6 +31,9 @@ export default function Checkout() {
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  // L2 FIX: ref para limpiar el setTimeout de WhatsApp si el componente se desmonta antes
+  const whatsappTimerRef = useRef(null);
+  useEffect(() => () => clearTimeout(whatsappTimerRef.current), []);
 
 
   useEffect(() => {
@@ -115,8 +118,8 @@ export default function Checkout() {
       clearCart();
       navigate('/order-confirm', { state: { orderId, message } });
 
-      // Delay redirect to allow user to see the confirmation page & animation
-      setTimeout(() => openWhatsApp(message, config?.whatsappNumber), 2000);
+      // Delay para permitir que el usuario vea la confirmación — con cleanup en desmontaje (fix L2)
+      whatsappTimerRef.current = setTimeout(() => openWhatsApp(message, config?.whatsappNumber), 2000);
     } catch (error) {
       console.error('Error creando pedido:', error);
       setLoading(false);

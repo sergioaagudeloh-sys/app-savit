@@ -93,7 +93,6 @@ export default function AdminSubscriptions() {
     
     const today = new Date();
     const currentDay = today.getDate();
-    const currentMonthKey = `${today.getFullYear()}-${today.getMonth() + 1}`;
     
     if (checkIsPaidThisMonth(sub.lastPaidMonth)) {
       return '✅ Pagado';
@@ -101,7 +100,20 @@ export default function AdminSubscriptions() {
 
     if (day === currentDay) return 'Hoy';
     if (day === currentDay + 1) return 'Mañana';
-    if (day < currentDay) return `Vencido (hace ${currentDay - day} días)`;
+    
+    if (day < currentDay) {
+      // M3 FIX: Si la subscripción fue creada este mismo mes y el día ya pasó,
+      // no es "Vencido" — simplemente el primer ciclo aplica el próximo mes.
+      if (sub.createdAt) {
+        const created = sub.createdAt?.toDate ? sub.createdAt.toDate() : new Date(sub.createdAt);
+        const createdSameMonth = created.getMonth() === today.getMonth() && created.getFullYear() === today.getFullYear();
+        if (createdSameMonth) {
+          const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+          return `Próximo mes (en ${daysInMonth - currentDay + day} días)`;
+        }
+      }
+      return `Vencido (hace ${currentDay - day} días)`;
+    }
     return `En ${day - currentDay} días`;
   };
 

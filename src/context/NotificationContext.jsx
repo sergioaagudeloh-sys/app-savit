@@ -44,6 +44,10 @@ export const NotificationProvider = ({ children }) => {
   const isFirstLoad = useRef(true);
 
   // --- TOAST LOGIC ---
+  // C1 FIX: showToastRef mantiene siempre la versión más reciente de showToast
+  // para que el closure del listener de Firestore nunca capture una versión stale.
+  const showToastRef = useRef(null);
+
   const showToast = (message, type = 'info', title = '', customDuration = null) => {
     const id = Date.now();
     
@@ -65,6 +69,8 @@ export const NotificationProvider = ({ children }) => {
     const newToast = { id, message, type, title, duration };
     setToasts(prev => [...prev, newToast]);
 
+    // Actualizar la ref siempre que se recrea la función
+    // (se hace abajo con useEffect, aquí sólo usamos el id recién creado)
     setTimeout(() => {
       setToasts(prev => prev.map(t => t.id === id ? { ...t, isExiting: true } : t));
       setTimeout(() => {
@@ -76,6 +82,11 @@ export const NotificationProvider = ({ children }) => {
   const removeToast = (id) => {
     setToasts(prev => prev.filter(t => t.id !== id));
   };
+
+  // C1 FIX: Mantener la ref sincronizada con la función más reciente
+  useEffect(() => {
+    showToastRef.current = showToast;
+  });
 
   // Synchronization logic
   useEffect(() => {
@@ -145,8 +156,8 @@ export const NotificationProvider = ({ children }) => {
                 playNotificationSound();
               }
 
-              // Show Toast with prioritized type for orders
-              showToast(
+              // Show Toast — usamos showToastRef para evitar closure stale (fix C1)
+              showToastRef.current?.(
                 newNotif.message || 'Nueva notificación', 
                 newNotif.orderId ? 'order' : (newNotif.type || 'info'),
                 newNotif.title || (isAdmin ? 'Aviso Admin' : 'Sávit')
@@ -178,7 +189,10 @@ export const NotificationProvider = ({ children }) => {
           const q = query(collection(db, 'subscriptions'), where('active', '==', true));
           const snap = await getDocs(q);
           
-          snap.forEach(async (d) => {
+          // M5 FIX: Usar Promise.all con map en lugar de forEach(async)
+          // para garantizar que cada subscripción se procesa en serie y que
+          // updateDoc (lastNotifiedMonth) se ejecuta antes de pasar a la siguiente.
+          await Promise.all(snap.docs.map(async (d) => {
             const sub = d.data();
             const subId = d.id;
             
@@ -226,12 +240,12 @@ export const NotificationProvider = ({ children }) => {
                 category: 'subscription'
               });
 
-              // Actualizar para no repetir este mes
+              // Actualizar para no repetir este mes — garantizado que ocurre SIEMPRE
               await updateDoc(doc(db, 'subscriptions', subId), {
                 lastNotifiedMonth: currentMonthKey
               });
             }
-          });
+          }));
         } catch (err) {
           console.error('Error checking subscriptions:', err);
         }

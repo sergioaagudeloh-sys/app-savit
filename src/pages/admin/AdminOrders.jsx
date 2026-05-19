@@ -1,5 +1,5 @@
 // src/pages/admin/AdminOrders.jsx
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useOrders, useStoreConfig } from '../../hooks/useOrders';
 import SearchBar from '../../components/ui/SearchBar';
 import { buildAdminToClientMessage, openWhatsAppToClient } from '../../utils/whatsapp';
@@ -39,6 +39,11 @@ export default function AdminOrders() {
 
   useBodyScrollLock(!!selectedOrder || !!orderToCancel || !!archiveConfig);
 
+  // Siempre arrancar en 'pending' al montar — son los más urgentes operativamente
+  useEffect(() => {
+    setActiveTab('pending');
+  }, []);
+
   const onQuickAction = (e, order, targetStatus) => {
     e.stopPropagation(); // Prevenir que abra el modal padre
     if (targetStatus === 'approved' && order?.deliveryMethod === 'domicilio' && !order.deliveryCost) {
@@ -53,8 +58,8 @@ export default function AdminOrders() {
     try {
       if (targetStatus === 'approved') {
         const cost = order.deliveryCost || 0;
+        // updateOrderDelivery ya persiste status:'approved' internamente — no se necesita una segunda escritura
         await updateOrderDelivery(order.id, cost, order.total);
-        await updateOrderStatus(order.id, 'approved');
         showToast('Pedido aprobado', 'success');
         
         let urlMsg = buildAdminToClientMessage({ ...order, deliveryCost: cost, status: 'approved' }, config?.paymentAccount || '');
