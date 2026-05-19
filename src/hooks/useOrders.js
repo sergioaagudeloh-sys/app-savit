@@ -7,6 +7,7 @@ import { db, isFirebaseConfigured } from '../firebase';
 import { useStoreContext } from '../context/StoreContext';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useCustomer } from '../context/CustomerContext';
 
 const DEMO_ORDERS = [];
 
@@ -40,7 +41,8 @@ function saveDemoOrders(ordersList) {
 
 export function useOrders() {
   const { user, isAdmin } = useAuth();
-  const myWhatsapp = localStorage.getItem('savit_customer_phone') || user?.whatsapp || '';
+  const { customer } = useCustomer();
+  const myWhatsapp = customer?.phone || localStorage.getItem('savit_customer_phone') || user?.whatsapp || '';
 
   const [orders, setOrders]   = useState([]);
   const [loading, setLoading] = useState(() => isFirebaseConfigured());

@@ -122,11 +122,24 @@ export const NotificationProvider = ({ children }) => {
     isFirstLoad.current = true;
 
     // FIREBASE: Real-time synchronization
-    const q = query(
-      collection(db, 'notifications'), 
-      orderBy('timestamp', 'desc'),
-      limit(50)
-    );
+    let q;
+    if (isAdmin) {
+      q = query(
+        collection(db, 'notifications'), 
+        orderBy('timestamp', 'desc'),
+        limit(50)
+      );
+    } else {
+      // C2 FIX: Filtrado estricto de seguridad en Firestore para clientes.
+      // Previene fugas de datos de otras órdenes o notificaciones administrativas.
+      // Requiere índice compuesto en Firebase: userId (ASC) y timestamp (DESC)
+      q = query(
+        collection(db, 'notifications'),
+        where('userId', '==', userId),
+        orderBy('timestamp', 'desc'),
+        limit(50)
+      );
+    }
     
     const unsub = onSnapshot(q, (snap) => {
       const docs = snap.docs.map(d => {

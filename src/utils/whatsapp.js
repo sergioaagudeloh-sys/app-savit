@@ -14,7 +14,13 @@ const EMOJI = {
   pin: String.fromCodePoint(0x1F4CD),
   store: String.fromCodePoint(0x1F3EA),
   user: String.fromCodePoint(0x1F464),
-  phone: String.fromCodePoint(0x1F4F1)
+  phone: String.fromCodePoint(0x1F4F1),
+  wave: String.fromCodePoint(0x1F44B),
+  scooter: String.fromCodePoint(0x1F6F5),
+  pointer: String.fromCodePoint(0x1F449),
+  creditCard: String.fromCodePoint(0x1F4B3),
+  herb: String.fromCodePoint(0x1F33F),
+  greenHeart: String.fromCodePoint(0x1F49A)
 };
 
 export function buildWhatsAppMessage({ items, total, deliveryMethod, address, customerName, customerPhone, orderId }) {
@@ -61,7 +67,7 @@ export function openWhatsApp(message, targetNumber) {
 
 export function buildAdminToClientMessage(order, paymentAccount = '') {
   const { items, total, deliveryCost, customerName, orderId, deliveryMethod } = order;
-  const headerLine = `👋 ¡Hola ${customerName}! Tu pedido en *Savit* ha sido recibido y revisado.`;
+  const headerLine = `${EMOJI.wave} ¡Hola ${customerName}! Tu pedido en *Savit* ha sido recibido y revisado.`;
   
   const itemLines = items.map(item => {
     let line = `  • ${item.name} x${item.quantity}  ->  ${formatCOP(item.price * item.quantity)}`;
@@ -73,29 +79,29 @@ export function buildAdminToClientMessage(order, paymentAccount = '') {
 
   const finalTotal = total + (deliveryCost || 0);
   const deliveryText = deliveryMethod === 'domicilio' 
-    ? `🛵 *Domicilio Cotizado:* ${formatCOP(deliveryCost || 0)}` 
-    : `🏪 *Recogida en tienda:* Gratis`;
+    ? `${EMOJI.scooter} *Domicilio Cotizado:* ${formatCOP(deliveryCost || 0)}` 
+    : `${EMOJI.store} *Recogida en tienda:* Gratis`;
 
   const paymentLine = paymentAccount
-    ? `👉 *Nequi / Bancolombia:* ${paymentAccount}`
-    : `👉 *Método de pago:* Te compartimos los datos por este chat.`;
+    ? `${EMOJI.pointer} *Nequi / Bancolombia:* ${paymentAccount}`
+    : `${EMOJI.pointer} *Método de pago:* Te compartimos los datos por este chat.`;
 
   const message = [
     headerLine,
     `-----------------------`,
-    `📦 *RESUMEN DE PEDIDO #${orderId}*`,
+    `${EMOJI.box} *RESUMEN DE PEDIDO #${orderId}*`,
     itemLines,
     `-----------------------`,
-    `🛒 *Subtotal:* ${formatCOP(total)}`,
+    `${EMOJI.cart} *Subtotal:* ${formatCOP(total)}`,
     deliveryText,
-    `💰 *TOTAL A PAGAR:* ${formatCOP(finalTotal)}`,
+    `${EMOJI.money} *TOTAL A PAGAR:* ${formatCOP(finalTotal)}`,
     `-----------------------`,
-    `💳 *INSTRUCCIONES DE PAGO*`,
+    `${EMOJI.creditCard} *INSTRUCCIONES DE PAGO*`,
     `Por favor, realiza la transferencia del valor total y envíame la foto del comprobante como respuesta a este chat.`,
     ``,
     paymentLine,
     ``,
-    `Apenas confirmemos la foto, empacaremos todo y actualizaremos el estado de tu pedido a Pagado. ¡Gracias por elegir bienestar! 🌿`
+    `Apenas confirmemos la foto, empacaremos todo y actualizaremos el estado de tu pedido a Pagado. ¡Gracias por elegir bienestar! ${EMOJI.herb}`
   ].join('\n');
 
   return message;
@@ -114,12 +120,12 @@ export function openWhatsAppToClient(customerPhone, message) {
 export function buildWelcomeMessage(customerName, phoneDigits) {
   const name = customerName.split(' ')[0];
   const message = [
-    `👋 ¡Hola ${name}! Qué alegría saludarte.`,
-    `Te damos la bienvenida a *Sávit App* 🌿, tu perfil ya está activo.`,
+    `${EMOJI.wave} ¡Hola ${name}! Qué alegría saludarte.`,
+    `Te damos la bienvenida a *Sávit App* ${EMOJI.herb}, tu perfil ya está activo.`,
     ``,
     `Tu número \`${phoneDigits}\` está registrado. Ya puedes hacer tus pedidos de forma rápida y sencilla.`,
     ``,
-    `Si alguna vez necesitas soporte, cuéntanos por este chat. ¡Esperamos que disfrutes la experiencia! 💚`
+    `Si alguna vez necesitas soporte, cuéntanos por este chat. ¡Esperamos que disfrutes la experiencia! ${EMOJI.greenHeart}`
   ].join('\n');
   return message;
 }

@@ -48,28 +48,48 @@ export default function AdminGate({ children }) {
 
   // Verificar si ya existe un administrador en el sistema
   useEffect(() => {
+    let timeoutFired = false;
+    
+    // C3 FIX: Timeout de seguridad de 8 segundos para evitar pantalla de carga infinita
+    const safetyTimer = setTimeout(() => {
+      console.warn("AdminGate: Timeout de conexión con Firestore.");
+      timeoutFired = true;
+      setAdminExists(true); // Asumir que existe para bloquear registro por seguridad
+      setCheckingAuth(false);
+    }, 8000);
+
     const checkAdminExistence = async () => {
       if (!isFirebaseConfigured()) {
+        clearTimeout(safetyTimer);
         setCheckingAuth(false);
         return;
       }
       try {
         const adminDocRef = doc(db, 'config', 'adminStatus');
         const adminSnap = await getDoc(adminDocRef);
-        if (adminSnap.exists() && adminSnap.data().hasAdmin) {
-          setAdminExists(true);
-        } else {
-          setAdminExists(false);
+        
+        if (!timeoutFired) {
+          if (adminSnap.exists() && adminSnap.data().hasAdmin) {
+            setAdminExists(true);
+          } else {
+            setAdminExists(false);
+          }
         }
       } catch (err) {
-        console.error("Error al consultar estado de administrador", err);
-        setAdminExists(true);
+        if (!timeoutFired) {
+          console.error("Error al consultar estado de administrador", err);
+          setAdminExists(true);
+        }
       } finally {
-        // Solo quitamos el spinner cuando ya sabemos si el admin existe o no
-        setCheckingAuth(false);
+        if (!timeoutFired) {
+          clearTimeout(safetyTimer);
+          setCheckingAuth(false);
+        }
       }
     };
     checkAdminExistence();
+    
+    return () => clearTimeout(safetyTimer);
   }, []);
 
   // Sincronizar con Firebase Auth (La única fuente de verdad)
