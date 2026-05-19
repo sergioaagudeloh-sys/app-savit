@@ -182,6 +182,7 @@
 
 .sub-date-item.highlight.danger .sub-date-value { color: var(--color-danger); }
 .sub-date-item.highlight.warning .sub-date-value { color: var(--color-accent); }
+.sub-date-item.highlight.success .sub-date-value { color: var(--color-success); }
 
 /* Elite Actions */
 .sub-actions-elite {

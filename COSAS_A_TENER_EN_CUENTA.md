@@ -17,6 +17,15 @@
 
 ## 1. Firebase y Backend
 
+### 🚨 Despliegue de Reglas: Error "Missing or insufficient permissions"
+**Problema:** Al actualizar reglas de seguridad (como `firestore.rules`) y subirlas, la base de datos de producción continuaba rechazando lecturas/escrituras (ej. el registro de usuarios) con el error `"FirebaseError: Missing or insufficient permissions"`.
+**Causa:** Firebase CLI, o herramientas automatizadas, estaban enviando las reglas a un alias por defecto equivocado o desactualizado (ej. `appsavit`), en vez del entorno real (`tumercadosavit`). Las nuevas reglas nunca llegaban a la base de datos que la aplicación consumía.
+**Solución:** Siempre que modifiques reglas de seguridad y las subas, no asumas que el CLI apunta al proyecto correcto. Pasa el identificador de tu proyecto de forma **explícita**:
+```bash
+npx firebase deploy --only firestore:rules --project tumercadosavit
+```
+**Regla:** Jamás confíes ciegamente en el comando genérico de despliegue cuando el error en consola sea de permisos de Firebase. Siempre fuerza el `--project` correcto en el comando para garantizar que las reglas se apliquen.
+
 ### 🔥 Validación Robusta de Configuración de Firebase
 **Problema:** La app presentaba pantallas en blanco o "loops" infinitos de carga porque `isFirebaseConfigured()` retornaba `true` erróneamente cuando el `.env` tenía el placeholder de Vite (`'YOUR_API_KEY'`).
 
@@ -45,6 +54,34 @@ export const isFirebaseConfigured = () => {
 - Incrementar la versión del caché (`v1` → `v2`, etc.) al corregir errores críticos de carga, para forzar la actualización en los clientes.
 
 **Regla:** Al corregir errores que afecten la carga de la página, siempre incrementar la versión del Service Worker e indicarle al usuario que haga un "Hard Reload" (`Ctrl+Shift+R`).
+
+---
+
+### 🐛 Bug de Despliegue en Windows: Rutas y Caché Corrupta (TypeError: paths[1] must be string)
+**Problema:** Al intentar desplegar en Firebase Hosting (`npx firebase deploy --only hosting`) desde sistemas Windows, el CLI de Firebase truena de inmediato con el siguiente error:
+`TypeError [ERR_INVALID_ARG_TYPE]: The "paths[1]" argument must be of type string. Received undefined`
+Incluso al reintentar, el error persiste indefinidamente y bloquea por completo la subida de los archivos compilados en `dist/`.
+
+**Causa del Bug:**
+1. **Retornos de carro de Windows (`CRLF`):** En sistemas Windows, los archivos de configuración como `.firebaserc` o `firebase.json` suelen guardarse con saltos de línea `\r\n`. Al ser leídos por `firebase-tools`, el ID del proyecto o ciertos campos de configuración arrastran el carácter invisible de retorno de carro (`\r`).
+2. **Caché local corrupta:** Firebase CLI calcula la firma única (*hash*) de cada archivo en `dist/` para saber qué archivos subir y evitar duplicados. Al arrastrar el `\r` invisible, graba los hashes en el archivo de caché local oculta (`.firebase/hosting.ZGlzdA.cache`) terminando con `\r` (ej. `"c131...a949112\r"`).
+3. **El conflicto:** La API de Google le responde a Firebase CLI limpia (sin el `\r`, por ejemplo `"c131...a949112"`). Al buscar la firma limpia en la tabla de mapeo de rutas de la caché local corrupta, la búsqueda devuelve `undefined` porque no incluye el `\r`. Al intentar resolver la ruta física del archivo usando un valor indefinido, el método `path.resolve` en `uploader.js` truena.
+
+**Solución paso a paso para cualquier proyecto:**
+1. **Limpia los archivos de configuración con saltos de línea Unix (`LF`):** Asegúrate de que tanto `.firebaserc` como `firebase.json` estén guardados usando saltos de línea Unix pura (`\n`). Puedes reescribir `.firebaserc` para asegurar que el ID del proyecto sea limpio y no tenga caracteres raros:
+   ```json
+   {
+     "projects": {
+       "default": "tu-proyecto-id"
+     }
+   }
+   ```
+2. **Elimina de forma forzada la caché local corrupta:** Borra la base de datos de hashes corrupta en tu proyecto para obligar a Firebase a recalcular todo limpiamente:
+   *   *Ruta del archivo a borrar:* `.firebase/hosting.ZGlzdA.cache` (o borra toda la carpeta oculta `.firebase/` en la raíz).
+   *   *Comando de consola:* `Remove-Item -Path '.firebase' -Recurse -Force` o borra la carpeta directamente.
+3. **Lanza el despliegue limpio:** Ejecuta de nuevo el despliegue `npx firebase deploy --only hosting`. ¡Se completará de inmediato con éxito total!
+
+**Regla:** Ante cualquier error inexplicable de tipo `TypeError paths[1] must be string` o firmas corruptas al desplegar desde Windows, siempre borra la carpeta oculta `.firebase` de tu proyecto y asegúrate de que `.firebaserc` no contenga caracteres invisibles.
 
 ---
 
@@ -405,4 +442,4 @@ ProductCard se actualiza en tiempo real (onSnapshot)
 
 ---
 
-*Última actualización: Mayo 2026 — Consolidación de a_tener_en_cuenta.md, atenercuenta.md y atenerencuenta.md*
+*Última actualización: Mayo 2026*

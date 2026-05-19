@@ -73,3 +73,44 @@ export const isOrderFromToday = (order) => {
   d.setHours(0, 0, 0, 0);
   return d.getTime() === getTodayStart().getTime();
 };
+
+/**
+ * Robust check if a subscription is paid for a given month and year.
+ * Immune to differences in timezone, date types, zero-padding, or format mismatches.
+ * @param {string|Date|object} lastPaidMonth - The value stored in lastPaidMonth field
+ * @param {Date} referenceDate - The date to compare against (defaults to today)
+ * @returns {boolean}
+ */
+export const checkIsPaidThisMonth = (lastPaidMonth, referenceDate = new Date()) => {
+  if (!lastPaidMonth) return false;
+  
+  const refYear = referenceDate.getFullYear();
+  const refMonth = referenceDate.getMonth() + 1; // 1-12
+  
+  // Case 1: String format "YYYY-MM" or "YYYY-M" or "YYYY-MM-DD"
+  if (typeof lastPaidMonth === 'string') {
+    const parts = lastPaidMonth.split('-');
+    if (parts.length >= 2) {
+      const year = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10);
+      return year === refYear && month === refMonth;
+    }
+  }
+  
+  // Case 2: If it's stored as a Timestamp or has a toDate method (Firestore)
+  if (lastPaidMonth && typeof lastPaidMonth.toDate === 'function') {
+    const d = lastPaidMonth.toDate();
+    return d.getFullYear() === refYear && (d.getMonth() + 1) === refMonth;
+  }
+  
+  // Case 3: If it's a Date object
+  if (lastPaidMonth instanceof Date) {
+    return lastPaidMonth.getFullYear() === refYear && (lastPaidMonth.getMonth() + 1) === refMonth;
+  }
+  
+  // Fallback to simple string check just in case
+  const simpleKey = `${refYear}-${refMonth}`;
+  const paddedKey = `${refYear}-${String(refMonth).padStart(2, '0')}`;
+  return lastPaidMonth === simpleKey || lastPaidMonth === paddedKey;
+};
+

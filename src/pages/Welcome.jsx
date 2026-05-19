@@ -9,7 +9,7 @@ import './Welcome.css';
 
 export default function Welcome() {
   const navigate = useNavigate();
-  const { isIdentified, hasPin, isSyncing } = useCustomer();
+  const { isIdentified, isSyncing } = useCustomer();
   const [showWizard, setShowWizard] = useState(false);
   const [isEntering, setIsEntering] = useState(false);
 
@@ -18,16 +18,15 @@ export default function Welcome() {
     // Experiencia de Redirección: Solo si NO estamos en el Wizard y NO estamos sincronizando
     if (isEntering && !showWizard && !isSyncing) {
       const timer = setTimeout(() => {
-        if (isIdentified && hasPin) {
+        if (isIdentified) {
           navigate('/home');
         } else {
-          // Si estamos identificados pero no hay PIN tras la sincronización, abrir Wizard
           setShowWizard(true);
         }
-      }, 600); // Reducido un poco el delay ya que isSyncing ya nos da seguridad
+      }, 600);
       return () => clearTimeout(timer);
     }
-  }, [isEntering, isIdentified, hasPin, isSyncing, navigate, showWizard]);
+  }, [isEntering, isIdentified, isSyncing, navigate, showWizard]);
 
   const onDrag = (event, info) => {
     if (isEntering) return;

@@ -9,7 +9,7 @@ import { useNotifications } from '../context/NotificationContext';
 import { buildWhatsAppMessage, openWhatsApp } from '../utils/whatsapp';
 import { formatCOP, generateOrderId } from '../utils/formatters';
 import SwipeButton from '../components/ui/SwipeButton';
-import PinModal from '../components/ui/PinModal';
+
 import { useAuth } from '../context/AuthContext';
 import './Checkout.css';
 
@@ -18,7 +18,7 @@ export default function Checkout() {
   const { items, totalPrice, clearCart } = useCart();
   const { createOrder } = useOrders();
   const { config } = useStoreConfig();
-  const { customer, isIdentified, hasPin } = useCustomer();
+  const { customer, isIdentified } = useCustomer();
   const { addNotification, showToast } = useNotifications();
   const { isAdmin } = useAuth();
 
@@ -31,9 +31,7 @@ export default function Checkout() {
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  // PIN security
-  const [showPin, setShowPin] = useState(false);
-  const [showCreatePin, setShowCreatePin] = useState(false);
+
 
   useEffect(() => {
     // Scroll to top on mount
@@ -72,9 +70,7 @@ export default function Checkout() {
     (deliveryMethod !== 'domicilio' || form.address.trim())
   );
 
-  // Called after PIN is verified (or skipped if guest)
   const executeSubmit = async () => {
-    setShowPin(false);
     setLoading(true);
     const orderId = generateOrderId();
 
@@ -128,7 +124,7 @@ export default function Checkout() {
     }
   };
 
-  // Entry point — validate form then show PIN if needed
+  // Entry point — validate form then submit
   const handleSubmit = async () => {
     if (items.length === 0) return;
     
@@ -140,12 +136,7 @@ export default function Checkout() {
 
     const errs = validate();
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
-    // Identified customers must verify (or create) their PIN
-    if (isIdentified) {
-      setShowPin(true);
-    } else {
-      executeSubmit();
-    }
+    executeSubmit();
   };
 
   if (items.length === 0) {
@@ -412,14 +403,7 @@ export default function Checkout() {
         </div>
       </main>
 
-      {/* PIN modal — shown before order submission */}
-      {showPin && (
-        <PinModal
-          title="Confirma tu identidad para el pedido"
-          onVerified={executeSubmit}
-          onCancel={() => setShowPin(false)}
-        />
-      )}
+
     </div>
   );
 }

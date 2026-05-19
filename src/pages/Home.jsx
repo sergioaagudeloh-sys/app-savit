@@ -108,7 +108,7 @@ export default function Home() {
   }, [showToast]);
 
   return (
-    <div className="app-container catalog-page" {...swipeHandlers}>
+    <div className="app-container catalog-page">
       <SEO 
         title={search ? `Sávit - Buscando "${search}"` : selectedCat === 'Todos' ? 'Sávit - Catálogo Saludable' : `Sávit - Categoría ${selectedCat}`}
         description={`Explora nuestro catálogo de productos ${selectedCat === 'Todos' ? 'saludables' : selectedCat.toLowerCase()}. Pide tus favoritos por WhatsApp de forma fácil y rápida.`}

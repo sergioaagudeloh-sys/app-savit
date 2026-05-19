@@ -28,6 +28,15 @@
             "value": "script-src 'self' https://storage.googleapis.com https://www.gstatic.com; worker-src 'self'"
           }
         ]
+      },
+      {
+        "source": "/index.html",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
+          }
+        ]
       }
     ],
     "rewrites": [

@@ -6,7 +6,7 @@ import { useOrders, useStoreConfig } from '../../hooks/useOrders';
 import { useSubscriptions } from '../../hooks/useSubscriptions';
 import { useProducts } from '../../hooks/useProducts';
 import { useNotifications } from '../../context/NotificationContext';
-import { formatCOP, isEffectiveOrder, getOrderDate, isOrderFromToday } from '../../utils/formatters';
+import { formatCOP, isEffectiveOrder, getOrderDate, isOrderFromToday, checkIsPaidThisMonth } from '../../utils/formatters';
 import { SkeletonDashboard } from '../../components/ui/Skeleton';
 import './AdminDashboard.css';
 
@@ -17,7 +17,7 @@ export default function AdminDashboard() {
   const { products } = useProducts();
   const { config } = useStoreConfig();
   const { subscriptions, activeSubscriptions, totalMonthly, updateSubscription } = useSubscriptions();
-  const { showToast } = useNotifications();
+  const { showToast, clearSubscriptionNotifications } = useNotifications();
   const navigate = useNavigate();
 
   const handleMarkAsPaid = async (sub) => {
@@ -25,6 +25,9 @@ export default function AdminDashboard() {
     const currentMonthKey = `${now.getFullYear()}-${now.getMonth() + 1}`;
     try {
       await updateSubscription(sub.id, { lastPaidMonth: currentMonthKey });
+      if (clearSubscriptionNotifications) {
+        await clearSubscriptionNotifications(sub.id);
+      }
       showToast('Pago registrado correctamente', 'success');
     } catch (err) {
       showToast('Error al registrar pago', 'error');
@@ -107,11 +110,22 @@ export default function AdminDashboard() {
         totalRevenue += (o.totalWithDelivery || o.total || 0);
         if (o.items && Array.isArray(o.items)) {
           o.items.forEach(item => {
-            if (!calc[item.name]) {
-              calc[item.name] = { name: item.name || 'Sin nombre', quantity: 0, revenue: 0, price: item.price || 0 };
+            const additionsStr = (item.selectedAdditions && item.selectedAdditions.length > 0)
+              ? item.selectedAdditions.map(a => a.name).join(', ')
+              : '';
+            const itemKey = additionsStr ? `${item.name || 'Sin nombre'} (${additionsStr})` : (item.name || 'Sin nombre');
+
+            if (!calc[itemKey]) {
+              calc[itemKey] = {
+                name: item.name || 'Sin nombre',
+                additions: additionsStr,
+                quantity: 0,
+                revenue: 0,
+                price: item.price || 0
+              };
             }
-            calc[item.name].quantity += (item.quantity || 1);
-            calc[item.name].revenue += ((item.price || 0) * (item.quantity || 1));
+            calc[itemKey].quantity += (item.quantity || 1);
+            calc[itemKey].revenue += ((item.price || 0) * (item.quantity || 1));
             if (!premiumProd || (item.price || 0) > premiumProd.price) premiumProd = item;
           });
         }
@@ -124,6 +138,7 @@ export default function AdminDashboard() {
 
     const revenueChartData = allProducts.map(p => ({
       name: p.name,
+      additions: p.additions,
       ingresos: p.revenue,
       quantity: p.quantity
     }));
@@ -131,7 +146,10 @@ export default function AdminDashboard() {
     return {
       chartData: allProducts
         .slice(0, 6)
-        .map(p => ({ name: p.name.length > 12 ? p.name.substring(0, 10) + '...' : p.name, ventas: p.quantity })),
+        .map(p => {
+          const displayName = p.additions ? `${p.name} (${p.additions})` : p.name;
+          return { name: displayName.length > 12 ? displayName.substring(0, 10) + '...' : displayName, ventas: p.quantity };
+        }),
       revenueChartData,
       totalRevenue,
       todayCount,
@@ -344,7 +362,7 @@ export default function AdminDashboard() {
             
             const upcoming = subscriptions.filter(s => {
               const diff = s.dayOfMonth - today;
-              return s.active && diff <= 3 && s.lastPaidMonth !== currentMonthKey;
+              return s.active && diff <= 3 && !checkIsPaidThisMonth(s.lastPaidMonth, now);
             }).sort((a,b) => a.dayOfMonth - b.dayOfMonth);
 
             if (upcoming.length === 0) return null;
@@ -450,7 +468,14 @@ export default function AdminDashboard() {
                     </div>
                     {stats.revenueChartData.map((p, i) => (
                       <div key={i} className="revenue-table-row">
-                        <span className="rev-product-name">{p.name}</span>
+                        <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                          <span className="rev-product-name" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</span>
+                          {p.additions && (
+                            <span className="rev-product-additions" style={{ fontSize: '0.75rem', color: 'var(--color-primary)', marginTop: '2px', fontWeight: 600 }}>
+                              + {p.additions}
+                            </span>
+                          )}
+                        </div>
                         <span className="rev-qty">{p.quantity}</span>
                         <span className="rev-amount">{formatCOP(p.ingresos)}</span>
                       </div>
@@ -495,7 +520,14 @@ export default function AdminDashboard() {
                       {stats.top[1] && (
                         <div className="podium-card podium-silver">
                           <span className="podium-medal">🥈</span>
-                          <span className="podium-name">{stats.top[1].name}</span>
+                          <span className="podium-name">
+                            {stats.top[1].name}
+                            {stats.top[1].additions && (
+                              <span className="podium-additions" style={{ display: 'block', fontSize: '0.7rem', color: 'var(--color-primary)', fontWeight: 600, marginTop: '2px' }}>
+                                + {stats.top[1].additions}
+                              </span>
+                            )}
+                          </span>
                           <span className="podium-qty">{stats.top[1].quantity} uds</span>
                           <span className="podium-revenue">{formatCOP(stats.top[1].revenue)}</span>
                         </div>
@@ -505,7 +537,14 @@ export default function AdminDashboard() {
                       {stats.top[0] && (
                         <div className="podium-card podium-gold">
                           <span className="podium-medal">🥇</span>
-                          <span className="podium-name">{stats.top[0].name}</span>
+                          <span className="podium-name">
+                            {stats.top[0].name}
+                            {stats.top[0].additions && (
+                              <span className="podium-additions" style={{ display: 'block', fontSize: '0.7rem', color: 'var(--color-primary)', fontWeight: 600, marginTop: '2px' }}>
+                                + {stats.top[0].additions}
+                              </span>
+                            )}
+                          </span>
                           <span className="podium-qty">{stats.top[0].quantity} uds</span>
                           <span className="podium-revenue">{formatCOP(stats.top[0].revenue)}</span>
                         </div>
@@ -515,7 +554,14 @@ export default function AdminDashboard() {
                       {stats.top[2] && (
                         <div className="podium-card podium-bronze">
                           <span className="podium-medal">🥉</span>
-                          <span className="podium-name">{stats.top[2].name}</span>
+                          <span className="podium-name">
+                            {stats.top[2].name}
+                            {stats.top[2].additions && (
+                              <span className="podium-additions" style={{ display: 'block', fontSize: '0.7rem', color: 'var(--color-primary)', fontWeight: 600, marginTop: '2px' }}>
+                                + {stats.top[2].additions}
+                              </span>
+                            )}
+                          </span>
                           <span className="podium-qty">{stats.top[2].quantity} uds</span>
                           <span className="podium-revenue">{formatCOP(stats.top[2].revenue)}</span>
                         </div>
@@ -531,7 +577,14 @@ export default function AdminDashboard() {
                             {stats.top.slice(3).map((p, i) => (
                               <li key={i} className="stats-ranking-item">
                                 <div className="rank-pos-badge">#{i + 4}</div>
-                                <span className="rank-item-name">{p.name}</span>
+                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                                  <span className="rank-item-name" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</span>
+                                  {p.additions && (
+                                    <span className="rank-item-additions" style={{ fontSize: '0.7rem', color: 'var(--color-primary)', fontWeight: 600, marginTop: '1px' }}>
+                                      + {p.additions}
+                                    </span>
+                                  )}
+                                </div>
                                 <span className="rank-item-val"><strong>{p.quantity}</strong> uds</span>
                               </li>
                             ))}
@@ -547,7 +600,14 @@ export default function AdminDashboard() {
                         <ul className="stats-ranking-list">
                           {stats.bottom.map((p, i) => (
                             <li key={i} className="stats-ranking-item">
-                              <span className="rank-item-name">{p.name}</span>
+                              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                                <span className="rank-item-name" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</span>
+                                {p.additions && (
+                                  <span className="rank-item-additions" style={{ fontSize: '0.7rem', color: '#d97706', fontWeight: 600, marginTop: '1px' }}>
+                                    + {p.additions}
+                                  </span>
+                                )}
+                              </div>
                               <span className="rank-item-val boost-val"><strong>{p.quantity}</strong> uds</span>
                             </li>
                           ))}

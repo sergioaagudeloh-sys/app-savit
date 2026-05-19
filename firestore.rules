@@ -31,10 +31,10 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
 
-    // ── Notificaciones: lectura y creación públicas, modificación/borrado solo admin
+    // ── Notificaciones: lectura y creación públicas, modificación/borrado solo admin para notificaciones de admin
     match /notifications/{doc} {
       allow read, create: if true;
-      allow update, delete: if isAdmin();
+      allow update, delete: if isAdmin() || !('targetRole' in resource.data) || resource.data.targetRole != 'admin';
     }
 
     // ── Ingredientes: lectura pública, escritura solo admin
@@ -59,15 +59,15 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
 
-    // ── Perfiles de usuario: el usuario solo ve/edita el suyo, admin todo
+    // 👤 Perfiles de usuario: el usuario solo ve/edita el suyo, admin todo
     match /users/{userId} {
       allow read, write: if request.auth != null && (request.auth.uid == userId || isAdmin());
     }
 
-    // ── Recompensas y puntos de fidelidad: lectura pública, escritura admin
-    match /rewards/{doc} {
-      allow read: if true;
-      allow write: if isAdmin();
+    // 🌿 Clientes (CustomerWizard): acceso público para que puedan iniciar sesión con su WhatsApp
+    match /customers/{phone} {
+      allow read, write: if true;
+    
     }
   }
 }

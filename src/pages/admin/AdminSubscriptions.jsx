@@ -3,12 +3,12 @@ import { useState } from 'react';
 import { useNotifications } from '../../context/NotificationContext';
 import { useSubscriptions } from '../../hooks/useSubscriptions';
 import { useSwipe } from '../../hooks/useSwipe';
-import { formatCOP } from '../../utils/formatters';
+import { formatCOP, checkIsPaidThisMonth } from '../../utils/formatters';
 import EmptyState from '../../components/common/EmptyState';
 import './AdminSubscriptions.css';
 
 export default function AdminSubscriptions() {
-  const { showToast } = useNotifications();
+  const { showToast, clearSubscriptionNotifications } = useNotifications();
   const { subscriptions, loading, activeSubscriptions, totalMonthly, addSubscription, updateSubscription, deleteSubscription } = useSubscriptions();
   const [showForm, setShowForm] = useState(false);
 
@@ -22,6 +22,7 @@ export default function AdminSubscriptions() {
 
   const [form, setForm] = useState(initialForm);
   const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
 
   const handleOpenNew = () => {
     setForm(initialForm);
@@ -48,13 +49,19 @@ export default function AdminSubscriptions() {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('¿Eliminar este pago recurrente?')) return;
+  const handleDeleteClick = (id) => {
+    setDeletingId(id);
+  };
+
+  const executeDelete = async () => {
+    if (!deletingId) return;
     try {
-      await deleteSubscription(id);
+      await deleteSubscription(deletingId);
       showToast('Servicio eliminado', 'success');
     } catch (err) {
       showToast('Error al eliminar', 'error');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -71,6 +78,9 @@ export default function AdminSubscriptions() {
     const currentMonthKey = `${now.getFullYear()}-${now.getMonth() + 1}`;
     try {
       await updateSubscription(sub.id, { lastPaidMonth: currentMonthKey });
+      if (clearSubscriptionNotifications) {
+        await clearSubscriptionNotifications(sub.id);
+      }
       showToast('Pago registrado correctamente', 'success');
     } catch (err) {
       showToast('Error al registrar pago', 'error');
@@ -85,13 +95,13 @@ export default function AdminSubscriptions() {
     const currentDay = today.getDate();
     const currentMonthKey = `${today.getFullYear()}-${today.getMonth() + 1}`;
     
-    if (sub.lastPaidMonth === currentMonthKey) {
+    if (checkIsPaidThisMonth(sub.lastPaidMonth)) {
       return '✅ Pagado';
     }
 
     if (day === currentDay) return 'Hoy';
     if (day === currentDay + 1) return 'Mañana';
-    if (day < currentDay) return 'Próximo mes';
+    if (day < currentDay) return `Vencido (hace ${currentDay - day} días)`;
     return `En ${day - currentDay} días`;
   };
 
@@ -246,7 +256,7 @@ export default function AdminSubscriptions() {
                   sub={sub}
                   delay={idx * 0.05}
                   onToggle={() => toggleActive(sub)}
-                  onDelete={() => handleDelete(sub.id)}
+                  onDelete={() => handleDeleteClick(sub.id)}
                   onMarkPaid={handleMarkAsPaid}
                   label={getNextPaymentLabel(sub)}
                 />
@@ -254,6 +264,27 @@ export default function AdminSubscriptions() {
             </div>
           )}
         </div>
+
+        {deletingId && (
+          <>
+            <div className="overlay" onClick={() => setDeletingId(null)} />
+            <div className="modal-dialog">
+              <div className="modal-content">
+                <div className="modal-icon warning">⚠️</div>
+                <h3 className="modal-title">¿Eliminar servicio?</h3>
+                <p className="modal-desc">Esta acción no se puede deshacer y detendrá el recordatorio mensual de este pago recurrente.</p>
+                <div className="modal-actions">
+                  <button className="btn btn-ghost flex-1" onClick={() => setDeletingId(null)}>
+                    Cancelar
+                  </button>
+                  <button className="btn btn-primary bg-danger flex-1" onClick={executeDelete}>
+                    Sí, eliminar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
     </div>
   );
 }
@@ -265,15 +296,21 @@ function SubscriptionCard({ sub, delay, onToggle, onDelete, onMarkPaid, label })
   });
 
   const today = new Date().getDate();
+  const isPaidThisMonth = checkIsPaidThisMonth(sub.lastPaidMonth);
+
   const daysDiff = (sub.dayOfMonth || 1) - today;
-  const progressRatio = sub.dayOfMonth > 0 ? today / sub.dayOfMonth : 0;
+  
+  // Si ya está pagado este mes, mostramos la barra al 100% en verde indicando ciclo completado con éxito
+  const progressRatio = isPaidThisMonth ? 1 : (sub.dayOfMonth > 0 ? today / sub.dayOfMonth : 0);
   const progressWidth = sub.active ? Math.max(0, Math.min(100, progressRatio * 100)) : 0;
 
-  const progressColor = label === 'Hoy' || daysDiff < 0
-    ? 'var(--color-danger)'
-    : label === 'Mañana'
-      ? 'var(--color-accent)'
-      : 'var(--color-primary)';
+  const progressColor = isPaidThisMonth
+    ? 'var(--color-success)'
+    : (label === 'Hoy' || daysDiff < 0)
+      ? 'var(--color-danger)'
+      : label === 'Mañana'
+        ? 'var(--color-accent)'
+        : 'var(--color-primary)';
 
   return (
     <div
@@ -286,8 +323,8 @@ function SubscriptionCard({ sub, delay, onToggle, onDelete, onMarkPaid, label })
           {sub.category || 'Otros'}
         </div>
         <div className="sub-status-indicator">
-          <div className="status-dot" style={{ background: sub.active ? (daysDiff < 0 ? 'var(--color-danger)' : 'var(--color-success)') : 'var(--color-stone)' }} />
-          <span>{sub.active ? (daysDiff < 0 ? 'Vencido' : 'Activo') : 'Pausado'}</span>
+          <div className="status-dot" style={{ background: !sub.active ? 'var(--color-stone)' : (isPaidThisMonth ? 'var(--color-success)' : (daysDiff < 0 ? 'var(--color-danger)' : 'var(--color-success)')) }} />
+          <span>{!sub.active ? 'Pausado' : (isPaidThisMonth ? 'Al día' : (daysDiff < 0 ? 'Vencido' : 'Activo'))}</span>
         </div>
       </div>
 
@@ -321,14 +358,14 @@ function SubscriptionCard({ sub, delay, onToggle, onDelete, onMarkPaid, label })
             <span className="sub-date-label">Día Pago</span>
             <span className="sub-date-value">Día {sub.dayOfMonth}</span>
           </div>
-          <div className={`sub-date-item highlight ${label === 'Hoy' || daysDiff < 0 ? 'danger' : label === 'Mañana' ? 'warning' : ''}`}>
+          <div className={`sub-date-item highlight ${isPaidThisMonth ? 'success' : (label === 'Hoy' || daysDiff < 0 ? 'danger' : (label === 'Mañana' ? 'warning' : ''))}`}>
             <span className="sub-date-label">Próximo</span>
             <span className="sub-date-value">{label}</span>
           </div>
         </div>
 
         <div className="sub-actions-elite">
-          {(!sub.lastPaidMonth || sub.lastPaidMonth !== `${new Date().getFullYear()}-${new Date().getMonth() + 1}`) ? (
+          {!isPaidThisMonth ? (
             <button
               className="btn btn-primary btn-sm"
               style={{ fontSize: '0.7rem', padding: '4px 12px', borderRadius: '20px' }}

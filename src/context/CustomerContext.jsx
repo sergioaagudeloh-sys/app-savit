@@ -1,7 +1,7 @@
 // src/context/CustomerContext.jsx
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { db } from '../firebase';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 
 const CustomerContext = createContext(null);
 
@@ -10,15 +10,7 @@ const KEYS = {
   name:  'savit_customer_name',
 };
 
-// Simple deterministic hash for the 4-digit PIN
-// We use a lightweight approach without crypto libs for PWA compatibility
-async function hashPin(pin) {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(`savit_pin_salt_${pin}`);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
+
 
 function loadFromStorage() {
   const phone = localStorage.getItem(KEYS.phone);
@@ -33,38 +25,39 @@ export function CustomerProvider({ children }) {
   const [isSyncing, setIsSyncing] = useState(!!customer?.phone);
 
   const isIdentified = !!customer?.phone && !!customer?.name;
-  // true when the customer has already set a security PIN
-  const hasPin = !!customer?.securityPin;
 
   // Sync customer data with Firestore whenever the phone changes
   useEffect(() => {
-    if (!customer?.phone) return;
+    if (!customer?.phone) {
+      setIsSyncing(false);
+      return;
+    }
     
-    const syncCustomerData = async () => {
-      try {
-        const ref  = doc(db, 'customers', customer.phone);
-        const snap = await getDoc(ref);
-        if (snap.exists()) {
-          const data = snap.data();
-          // Update lastSeen and sync local state with Firestore
-          await updateDoc(ref, { lastSeen: new Date().toISOString() });
-          
-          setCustomer(prev => {
-            const merged = { ...prev, ...data, lastSeen: new Date().toISOString() };
-            // Ensure local storage name is up to date
-            if (data.name) localStorage.setItem(KEYS.name, data.name);
-            return merged;
-          });
-          console.log('CustomerContext: Perfil sincronizado desde Firestore (hasPin:', !!data.securityPin, ')');
-        }
-      } catch (e) {
-        console.warn('CustomerContext: Firestore sync error', e);
-      } finally {
-        setIsSyncing(false);
-      }
-    };
+    const ref = doc(db, 'customers', customer.phone);
 
-    syncCustomerData();
+    // Actualizar lastSeen silenciosamente al iniciar la sesión
+    updateDoc(ref, { lastSeen: new Date().toISOString() }).catch(() => {});
+
+    // Escucha activa en tiempo real
+    const unsubscribe = onSnapshot(ref, (snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        setCustomer(prev => {
+          const merged = { ...prev, ...data };
+          // Sincronizar el localStorage con la nube
+          if (data.name) localStorage.setItem(KEYS.name, data.name);
+          return merged;
+        });
+        console.log('CustomerContext: Perfil sincronizado en tiempo real.');
+      }
+      setIsSyncing(false);
+    }, (error) => {
+      console.warn('CustomerContext: Firestore sync error', error);
+      setIsSyncing(false);
+    });
+
+    // Limpiar el listener cuando el componente se desmonte o cambie el teléfono
+    return () => unsubscribe();
   }, [customer?.phone]);
 
   /**
@@ -90,19 +83,24 @@ export function CustomerProvider({ children }) {
    * @param {object} profile – { name, phone }
    */
   const identifyCustomer = useCallback(async ({ name, phone }) => {
+    console.log('CustomerContext: Iniciando identifyCustomer con:', { name, phone });
     setLoading(true);
     const normalized = phone.replace(/\D/g, '');
     let finalProfile = { name, phone: normalized };
 
     try {
+      console.log('CustomerContext: Buscando documento en customers:', normalized);
       const ref  = doc(db, 'customers', normalized);
       const snap = await getDoc(ref);
       
       if (snap.exists()) {
+        console.log('CustomerContext: El cliente ya existe. Actualizando nombre y lastSeen...');
         const existingData = snap.data();
         await updateDoc(ref, { name, lastSeen: new Date().toISOString() });
+        console.log('CustomerContext: updateDoc exitoso.');
         finalProfile = { ...existingData, ...finalProfile, lastSeen: new Date().toISOString() };
       } else {
+        console.log('CustomerContext: El cliente no existe. Creando nuevo documento...');
         const newData = {
           name,
           phone: normalized,
@@ -110,73 +108,38 @@ export function CustomerProvider({ children }) {
           lastSeen:   new Date().toISOString(),
         };
         await setDoc(ref, newData);
+        console.log('CustomerContext: setDoc exitoso. Documento creado:', newData);
         finalProfile = newData;
       }
     } catch (e) {
-      console.warn('CustomerContext: Could not save to Firestore:', e);
+      console.error('CustomerContext: Error crítico al guardar en Firestore:', e);
+      console.error('CustomerContext: Código de error:', e.code);
+      console.error('CustomerContext: Mensaje de error:', e.message);
     } finally {
       setLoading(false);
     }
 
+    console.log('CustomerContext: Guardando en localStorage y actualizando estado local:', finalProfile);
     localStorage.setItem(KEYS.phone, normalized);
     localStorage.setItem(KEYS.name, name);
     setCustomer(finalProfile);
   }, []);
 
   /**
-   * Hash and save a 4-digit PIN for the current customer.
+   * Set customer directly in state and localStorage without writing to Firestore.
+   * Useful when sync-loading from AuthContext user profile.
    */
-  const savePin = useCallback(async (pin) => {
-    if (!customer?.phone) return false;
-    try {
-      const hashed = await hashPin(pin);
-      const ref = doc(db, 'customers', customer.phone);
-      await updateDoc(ref, { securityPin: hashed });
-      setCustomer(prev => ({ ...prev, securityPin: hashed }));
-      return true;
-    } catch (e) {
-      console.warn('CustomerContext: Error saving PIN', e);
-      return false;
-    }
-  }, [customer]);
-
-  /**
-   * Verify and update an existing PIN.
-   */
-  const changePin = useCallback(async (oldPin, newPin) => {
-    if (!customer?.phone || !customer?.securityPin) return { ok: false, msg: 'No se encontró el PIN actual' };
-    
-    try {
-      const oldHashed = await hashPin(oldPin);
-      if (oldHashed !== customer.securityPin) {
-        return { ok: false, msg: 'El PIN actual no es correcto' };
-      }
-
-      const newHashed = await hashPin(newPin);
-      const ref = doc(db, 'customers', customer.phone);
-      await updateDoc(ref, { securityPin: newHashed });
-      setCustomer(prev => ({ ...prev, securityPin: newHashed }));
-      return { ok: true };
-    } catch (e) {
-      return { ok: false, msg: 'Error al cambiar el PIN' };
-    }
-  }, [customer]);
-
-  /**
-   * Verify a PIN attempt against the stored hash.
-   * @param {string} pin – 4 digit string entered by the user
-   * @returns {Promise<boolean>}
-   */
-  const verifyPin = useCallback(async (pin) => {
-    if (!customer?.securityPin) return false;
-    try {
-      const hashed = await hashPin(pin);
-      return hashed === customer.securityPin;
-    } catch (e) {
-      console.warn('CustomerContext: Error verifying PIN', e);
-      return false;
-    }
-  }, [customer]);
+  const setCustomerDirectly = useCallback(({ name, phone }) => {
+    if (!phone || !name) return;
+    const normalized = phone.replace(/\D/g, '');
+    localStorage.setItem(KEYS.phone, normalized);
+    localStorage.setItem(KEYS.name, name);
+    setCustomer(prev => {
+      // Evitar actualizaciones de estado si son idénticas
+      if (prev?.phone === normalized && prev?.name === name) return prev;
+      return { ...prev, name, phone: normalized };
+    });
+  }, []);
 
   /**
    * Clear customer session.
@@ -191,15 +154,12 @@ export function CustomerProvider({ children }) {
     <CustomerContext.Provider value={{
       customer,
       isIdentified,
-      hasPin,
       isSyncing,
       loading,
       checkCustomer,
       identifyCustomer,
+      setCustomerDirectly,
       logoutCustomer,
-      savePin,
-      changePin,
-      verifyPin,
     }}>
       {children}
     </CustomerContext.Provider>

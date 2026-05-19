@@ -43,11 +43,11 @@ export default defineConfig({
             }
           },
           {
-            urlPattern: ({ url }) => url.hostname.includes('firebasestorage.googleapis.com') || url.hostname.includes('storage.googleapis.com'),
+            urlPattern: ({ request, url }) => request.destination === 'image' && url.origin !== self.location.origin,
             handler: 'StaleWhileRevalidate',
             options: {
-              cacheName: 'savit-v6-images-firebase',
-              expiration: { maxEntries: 100, maxAgeSeconds: 7 * 24 * 60 * 60 },
+              cacheName: 'savit-v6-images-external',
+              expiration: { maxEntries: 40, maxAgeSeconds: 15 * 24 * 60 * 60 }, // Límite seguro de 40 imágenes, expira en 15 días
               cacheableResponse: { statuses: [0, 200] }
             }
           },

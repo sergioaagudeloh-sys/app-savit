@@ -9,7 +9,8 @@ import {
   setPersistence,
   browserLocalPersistence
 } from 'firebase/auth';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, onSnapshot } from 'firebase/firestore';
+import { useCustomer } from './CustomerContext';
 
 const AuthContext = createContext();
 
@@ -21,69 +22,89 @@ export function AuthProvider({ children }) {
   const [isGuest, setIsGuest] = useState(() => localStorage.getItem('savit_guest') === 'true');
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { setCustomerDirectly, logoutCustomer } = useCustomer();
 
   useEffect(() => {
     // Configurar persistencia local
     setPersistence(auth, browserLocalPersistence).catch(console.error);
 
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    let unsubscribeSnapshot = null;
+
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (unsubscribeSnapshot) {
+        unsubscribeSnapshot();
+        unsubscribeSnapshot = null;
+      }
+
       if (firebaseUser) {
         setIsGuest(false);
         localStorage.removeItem('savit_guest');
+        
         try {
           const userRef = doc(db, 'users', firebaseUser.uid);
-          const userDoc = await getDoc(userRef);
           
-          if (userDoc.exists()) {
-            const data = userDoc.data();
-            const actualWhatsapp = data.whatsapp || data.phone || '';
-            
-            // Sincronizar localStorage para el filtro de pedidos
-            if (actualWhatsapp) {
-              localStorage.setItem('savit_customer_phone', actualWhatsapp);
-            }
+          unsubscribeSnapshot = onSnapshot(userRef, (userDoc) => {
+            if (userDoc.exists()) {
+              const data = userDoc.data();
+              const actualWhatsapp = data.whatsapp || data.phone || '';
+              
+              // Sincronizar localStorage y el estado del cliente si está registrado
+              if (actualWhatsapp && data.name) {
+                setCustomerDirectly({ name: data.name, phone: actualWhatsapp });
+              } else if (actualWhatsapp) {
+                localStorage.setItem('savit_customer_phone', actualWhatsapp);
+              }
 
-            const needsSetup = !data.name || !actualWhatsapp;
+              const needsSetup = !data.name || !actualWhatsapp;
+              setUser({ 
+                uid: firebaseUser.uid, 
+                email: firebaseUser.email, 
+                displayName: firebaseUser.displayName, 
+                photoURL: firebaseUser.photoURL, 
+                name: data.name || firebaseUser.displayName || 'Healthy Friend',
+                whatsapp: actualWhatsapp,
+                isAdmin: data.role === 'admin',
+                ...data, 
+                isNewUser: needsSetup 
+              });
+            } else {
+              // Primer login: construir perfil base
+              setUser({ 
+                uid: firebaseUser.uid, 
+                email: firebaseUser.email, 
+                displayName: firebaseUser.displayName, 
+                photoURL: firebaseUser.photoURL, 
+                name: firebaseUser.displayName || 'Healthy Friend',
+                isNewUser: true 
+              });
+            }
+            setLoading(false);
+          }, (error) => {
+            console.error('Error en onSnapshot de user profile:', error);
             setUser({ 
               uid: firebaseUser.uid, 
               email: firebaseUser.email, 
               displayName: firebaseUser.displayName, 
-              photoURL: firebaseUser.photoURL, 
-              name: data.name || firebaseUser.displayName || 'Healthy Friend',
-              whatsapp: actualWhatsapp,
-              isAdmin: data.role === 'admin',
-              ...data, 
-              isNewUser: needsSetup 
-            });
-          } else {
-            // Primer login: construir perfil base
-            setUser({ 
-              uid: firebaseUser.uid, 
-              email: firebaseUser.email, 
-              displayName: firebaseUser.displayName, 
-              photoURL: firebaseUser.photoURL, 
               name: firebaseUser.displayName || 'Healthy Friend',
-              isNewUser: true 
+              isNewUser: false 
             });
-          }
-        } catch (e) {
-          console.error('Error fetching user profile:', e);
-          setUser({ 
-            uid: firebaseUser.uid, 
-            email: firebaseUser.email, 
-            displayName: firebaseUser.displayName, 
-            name: firebaseUser.displayName || 'Healthy Friend',
-            isNewUser: false // Asumir que no es nuevo en caso de error de red
+            setLoading(false);
           });
+        } catch (e) {
+          console.error('Error configurando onSnapshot:', e);
+          setLoading(false);
         }
       } else {
         setUser(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
-    return unsubscribe;
-  }, []);
+    return () => {
+      unsubscribe();
+      if (unsubscribeSnapshot) unsubscribeSnapshot();
+    };
+  }, [setCustomerDirectly]);
 
   // --- AUTH METHODS ---
 
@@ -115,8 +136,7 @@ export function AuthProvider({ children }) {
     setUser(null);
     setIsGuest(false);
     localStorage.removeItem('savit_guest');
-    localStorage.removeItem('savit_customer_phone');
-    localStorage.removeItem('savit_customer_name');
+    logoutCustomer();
   };
 
   const updateProfile = async (data) => {
@@ -136,8 +156,11 @@ export function AuthProvider({ children }) {
     }
 
     // Actualizar estado local inmediatamente
-    if (data.whatsapp) {
-      localStorage.setItem('savit_customer_phone', data.whatsapp);
+    if (data.whatsapp || data.name) {
+      setCustomerDirectly({
+        name: data.name || user.name,
+        phone: data.whatsapp || user.whatsapp
+      });
     }
     setUser(prev => ({ ...prev, ...data, name: data.name || prev.name }));
   };

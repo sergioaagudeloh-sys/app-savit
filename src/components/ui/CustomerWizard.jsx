@@ -1,95 +1,44 @@
 // src/components/ui/CustomerWizard.jsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCustomer } from '../../context/CustomerContext';
 import { useAuth } from '../../context/AuthContext';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
-import { db, isFirebaseConfigured } from '../../firebase';
-import { doc } from 'firebase/firestore';
-import { openWhatsAppToClient, buildWelcomeMessage } from '../../utils/whatsapp';
 import { vibrateSuccess, vibrateTap } from '../../utils/haptics';
 import './CustomerWizard.css';
 
 // Pasos del wizard:
 //  1 → Pedir número de WhatsApp
 //  2 → (solo nuevos) Pedir nombre
-//  3 → (solo nuevos) Crear PIN de seguridad
-//  4 → Pantalla de bienvenida / éxito
-//  'profile'     → Perfil de cliente existente
-//  'create-pin'  → Crear PIN desde el perfil (sin PIN previo)
-
-const PIN_LENGTH = 4;
-
-/** Pequeño sub-componente de inputs de PIN */
-function PinInputs({ pin, setPin, label, error }) {
-  const refs = useRef([]);
-
-  const handleChange = (i, val) => {
-    const cleaned = val.replace(/\D/g, '').slice(-1);
-    const next = [...pin];
-    next[i] = cleaned;
-    setPin(next);
-    if (cleaned && i < PIN_LENGTH - 1) refs.current[i + 1]?.focus();
-  };
-
-  const handleKeyDown = (i, e) => {
-    if (e.key === 'Backspace' && !pin[i] && i > 0) refs.current[i - 1]?.focus();
-  };
-
-  return (
-    <div className="cw-field" style={{ alignItems: 'center' }}>
-      <label className="cw-label" style={{ textAlign: 'center' }}>{label}</label>
-      <div className="cw-pin-row">
-        {pin.map((d, i) => (
-          <input
-            key={i}
-            ref={el => refs.current[i] = el}
-            className={`cw-pin-input ${d ? 'filled' : ''} ${error ? 'pin-err' : ''}`}
-            type="password"
-            inputMode="numeric"
-            maxLength={1}
-            value={d}
-            onChange={e => handleChange(i, e.target.value)}
-            onKeyDown={e => handleKeyDown(i, e)}
-            autoComplete="new-password"
-          />
-        ))}
-      </div>
-      {error && <p className="cw-error">⚠ {error}</p>}
-    </div>
-  );
-}
+//  3 → Pantalla de bienvenida / éxito
+//  'profile' → Perfil de cliente existente
 
 export default function CustomerWizard({ onClose }) {
   const navigate = useNavigate();
   const { isAdmin: isAuthAdmin } = useAuth();
-  const { customer, checkCustomer, identifyCustomer, logoutCustomer, loading, hasPin, isSyncing, savePin, changePin } = useCustomer();
+  const { customer, checkCustomer, identifyCustomer, logoutCustomer, loading } = useCustomer();
   const [step, setStep] = useState(() => {
     if (!customer) return 1;
-    // Si ya está identificado pero no tiene PIN, mandarlo directo a crear PIN
-    if (!customer.securityPin) return 3;
     return 'profile';
   });
   const [phone, setPhone] = useState(customer?.phone || '');
-  const [name, setName] = useState(customer?.name || '');
+  const [name, setName]   = useState(customer?.name  || '');
   const [phoneError, setPhoneError] = useState('');
-  const [nameError, setNameError] = useState('');
-  const [checking, setChecking] = useState(false);
+  const [nameError,  setNameError]  = useState('');
+  const [checking, setChecking]     = useState(false);
   const [isReturning, setIsReturning] = useState(false);
-
-  // PIN state
-  const [pin, setPin]               = useState(Array(PIN_LENGTH).fill(''));
-  const [pinConfirm, setPinConfirm] = useState(Array(PIN_LENGTH).fill(''));
-  const [oldPin, setOldPin]         = useState(Array(PIN_LENGTH).fill(''));
-  const [pinError, setPinError]     = useState('');
-  const [savingPin, setSavingPin]   = useState(false);
+  const [direction, setDirection]   = useState(1);
 
   const isAdminAuth = localStorage.getItem('savit_admin_auth') === 'true';
 
-  // Lock body scroll when wizard is open
   useBodyScrollLock(true);
+
+  const changeStep = (newStep, dir) => {
+    setDirection(dir);
+    setStep(newStep);
+  };
 
   // ── Paso 1: validar número y buscar en Firestore
   const handlePhoneNext = async () => {
@@ -104,21 +53,12 @@ export default function CustomerWizard({ onClose }) {
     setChecking(false);
 
     if (existing?.name) {
-      // Cliente recurrente → Identificarlo
       setName(existing.name);
       setIsReturning(true);
       await identifyCustomer({ name: existing.name, phone: digits });
-
-      // IMPORTANTE: Si ya tiene nombre pero NO tiene PIN, mandarlo a crear PIN (Paso 3)
-      if (!existing.securityPin) {
-        changeStep(3, 1);
-      } else {
-        // Si ya tiene todo completo, mostrar bienvenida y dejar que el usuario pulse el botón
-        vibrateSuccess();
-        changeStep(4, 1);
-      }
+      vibrateSuccess();
+      changeStep(3, 1);
     } else {
-      // Cliente totalmente nuevo → pedir nombre
       setIsReturning(false);
       changeStep(2, 1);
     }
@@ -137,94 +77,8 @@ export default function CustomerWizard({ onClose }) {
     if (step === 'profile') {
       onClose();
     } else {
-      // Ir a crear PIN (solo para nuevos clientes)
+      vibrateSuccess();
       changeStep(3, 1);
-    }
-  };
-
-  // ── Paso 3: guardar PIN nuevo
-  const handlePinSave = async () => {
-    const pinStr = pin.join('');
-    const confirmStr = pinConfirm.join('');
-
-    if (pinStr.length < PIN_LENGTH) {
-      setPinError('Ingresa los 4 dígitos de tu PIN');
-      return;
-    }
-    if (pinStr !== confirmStr) {
-      setPinError('Los PINs no coinciden. Inténtalo de nuevo.');
-      setPin(Array(PIN_LENGTH).fill(''));
-      setPinConfirm(Array(PIN_LENGTH).fill(''));
-      return;
-    }
-
-    setSavingPin(true);
-    const ok = await savePin(pinStr);
-    setSavingPin(false);
-
-    if (ok) {
-      vibrateSuccess();
-      setStep(4);
-      // Ya no cerramos automáticamente tan rápido para que el usuario lea la confirmación
-    } else {
-      setPinError('Error al guardar el PIN. Inténtalo de nuevo.');
-    }
-  };
-
-  // ── Cambiar PIN desde el perfil (requiere PIN actual)
-  const handleChangePin = async () => {
-    const oldStr = oldPin.join('');
-    const newStr = pin.join('');
-    const confirmStr = pinConfirm.join('');
-
-    if (oldStr.length < PIN_LENGTH || newStr.length < PIN_LENGTH) {
-      setPinError('Ingresa todos los dígitos del PIN');
-      return;
-    }
-    if (newStr !== confirmStr) {
-      setPinError('Los nuevos PINs no coinciden');
-      return;
-    }
-
-    setSavingPin(true);
-    const res = await changePin(oldStr, newStr);
-    setSavingPin(false);
-
-    if (res.ok) {
-      vibrateSuccess();
-      setOldPin(Array(PIN_LENGTH).fill(''));
-      setPin(Array(PIN_LENGTH).fill(''));
-      setPinConfirm(Array(PIN_LENGTH).fill(''));
-      setStep('profile');
-    } else {
-      setPinError(res.msg || 'Error al cambiar el PIN');
-    }
-  };
-
-  // ── Crear PIN desde el perfil (sin PIN previo)
-  const handleCreatePinFromProfile = async () => {
-    const pinStr = pin.join('');
-    const confirmStr = pinConfirm.join('');
-
-    if (pinStr.length < PIN_LENGTH) {
-      setPinError('Ingresa los 4 dígitos de tu PIN');
-      return;
-    }
-    if (pinStr !== confirmStr) {
-      setPinError('Los PINs no coinciden. Inténtalo de nuevo.');
-      setPin(Array(PIN_LENGTH).fill(''));
-      setPinConfirm(Array(PIN_LENGTH).fill(''));
-      return;
-    }
-
-    setSavingPin(true);
-    const ok = await savePin(pinStr);
-    setSavingPin(false);
-
-    if (ok) {
-      setStep('profile');
-    } else {
-      setPinError('Error al guardar el PIN. Inténtalo de nuevo.');
     }
   };
 
@@ -238,97 +92,57 @@ export default function CustomerWizard({ onClose }) {
 
   // ── Texto dinámico del header
   const headerTitle =
-    step === 'profile'      ? 'Tu Perfil'
-    : step === 'change-pin' ? 'Cambiar PIN 🔐'
-    : step === 'create-pin' ? 'Crear PIN de Seguridad'
-    : step === 3            ? 'Crea tu PIN 🔐'
-    : step === 4
+    step === 'profile' ? 'Tu Perfil'
+    : step === 3
       ? (isReturning ? `¡Bienvenido de nuevo, ${name.split(' ')[0]}! 👋` : `¡Hola, ${name.split(' ')[0]}! 🎉`)
       : 'Identifícate en Sávit';
 
   const subtitles = {
-    1:            'Tu número es tu llave de acceso',
-    2:            'Cuéntanos cómo saludarte',
-    3:            'Protege tu cuenta con un PIN de 4 dígitos',
-    4:            isReturning ? 'Te reconocimos al instante 🌿' : '¡Tu perfil está listo! 🌿',
-    profile:      'Gestiona tus datos de cliente',
-    'create-pin': 'Solo tú podrás hacer pedidos',
-    'change-pin': 'Actualiza tu código de seguridad',
+    1:       'Tu número es tu llave de acceso',
+    2:       'Cuéntanos cómo saludarte',
+    3:       isReturning ? 'Te reconocimos al instante 🌿' : '¡Tu perfil está listo! 🌿',
+    profile: 'Gestiona tus datos de cliente',
   };
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // ── Animaciones Framer Motion (Variantes)
-  // ──────────────────────────────────────────────────────────────────────────
+  // ── Variantes de animación
   const overlayVariants = {
-    hidden: { opacity: 0 },
+    hidden:  { opacity: 0 },
     visible: { opacity: 1 },
-    exit: { opacity: 0 }
+    exit:    { opacity: 0 },
   };
 
   const cardVariants = {
-    hidden: { y: "100%", opacity: 0.5 },
-    visible: { 
-      y: 0, 
+    hidden:  { y: '100%', opacity: 0.5 },
+    visible: {
+      y: 0,
       opacity: 1,
-      transition: { 
-        type: "spring", 
-        damping: 25, 
-        stiffness: 300,
-        mass: 0.8
-      }
+      transition: { type: 'spring', damping: 25, stiffness: 300, mass: 0.8 },
     },
-    exit: { 
-      y: "100%", 
+    exit: {
+      y: '100%',
       opacity: 0.5,
-      transition: { duration: 0.3, ease: [0.32, 0, 0.67, 0] }
-    }
+      transition: { duration: 0.3, ease: [0.32, 0, 0.67, 0] },
+    },
   };
 
   const stepVariants = {
-    initial: (custom) => ({ 
-      x: custom > 0 ? "50%" : "-50%", 
-      opacity: 0, 
-      filter: "blur(4px)" 
-    }),
-    animate: { 
-      x: 0, 
-      opacity: 1, 
-      filter: "blur(0px)",
-      transition: { type: "spring", damping: 30, stiffness: 400 }
-    },
-    exit: (custom) => ({ 
-      x: custom > 0 ? "-50%" : "50%", 
-      opacity: 0, 
-      filter: "blur(4px)",
-      transition: { duration: 0.2 }
-    })
-  };
-
-  // Para manejar la dirección del slide entre pasos
-  const [direction, setDirection] = useState(1);
-  const changeStep = (newStep, dir) => {
-    setDirection(dir);
-    setStep(newStep);
+    initial: (custom) => ({ x: custom > 0 ? '50%' : '-50%', opacity: 0, filter: 'blur(4px)' }),
+    animate: { x: 0, opacity: 1, filter: 'blur(0px)', transition: { type: 'spring', damping: 30, stiffness: 400 } },
+    exit:    (custom) => ({ x: custom > 0 ? '-50%' : '50%', opacity: 0, filter: 'blur(4px)', transition: { duration: 0.2 } }),
   };
 
   // ══════════════════════════════════════════
-  // ── Vista de Perfil (Retorno Temprano)
+  // ── Vista de Perfil
   // ══════════════════════════════════════════
   if (step === 'profile') {
     return createPortal(
-      <motion.div 
-        className="cw-overlay" 
+      <motion.div
+        className="cw-overlay"
         onClick={onClose}
-        initial="hidden"
-        animate="visible"
-        exit="exit"
+        initial="hidden" animate="visible" exit="exit"
         variants={overlayVariants}
       >
-        <motion.div 
-          className="cw-card" 
-          onClick={e => e.stopPropagation()}
-          variants={cardVariants}
-        >
+        <motion.div className="cw-card" onClick={e => e.stopPropagation()} variants={cardVariants}>
           <button className="cw-close-btn" onClick={() => { vibrateTap(); onClose(); }} aria-label="Cerrar modal">✕</button>
 
           <div className="cw-header">
@@ -337,12 +151,7 @@ export default function CustomerWizard({ onClose }) {
             <p className="cw-header-sub">{subtitles[step]}</p>
           </div>
 
-          <motion.div 
-            className="cw-body"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
+          <motion.div className="cw-body" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
             {/* Loyalty Points Badge */}
             {customer?.points !== undefined && (
               <div className="cw-points-badge">
@@ -351,27 +160,6 @@ export default function CustomerWizard({ onClose }) {
                   <span className="cw-points-val">{Math.floor(customer.points)}</span>
                   <span className="cw-points-label">Puntos Sávit</span>
                 </div>
-              </div>
-            )}
-
-            {/* PIN warning banner */}
-            {hasPin ? (
-              <div className="cw-pin-warning cw-pin-active" onClick={() => { setPinError(''); setStep('change-pin'); }}>
-                <span className="cw-pin-warning-icon">🔐</span>
-                <div>
-                  <strong>PIN de Seguridad Activo</strong>
-                  <p>Toca aquí si deseas cambiarlo.</p>
-                </div>
-                <span className="cw-pin-warning-arrow">›</span>
-              </div>
-            ) : (
-              <div className="cw-pin-warning" onClick={() => { setPinError(''); setStep('create-pin'); }}>
-                <span className="cw-pin-warning-icon">🔒</span>
-                <div>
-                  <strong>Crea tu PIN de Seguridad</strong>
-                  <p>Necesario para realizar pedidos. Toca aquí para crearlo.</p>
-                </div>
-                <span className="cw-pin-warning-arrow">›</span>
               </div>
             )}
 
@@ -420,77 +208,14 @@ export default function CustomerWizard({ onClose }) {
     );
   }
 
-  if (step === 'create-pin' || step === 'change-pin') {
-    const isChange = step === 'change-pin';
-    return createPortal(
-      <motion.div 
-        className="cw-overlay" 
-        onClick={onClose}
-        initial="hidden"
-        animate="visible"
-        exit="exit"
-        variants={overlayVariants}
-      >
-        <motion.div 
-          className="cw-card" 
-          onClick={e => e.stopPropagation()}
-          variants={cardVariants}
-        >
-          <button className="cw-close-btn" onClick={() => { vibrateTap(); onClose(); }} aria-label="Cerrar modal">✕</button>
-
-          <div className="cw-header">
-            <div className="cw-logo">🔐</div>
-            <h1 className="cw-header-title">{headerTitle}</h1>
-            <p className="cw-header-sub">{subtitles[step]}</p>
-          </div>
-
-          <motion.div 
-            key={step}
-            className="cw-body"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-          >
-            {isChange ? (
-              <>
-                <PinInputs pin={oldPin} setPin={setOldPin} label="Ingresa tu PIN ACTUAL" error={null} />
-                <PinInputs pin={pin} setPin={setPin} label="Ingresa el NUEVO PIN" error={null} />
-                <PinInputs pin={pinConfirm} setPin={setPinConfirm} label="Confirma el NUEVO PIN" error={pinError} />
-              </>
-            ) : (
-              <>
-                <PinInputs pin={pin} setPin={setPin} label="Crea tu PIN de 4 dígitos" error={null} />
-                <PinInputs pin={pinConfirm} setPin={setPinConfirm} label="Confirma tu PIN" error={pinError} />
-              </>
-            )}
-          </motion.div>
-
-          <div className="cw-actions">
-            <button className="cw-btn-primary" onClick={isChange ? handleChangePin : handleCreatePinFromProfile} disabled={savingPin}>
-              {savingPin ? 'Guardando...' : (isChange ? 'Actualizar PIN 🔐' : 'Guardar PIN 🔐')}
-            </button>
-            <button className="cw-btn-back" onClick={() => { vibrateTap(); setStep('profile'); }}>← Volver</button>
-          </div>
-        </motion.div>
-      </motion.div>,
-      document.body
-    );
-  }
-
   return createPortal(
-    <motion.div 
-      className="cw-overlay" 
+    <motion.div
+      className="cw-overlay"
       onClick={onClose}
-      initial="hidden"
-      animate="visible"
-      exit="exit"
+      initial="hidden" animate="visible" exit="exit"
       variants={overlayVariants}
     >
-      <motion.div 
-        className="cw-card" 
-        onClick={e => e.stopPropagation()}
-        variants={cardVariants}
-      >
+      <motion.div className="cw-card" onClick={e => e.stopPropagation()} variants={cardVariants}>
 
         <button className="cw-close-btn" onClick={() => { vibrateTap(); onClose(); }} aria-label="Cerrar modal">✕</button>
 
@@ -502,25 +227,16 @@ export default function CustomerWizard({ onClose }) {
               <h1 className="cw-header-title">Modo Vista Previa</h1>
               <p className="cw-header-sub">Estás navegando como administrador</p>
             </div>
-            <motion.div 
-              className="cw-body"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
+            <motion.div className="cw-body" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
               <div className="cw-step-icon">⚠️</div>
               <h2 className="cw-step-title">Acción no permitida</h2>
               <p className="cw-step-desc">
-                La identificación de clientes está desactivada en el modo de vista previa para administradores. Esto protege los datos de tus clientes reales.
+                La identificación de clientes está desactivada en el modo de vista previa para administradores.
               </p>
             </motion.div>
             <div className="cw-actions">
-              <button className="cw-btn-primary" onClick={() => { vibrateTap(); onClose(); }}>
-                Entendido
-              </button>
-              <button
-                className="cw-btn-back"
-                onClick={() => { vibrateTap(); onClose(); navigate('/admin'); }}
-              >
+              <button className="cw-btn-primary" onClick={() => { vibrateTap(); onClose(); }}>Entendido</button>
+              <button className="cw-btn-back" onClick={() => { vibrateTap(); onClose(); navigate('/admin'); }}>
                 Ir al Panel Admin
               </button>
             </div>
@@ -531,9 +247,9 @@ export default function CustomerWizard({ onClose }) {
               <div className="cw-logo">🌿</div>
               <h1 className="cw-header-title">{headerTitle}</h1>
               <p className="cw-header-sub">{subtitles[step]}</p>
-              {step < 4 && (
+              {step < 3 && (
                 <div className="cw-progress">
-                  {[1, 2, 3].map(n => (
+                  {[1, 2].map(n => (
                     <motion.div
                       key={n}
                       layoutId={`dot-${n}`}
@@ -546,13 +262,11 @@ export default function CustomerWizard({ onClose }) {
 
             <div className="cw-body-container" style={{ position: 'relative', overflow: 'hidden' }}>
               <AnimatePresence mode="wait" custom={direction}>
-                <motion.div 
+                <motion.div
                   key={step}
                   custom={direction}
                   variants={stepVariants}
-                  initial="initial"
-                  animate="animate"
-                  exit="exit"
+                  initial="initial" animate="animate" exit="exit"
                   className="cw-body"
                 >
                   {/* ── Paso 1: Número ── */}
@@ -582,21 +296,14 @@ export default function CustomerWizard({ onClose }) {
                       </div>
 
                       <div className="cw-actions" style={{ padding: 0 }}>
-                        <button
-                          className="cw-btn-primary"
-                          onClick={handlePhoneNext}
-                          disabled={checking || loading}
-                        >
+                        <button className="cw-btn-primary" onClick={handlePhoneNext} disabled={checking || loading}>
                           {checking ? 'Buscando…' : 'Continuar →'}
                         </button>
                         <div className="cw-divider"><span>o</span></div>
                         <button className="cw-btn-ghost" onClick={handleGuest}>
                           Continuar como invitado
                         </button>
-                        <button
-                          className="cw-btn-home"
-                          onClick={() => { onClose(); navigate('/'); }}
-                        >
+                        <button className="cw-btn-home" onClick={() => { onClose(); navigate('/'); }}>
                           🏠 Volver al Inicio
                         </button>
                       </div>
@@ -634,56 +341,14 @@ export default function CustomerWizard({ onClose }) {
                     </>
                   )}
 
-                  {/* ── Paso 3: Crear PIN ── */}
+                  {/* ── Paso 3: Éxito ── */}
                   {step === 3 && (
-                    <>
-                      <div className="cw-step-icon">🔐</div>
-                      <h2 className="cw-step-title">Crea tu PIN</h2>
-                      <p className="cw-step-desc">
-                        Lo necesitarás para hacer pedidos. ¡Solo tú sabrás cuál es!
-                      </p>
-
-                      <PinInputs pin={pin} setPin={setPin} label="Elige un PIN de 4 dígitos" error={null} />
-                      <PinInputs pin={pinConfirm} setPin={setPinConfirm} label="Confirma tu PIN" error={pinError} />
-
-                      <div className="cw-actions" style={{ padding: 0 }}>
-                        <button className="cw-btn-primary" onClick={handlePinSave} disabled={savingPin}>
-                          {savingPin ? 'Guardando…' : '¡Listo! Crear PIN 🔐'}
-                        </button>
-                        <button className="cw-btn-back" onClick={() => { vibrateTap(); changeStep(2, -1); }}>← Volver</button>
-                      </div>
-                    </>
-                  )}
-
-                  {/* ── Paso 4: Éxito ── */}
-                  {step === 4 && (
                     <>
                       <div className="cw-step-icon">✅</div>
                       <h2 className="cw-step-title">¡Perfil Activado!</h2>
                       <p className="cw-step-desc">
                         Bienvenido a la comunidad Sávit, <strong>{name.split(' ')[0]}</strong>.
                       </p>
-                      
-                      <div className="cw-success-info" style={{ 
-                        margin: '20px 0', 
-                        padding: '16px', 
-                        background: 'rgba(var(--color-primary-rgb, 46, 125, 50), 0.08)',
-                        borderRadius: '12px',
-                        textAlign: 'left'
-                      }}>
-                        <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
-                          <span style={{ fontSize: '1.2rem' }}>🔐</span>
-                          <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>
-                            Tu PIN de seguridad ha sido guardado con éxito.
-                          </p>
-                        </div>
-                        <div style={{ display: 'flex', gap: '12px' }}>
-                          <span style={{ fontSize: '1.2rem' }}>⚙️</span>
-                          <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--color-text-dim)' }}>
-                            Recuerda que puedes cambiar tu código de seguridad en cualquier momento desde los ajustes de tu perfil.
-                          </p>
-                        </div>
-                      </div>
 
                       <div className="cw-actions" style={{ padding: 0, marginTop: '10px' }}>
                         <button className="cw-btn-primary" onClick={onClose}>

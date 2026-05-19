@@ -4,7 +4,7 @@ import { useLocation } from 'react-router-dom';
 import { db, isFirebaseConfigured } from '../firebase';
 import { useCustomer } from './CustomerContext';
 import { playNotificationSound, playOrderUpdateSound } from '../utils/audio';
-import { formatCOP } from '../utils/formatters';
+import { formatCOP, checkIsPaidThisMonth } from '../utils/formatters';
 import { 
   collection, 
   addDoc, 
@@ -184,6 +184,9 @@ export const NotificationProvider = ({ children }) => {
             
             if (!sub || !sub.name) return;
             
+            // Si ya está pagado este mes, no notificar recordatorios de pago
+            if (checkIsPaidThisMonth(sub.lastPaidMonth, now)) return;
+
             // Si ya notificamos este mes, saltar
             if (sub.lastNotifiedMonth === currentMonthKey) return;
 
@@ -324,6 +327,27 @@ export const NotificationProvider = ({ children }) => {
     }
   };
 
+  const clearSubscriptionNotifications = async (subId) => {
+    if (isFirebaseConfigured()) {
+      try {
+        const q = query(
+          collection(db, 'notifications'),
+          where('subscriptionId', '==', subId)
+        );
+        const snap = await getDocs(q);
+        await Promise.all(snap.docs.map(d => deleteDoc(doc(db, 'notifications', d.id))));
+      } catch (err) {
+        console.error('Error clearing subscription notifications in Firebase:', err);
+      }
+    } else {
+      const saved = JSON.parse(localStorage.getItem('savit_notifications') || '[]');
+      const updated = saved.filter(n => n.subscriptionId !== subId);
+      localStorage.setItem('savit_notifications', JSON.stringify(updated));
+      window.dispatchEvent(new Event('savit_notifications_changed'));
+      setNotifications(updated);
+    }
+  };
+
   const userNotifications = notifications.filter(n => {
     if (currentRole === 'admin') {
       return n.targetRole === 'admin' || !n.targetRole || n.targetRole === 'all';
@@ -344,6 +368,7 @@ export const NotificationProvider = ({ children }) => {
       markAsRead, 
       markAllAsRead,
       clearNotifications,
+      clearSubscriptionNotifications,
       unreadCount,
       isOpen,
       setIsOpen

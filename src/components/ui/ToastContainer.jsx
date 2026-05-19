@@ -1,5 +1,6 @@
 // src/components/ui/ToastContainer.jsx
 import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNotifications } from '../../context/NotificationContext';
 import './Toast.css';
 
@@ -23,25 +24,46 @@ export default function ToastContainer() {
 
   return (
     <div className="toast-container" aria-live="polite">
-      {toasts.map((toast) => (
-        <div 
-          key={toast.id} 
-          className={`toast-item toast-${toast.type || 'info'} ${toast.isExiting ? 'exit' : ''}`}
-          onClick={() => removeToast(toast.id)}
-        >
-          <div className="toast-icon">
-            {icons[toast.type] || IconInfo}
-          </div>
-          <div className="toast-content">
-            {toast.title && <div className="toast-title">{toast.title}</div>}
-            <div className="toast-message">{toast.message}</div>
-          </div>
-          <div 
-            className="toast-progress" 
-            style={{ animationDuration: `${toast.duration || 5000}ms` }} 
-          />
-        </div>
-      ))}
+      <AnimatePresence mode="popLayout">
+        {toasts.map((toast) => (
+          <motion.div 
+            key={toast.id}
+            layout
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, x: 200, scale: 0.9, transition: { duration: 0.2 } }}
+            drag="x"
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={{ left: 0.5, right: 0.5 }}
+            onDragEnd={(event, info) => {
+              const swipeThreshold = 80;
+              if (info.offset.x > swipeThreshold || info.offset.x < -swipeThreshold) {
+                removeToast(toast.id);
+              }
+            }}
+            whileHover={{ y: -2, scale: 1.01 }}
+            whileTap={{ scale: 0.98 }}
+            className={`toast-item toast-${toast.type || 'info'}`}
+            onTap={() => {
+              // Click/Tap to dismiss
+              removeToast(toast.id);
+            }}
+            style={{ cursor: 'grab' }}
+          >
+            <div className="toast-icon">
+              {icons[toast.type] || IconInfo}
+            </div>
+            <div className="toast-content">
+              {toast.title && <div className="toast-title">{toast.title}</div>}
+              <div className="toast-message">{toast.message}</div>
+            </div>
+            <div 
+              className="toast-progress" 
+              style={{ animationDuration: `${toast.duration || 5000}ms` }} 
+            />
+          </motion.div>
+        ))}
+      </AnimatePresence>
     </div>
   );
 }
